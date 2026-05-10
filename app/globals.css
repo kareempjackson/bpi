@@ -1,26 +1,352 @@
 @import "tailwindcss";
 
+@theme {
+  /* ─── Brand base ─────────────────────────────────────────────── */
+  --color-base-blue: #000036;
+  --color-base-green: #06fe83;
+  --color-base-teal: #0870ad;
+  --color-base-white: #ffffff;
+  --color-base-black: #000000;
+
+  /* ─── Primary (Blue) ─────────────────────────────────────────── */
+  --color-primary-25: #b3b3c3;
+  --color-primary-50: #80809b;
+  --color-primary-100: #666686;
+  --color-primary-200: #4d4d72;
+  --color-primary-300: #33335e;
+  --color-primary-400: #1a1a4a;
+  --color-primary-500: #000036;
+  --color-primary-600: #000031;
+  --color-primary-700: #000026;
+  --color-primary-800: #000010;
+  --color-primary-900: #00000b;
+  --color-primary-950: #000005;
+
+  /* ─── Error (Green per BPI brand) ────────────────────────────── */
+  --color-error-25: #cdffe6;
+  --color-error-50: #9bffcd;
+  --color-error-100: #83ffc1;
+  --color-error-200: #51fea8;
+  --color-error-300: #38fe9c;
+  --color-error-400: #1ffe8f;
+  --color-error-500: #06fe83;
+  --color-error-600: #05cb69;
+  --color-error-700: #04b25c;
+  --color-error-800: #037f42;
+  --color-error-900: #01331a;
+  --color-error-950: #01190d;
+
+  /* ─── Warning (Teal per BPI brand) ───────────────────────────── */
+  --color-warning-25: #cee2ef;
+  --color-warning-50: #b5d4e6;
+  --color-warning-100: #84b8d6;
+  --color-warning-200: #529bc6;
+  --color-warning-300: #398dbd;
+  --color-warning-400: #217eb5;
+  --color-warning-500: #0870ad;
+  --color-warning-600: #07659c;
+  --color-warning-700: #064e79;
+  --color-warning-800: #054368;
+  --color-warning-900: #022234;
+  --color-warning-950: #010b11;
+
+  /* ─── Gray (light mode default) ──────────────────────────────── */
+  --color-gray-25: #fcfcfd;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f2f4f7;
+  --color-gray-200: #e4e7ec;
+  --color-gray-300: #d0d5dd;
+  --color-gray-400: #98a2b3;
+  --color-gray-500: #667085;
+  --color-gray-600: #475467;
+  --color-gray-700: #344054;
+  --color-gray-800: #182230;
+  --color-gray-900: #101828;
+  --color-gray-950: #0c111d;
+
+  /* ─── Gray (dark mode) ───────────────────────────────────────── */
+  --color-gray-dark-25: #fafafa;
+  --color-gray-dark-50: #f5f5f6;
+  --color-gray-dark-100: #f0f1f1;
+  --color-gray-dark-200: #ececed;
+  --color-gray-dark-300: #cecfd2;
+  --color-gray-dark-400: #94969c;
+  --color-gray-dark-500: #85888e;
+  --color-gray-dark-600: #61646c;
+  --color-gray-dark-700: #333741;
+  --color-gray-dark-800: #1f242f;
+  --color-gray-dark-900: #161b26;
+  --color-gray-dark-950: #0c111d;
+
+  /* ─── Fonts ──────────────────────────────────────────────────── */
+  --font-display: var(--font-albert-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* ─── Display type scale (Albert Sans) ───────────────────────── */
+  --text-display-2xl: 4.5rem;
+  --text-display-2xl--line-height: 5.625rem;
+  --text-display-2xl--letter-spacing: -0.02em;
+  --text-display-xl: 3.75rem;
+  --text-display-xl--line-height: 4.5rem;
+  --text-display-xl--letter-spacing: -0.02em;
+  --text-display-lg: 3rem;
+  --text-display-lg--line-height: 3.75rem;
+  --text-display-lg--letter-spacing: -0.02em;
+  --text-display-md: 2.25rem;
+  --text-display-md--line-height: 2.75rem;
+  --text-display-md--letter-spacing: -0.02em;
+  --text-display-sm: 1.875rem;
+  --text-display-sm--line-height: 2.375rem;
+  --text-display-xs: 1.5rem;
+  --text-display-xs--line-height: 2rem;
+
+  /* ─── Body type scale (Inter, stand-in for Avenir Next) ──────── */
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.875rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.75rem;
+  --text-md: 1rem;
+  --text-md--line-height: 1.5rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.125rem;
+
+  /* ─── Radius ─────────────────────────────────────────────────── */
+  --radius-sm: 12px;
+  --radius-lg: 24px;
+  --radius-round: 60px;
+
+  /* ─── Layout tokens (per grid spec) ──────────────────────────── */
+  --spacing-gutter: 24px;
+  --spacing-gutter-sm: 12px;
+  --spacing-margin: 120px;
+  --spacing-column: 84px;
+
+  --container-page: 84rem;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: var(--color-base-white);
+  --foreground: var(--color-primary-500);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Global compact scale — shrinks every rem-based size (type, spacing, gaps) */
+@layer base {
+  html {
+    font-size: 81.25%;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+/* ─── Hide page-level header chrome while the menu overlay is open ─ */
+body.menu-open [data-page-header] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── Lenis smooth scroll baseline ───────────────────────────── */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* ─── Hero entrance stagger ──────────────────────────────────── */
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+@keyframes hero-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.hero-anim {
+  opacity: 0;
+  animation: hero-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--anim-delay, 0s);
+  will-change: transform, opacity;
+}
+.hero-anim-fade {
+  opacity: 0;
+  animation: hero-fade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--anim-delay, 0s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-anim,
+  .hero-anim-fade {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ─── Ken Burns drift on hero video ──────────────────────────── */
+@keyframes hero-ken-burns {
+  0%   { transform: scale(1.04) translate3d(-0.5%, -0.4%, 0); }
+  100% { transform: scale(1.10) translate3d(0.6%, 0.4%, 0); }
+}
+.hero-video {
+  animation: hero-ken-burns 24s ease-in-out infinite alternate;
+  transform-origin: center;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-video {
+    animation: none;
+    transform: none;
+  }
+}
+
+/* ─── Parallax (driven by ParallaxController via --parallax-y) ─── */
+[data-parallax] {
+  transform: translate3d(0, var(--parallax-y, 0), 0)
+    scale(var(--parallax-scale, 1));
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-parallax] {
+    transform: none !important;
+  }
+}
+
+/* ─── Scroll-reveal system ───────────────────────────────────── */
+:root {
+  --reveal-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --reveal-duration: 0.6s;
+  --reveal-rise: 16px;
+}
+
+[data-reveal],
+[data-reveal-stagger] > * {
+  opacity: 0;
+  transform: translate3d(0, var(--reveal-rise), 0);
+  transition:
+    opacity var(--reveal-duration) var(--reveal-ease),
+    transform var(--reveal-duration) var(--reveal-ease);
+  will-change: transform, opacity;
+}
+[data-reveal="fade"] {
+  transform: none;
+}
+[data-reveal="scale"] {
+  transform: scale(1.04);
+  transform-origin: center;
+}
+
+[data-reveal][data-in-view],
+[data-reveal-stagger][data-in-view] > * {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+[data-reveal="scale"][data-in-view] {
+  transform: scale(1);
+}
+
+[data-reveal-stagger][data-in-view] > *:nth-child(1)  { transition-delay: 0ms; }
+[data-reveal-stagger][data-in-view] > *:nth-child(2)  { transition-delay: 55ms; }
+[data-reveal-stagger][data-in-view] > *:nth-child(3)  { transition-delay: 110ms; }
+[data-reveal-stagger][data-in-view] > *:nth-child(4)  { transition-delay: 165ms; }
+[data-reveal-stagger][data-in-view] > *:nth-child(5)  { transition-delay: 220ms; }
+[data-reveal-stagger][data-in-view] > *:nth-child(6)  { transition-delay: 275ms; }
+[data-reveal-stagger][data-in-view] > *:nth-child(7)  { transition-delay: 330ms; }
+[data-reveal-stagger][data-in-view] > *:nth-child(8)  { transition-delay: 385ms; }
+[data-reveal-stagger][data-in-view] > *:nth-child(9)  { transition-delay: 440ms; }
+[data-reveal-stagger][data-in-view] > *:nth-child(10) { transition-delay: 495ms; }
+[data-reveal-stagger][data-in-view] > *:nth-child(11) { transition-delay: 550ms; }
+[data-reveal-stagger][data-in-view] > *:nth-child(12) { transition-delay: 605ms; }
+
+/* CareMap mobile fallback — sequential reveal, only when [data-care-mobile] (set by component) */
+[data-care-mobile] [data-care-node] {
+  opacity: 0;
+  transform: scale(0.6);
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    opacity 0.9s var(--reveal-ease),
+    transform 0.9s var(--reveal-ease);
+}
+[data-care-mobile][data-care-revealed] [data-care-node] {
+  opacity: 1;
+  transform: scale(1);
+}
+[data-care-mobile] [data-care-node]:nth-of-type(1) { transition-delay: 80ms; }
+[data-care-mobile] [data-care-node]:nth-of-type(2) { transition-delay: 180ms; }
+[data-care-mobile] [data-care-node]:nth-of-type(3) { transition-delay: 280ms; }
+[data-care-mobile] [data-care-node]:nth-of-type(4) { transition-delay: 380ms; }
+[data-care-mobile] [data-care-node]:nth-of-type(5) { transition-delay: 480ms; }
+[data-care-mobile] [data-care-node]:nth-of-type(6) { transition-delay: 580ms; }
+
+[data-care-mobile] [data-care-label] {
+  opacity: 0;
+  transform: translate3d(0, 12px, 0);
+  transition:
+    opacity 0.7s var(--reveal-ease),
+    transform 0.7s var(--reveal-ease);
+}
+[data-care-mobile][data-care-revealed] [data-care-label] {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+[data-care-mobile][data-care-revealed] [data-care-label]:nth-of-type(1) { transition-delay: 700ms; }
+[data-care-mobile][data-care-revealed] [data-care-label]:nth-of-type(2) { transition-delay: 800ms; }
+[data-care-mobile][data-care-revealed] [data-care-label]:nth-of-type(3) { transition-delay: 900ms; }
+
+[data-reveal]:focus-within,
+[data-reveal-stagger]:focus-within > * {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal],
+  [data-reveal-stagger] > *,
+  [data-care-node],
+  [data-care-label] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* Hide native scrollbars (used by carousels with custom progress UI) */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide elements (e.g. top-nav links) when the site menu is open */
+body.menu-open [data-hide-on-menu] {
+  visibility: hidden;
+  pointer-events: none;
 }
