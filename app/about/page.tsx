@@ -225,8 +225,8 @@ const PILLARS: Pillar[] = [
 export default function AboutPage() {
   return (
     <main className="bg-error-25">
-      <section className="px-12 md:px-20 lg:px-32 pt-8 md:pt-10 lg:pt-12 pb-14 lg:pb-20">
-        <div className="mx-auto max-w-page relative">
+      <section className="px-5 md:px-20 lg:px-32 pt-6 md:pt-10 lg:pt-12 pb-10 md:pb-14 lg:pb-20">
+        <div className="mx-auto max-w-page md:relative">
           <div data-reveal="scale">
             <UnionShape
               size={1200}
@@ -236,8 +236,10 @@ export default function AboutPage() {
             />
           </div>
 
+          {/* Hero copy — stacks below the shape on mobile, overlays inside
+              the shape's left negative space on md+. */}
           <div
-            className="absolute left-0 w-[52%] pt-4 lg:pt-6 pr-4 lg:pr-10"
+            className="mt-6 md:mt-0 md:absolute md:left-0 md:w-[52%] md:pt-4 lg:pt-6 md:pr-4 lg:pr-10"
             style={{ top: "60%" }}
           >
             <h1
@@ -245,7 +247,7 @@ export default function AboutPage() {
               style={{ "--anim-delay": "0s" } as CSSProperties}
             >
               We&apos;re not a traditional agency.
-              <br />
+              <br className="hidden md:inline" />{" "}
               We&apos;re a market creator.
             </h1>
             <p
@@ -269,10 +271,10 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="px-12 md:px-20 lg:px-32 pt-10 md:pt-12 lg:pt-16 pb-10 lg:pb-14">
+      <section className="px-5 md:px-20 lg:px-32 pt-10 md:pt-12 lg:pt-16 pb-10 lg:pb-14">
         <div
           data-reveal-stagger
-          className="mx-auto max-w-page rounded-lg px-5 py-14 md:px-8 md:py-16 lg:px-12 lg:py-24"
+          className="mx-auto max-w-page rounded-lg px-5 py-8 md:px-8 md:py-16 lg:px-12 lg:py-24"
           style={{ backgroundColor: "#CAF1FF" }}
         >
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-5 lg:mb-6">
@@ -307,7 +309,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="px-12 md:px-20 lg:px-32 pt-12 lg:pt-16 pb-12 lg:pb-16">
+      <section className="px-5 md:px-20 lg:px-32 pt-8 md:pt-12 lg:pt-16 pb-8 md:pb-12 lg:pb-16">
         <div className="mx-auto max-w-page">
           <div data-reveal-stagger className="max-w-2xl mb-6 lg:mb-8">
             <h2 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
@@ -331,7 +333,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="px-12 md:px-20 lg:px-32 pt-12 lg:pt-16 pb-12 lg:pb-16">
+      <section className="px-5 md:px-20 lg:px-32 pt-8 md:pt-12 lg:pt-16 pb-8 md:pb-12 lg:pb-16">
         <div className="mx-auto max-w-page">
           <div data-reveal-stagger className="max-w-3xl mb-6 lg:mb-8">
             <h2 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
@@ -352,7 +354,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="px-12 md:px-20 lg:px-32 pt-8 lg:pt-10 pb-8 lg:pb-10">
+      <section className="px-5 md:px-20 lg:px-32 pt-8 lg:pt-10 pb-8 lg:pb-10">
         <div className="mx-auto max-w-page">
           <div
             data-reveal="scale"
@@ -374,8 +376,8 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="px-12 md:px-20 lg:px-32 pt-10 lg:pt-14 pb-14 lg:pb-20">
-        <div data-reveal-stagger className="mx-auto max-w-page rounded-lg bg-white px-5 py-14 md:px-8 md:py-16 lg:px-12 lg:py-24">
+      <section className="px-5 md:px-20 lg:px-32 pt-8 md:pt-10 lg:pt-14 pb-10 md:pb-14 lg:pb-20">
+        <div data-reveal-stagger className="mx-auto max-w-page rounded-lg bg-white px-5 py-8 md:px-8 md:py-16 lg:px-12 lg:py-24">
           <div className="mb-6 lg:mb-8">
             <p className="text-[10px] lg:text-xs font-bold tracking-[0.14em] text-primary-500/70 uppercase">
               Where Investment Meets Execution
@@ -389,9 +391,9 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="px-12 md:px-20 lg:px-32 pt-10 lg:pt-14 pb-14 lg:pb-20">
+      <section className="px-5 md:px-20 lg:px-32 pt-8 md:pt-10 lg:pt-14 pb-10 md:pb-14 lg:pb-20">
         <div
-          className="mx-auto max-w-page rounded-lg px-5 py-14 md:px-8 md:py-16 lg:px-12 lg:py-24"
+          className="mx-auto max-w-page rounded-lg px-5 py-8 md:px-8 md:py-16 lg:px-12 lg:py-24"
           style={{ backgroundColor: "#CAF1FF" }}
         >
           <div data-reveal-stagger className="mx-auto max-w-5xl xl:max-w-6xl">
@@ -499,10 +501,10 @@ function LeaderLabel({
 }) {
   return (
     <div className={`absolute ${className}`}>
-      <p className="font-display text-base lg:text-lg font-semibold text-white leading-tight tracking-tight">
+      <p className="font-display text-sm md:text-base lg:text-lg font-semibold text-white leading-tight tracking-tight">
         {name}
       </p>
-      <p className="mt-1 text-xs lg:text-sm text-white/80 leading-snug">
+      <p className="mt-1 text-[11px] md:text-xs lg:text-sm text-white/80 leading-snug">
         {role}
       </p>
       <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-[grid-template-rows] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]">
@@ -550,24 +552,24 @@ function LeadershipContactCard() {
 function MissionCardItem({ card }: { card: MissionCard }) {
   return (
     <div
-      className="rounded-lg p-6 lg:p-10 flex items-stretch gap-6 lg:gap-10 w-[82vw] md:w-[70vw] lg:w-[60vw] xl:w-[52vw] shrink-0 min-h-112 lg:min-h-128"
+      className="rounded-lg p-4 md:p-6 lg:p-10 flex items-stretch gap-4 md:gap-6 lg:gap-10 w-[86vw] md:w-[70vw] lg:w-[60vw] xl:w-[52vw] shrink-0 min-h-80 md:min-h-112 lg:min-h-128"
       style={{ backgroundColor: card.bg }}
     >
-      <div className="flex flex-col justify-between gap-5 flex-1 min-w-0">
-        <div className="flex flex-col gap-4">
+      <div className="flex flex-col justify-between gap-4 md:gap-5 flex-1 min-w-0">
+        <div className="flex flex-col gap-3 md:gap-4">
           <div className="flex items-center gap-2 text-primary-500">
-            <Logo size={60} className="text-primary-500" />
+            <Logo size={60} className="text-primary-500 w-10 md:w-14 lg:w-15 h-auto" />
           </div>
-          <h3 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.15] tracking-tight">
+          <h3 className="font-display text-base md:text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.15] tracking-tight">
             {card.title}
           </h3>
-          <p className="text-sm lg:text-base text-primary-500/75 leading-relaxed max-w-md">
+          <p className="text-xs md:text-sm lg:text-base text-primary-500/75 leading-relaxed max-w-md">
             {card.description}
           </p>
         </div>
         <a
           href={card.href}
-          className="inline-flex items-center gap-2 text-sm font-semibold text-primary-500 hover:opacity-70 transition-opacity"
+          className="inline-flex items-center gap-2 text-xs md:text-sm font-semibold text-primary-500 hover:opacity-70 transition-opacity"
         >
           Learn more
           <ArrowRight />
@@ -580,7 +582,7 @@ function MissionCardItem({ card }: { card: MissionCard }) {
             size={420}
             imageSrc={card.imageSrc}
             imageAlt={card.imageAlt ?? ""}
-            className="w-full max-w-md lg:max-w-lg h-auto"
+            className="w-full max-w-32 md:max-w-md lg:max-w-lg h-auto"
           />
         </div>
       ) : null}
@@ -590,12 +592,12 @@ function MissionCardItem({ card }: { card: MissionCard }) {
 
 function StatCard({ stat }: { stat: Stat }) {
   return (
-    <div className="rounded-lg p-5 lg:p-6 bg-error-100 flex flex-col justify-between min-h-52 lg:min-h-64 gap-8 lg:gap-10">
+    <div className="rounded-lg p-4 md:p-5 lg:p-6 bg-error-100 flex flex-col justify-between min-h-36 md:min-h-52 lg:min-h-64 gap-5 md:gap-8 lg:gap-10">
       <CountUp
         value={stat.value}
-        className="font-display text-display-sm lg:text-display-md font-semibold text-primary-500 leading-none tracking-tight"
+        className="font-display text-display-xs md:text-display-sm lg:text-display-md font-semibold text-primary-500 leading-none tracking-tight"
       />
-      <p className="text-sm text-primary-500/75 leading-relaxed">
+      <p className="text-xs md:text-sm text-primary-500/75 leading-relaxed">
         {stat.description}
       </p>
     </div>
