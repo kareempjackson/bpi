@@ -112,6 +112,20 @@ export default function StickyTopNav() {
     let raf = 0;
     lastYRef.current = window.scrollY;
 
+    // Mobile browser chrome (iOS status bar, Android URL bar) is tinted
+    // via the `<meta name="theme-color">` tag. Keeping its content in
+    // sync with whatever colour the nav is showing makes the status area
+    // read as a seamless extension of the page on mobile.
+    const themeMeta = document.querySelector<HTMLMetaElement>(
+      'meta[name="theme-color"]'
+    );
+    let lastThemeColor: string | null = null;
+    const setThemeColor = (color: string) => {
+      if (!themeMeta || color === lastThemeColor) return;
+      lastThemeColor = color;
+      themeMeta.setAttribute("content", color);
+    };
+
     const detect = (): { color: string; dark: boolean } | null => {
       const surface = surfaceRef.current;
       if (!surface) return null;
@@ -201,6 +215,13 @@ export default function StickyTopNav() {
         setOverHero(nextOverHero);
       }
 
+      // Over the hero, the nav uses a frosted navy tint — mirror that on
+      // the mobile status bar so the time area reads as part of the
+      // hero card, not a white strip above it.
+      if (nextOverHero) {
+        setThemeColor("#000036");
+      }
+
       // Only sample the page background when the nav is *not* over the
       // hero — over the hero we always use the frost.
       if (!nextOverHero) {
@@ -210,6 +231,9 @@ export default function StickyTopNav() {
             bgRef.current = detected.color;
             setBg(detected.color);
           }
+          // Match the mobile status-bar tint to whatever the nav is
+          // sampling, so the time/battery area extends the page colour.
+          setThemeColor(detected.color);
           if (detected.dark !== isDarkRef.current) {
             isDarkRef.current = detected.dark;
             setIsDark(detected.dark);

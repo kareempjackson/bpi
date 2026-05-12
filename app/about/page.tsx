@@ -225,9 +225,9 @@ const PILLARS: Pillar[] = [
 export default function AboutPage() {
   return (
     <main className="bg-error-25">
-      <section className="px-5 md:px-20 lg:px-32 pt-6 md:pt-10 lg:pt-12 pb-10 md:pb-14 lg:pb-20">
-        <div className="mx-auto max-w-page md:relative">
-          <div data-reveal="scale">
+      <section className="px-5 md:px-20 lg:px-32 pt-6 md:pt-10 lg:pt-12 pb-24 md:pb-14 lg:pb-20">
+        <div className="mx-auto max-w-page relative">
+          <div data-reveal="scale" className="mx-auto max-w-xs md:max-w-none">
             <UnionShape
               size={1200}
               imageSrc={HERO_IMAGE}
@@ -236,10 +236,10 @@ export default function AboutPage() {
             />
           </div>
 
-          {/* Hero copy — stacks below the shape on mobile, overlays inside
-              the shape's left negative space on md+. */}
+          {/* Hero copy — sits inside the shape's bottom-left negative space
+              at every viewport. */}
           <div
-            className="mt-6 md:mt-0 md:absolute md:left-0 md:w-[52%] md:pt-4 lg:pt-6 md:pr-4 lg:pr-10"
+            className="absolute left-0 w-[58%] md:w-[52%] pt-2 md:pt-4 lg:pt-6 pr-3 md:pr-4 lg:pr-10"
             style={{ top: "60%" }}
           >
             <h1
@@ -271,23 +271,23 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="px-5 md:px-20 lg:px-32 pt-10 md:pt-12 lg:pt-16 pb-10 lg:pb-14">
+      <section className="px-5 md:px-20 lg:px-32 pt-6 md:pt-12 lg:pt-16 pb-6 md:pb-10 lg:pb-14">
         <div
           data-reveal-stagger
-          className="mx-auto max-w-page rounded-lg px-5 py-8 md:px-8 md:py-16 lg:px-12 lg:py-24"
+          className="mx-auto max-w-page rounded-lg px-4 py-6 md:px-8 md:py-16 lg:px-12 lg:py-24"
           style={{ backgroundColor: "#CAF1FF" }}
         >
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-5 lg:mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3 md:gap-4 mb-4 md:mb-5 lg:mb-6">
             <div className="max-w-lg">
-              <h2 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
+              <h2 className="font-display text-lg md:text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
                 Our Vision
               </h2>
-              <p className="mt-2 text-sm lg:text-base text-primary-500/75 leading-relaxed">
+              <p className="mt-2 text-xs md:text-sm lg:text-base text-primary-500/75 leading-relaxed">
                 To transform Barbados into the trusted pharmaceutical
                 manufacturing gateway for the Caribbean and the Global South.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <div className="flex flex-wrap items-center gap-2 md:gap-3 shrink-0">
               <a href="/contact" className="inline-flex">
                 <Button variant="primary" size="sm">
                   Partner With BPI
@@ -358,7 +358,7 @@ export default function AboutPage() {
         <div className="mx-auto max-w-page">
           <div
             data-reveal="scale"
-            className="relative aspect-2/1 rounded-lg overflow-hidden"
+            className="relative aspect-3/1 md:aspect-2/1 rounded-lg overflow-hidden"
           >
             <div
               data-parallax="0.06"
@@ -611,7 +611,7 @@ function PillarCard({ pillar }: { pillar: Pillar }) {
         className="rounded-lg overflow-hidden flex flex-col"
         style={{ backgroundColor: pillar.bg }}
       >
-        <div data-reveal="scale" className="p-5 lg:p-6">
+        <div data-reveal="scale" className="p-3 md:p-5 lg:p-6">
           <BlogPostShape
             size={320}
             imageSrc={pillar.imageSrc}
@@ -619,11 +619,11 @@ function PillarCard({ pillar }: { pillar: Pillar }) {
             className="w-full h-auto"
           />
         </div>
-        <div className="px-5 lg:px-6 pb-6 lg:pb-7 flex flex-col gap-3">
+        <div className="px-4 md:px-5 lg:px-6 pb-4 md:pb-6 lg:pb-7 flex flex-col gap-2 md:gap-3">
           <span className="text-[10px] lg:text-xs font-bold tracking-[0.12em] text-primary-500 uppercase">
             {pillar.eyebrow}
           </span>
-          <p className="text-sm lg:text-base text-primary-500/80 leading-relaxed">
+          <p className="text-xs md:text-sm lg:text-base text-primary-500/80 leading-relaxed">
             {pillar.description}
           </p>
         </div>
@@ -636,16 +636,16 @@ function PillarCard({ pillar }: { pillar: Pillar }) {
       className="rounded-lg overflow-hidden flex flex-col"
       style={{ backgroundColor: pillar.bg }}
     >
-      <div className="px-5 lg:px-6 pt-6 lg:pt-7 flex flex-col gap-3">
+      <div className="px-4 md:px-5 lg:px-6 pt-4 md:pt-6 lg:pt-7 flex flex-col gap-2 md:gap-3">
         <span className="text-[10px] lg:text-xs font-bold tracking-[0.12em] text-primary-500 uppercase">
           {pillar.eyebrow}
         </span>
-        <p className="text-sm lg:text-base text-primary-500/80 leading-relaxed">
+        <p className="text-xs md:text-sm lg:text-base text-primary-500/80 leading-relaxed">
           {pillar.description}
         </p>
       </div>
-      <div className="px-5 lg:px-6 pt-5 lg:pt-6 pb-5 lg:pb-6 mt-auto">
-        <div data-reveal="scale" className="relative aspect-5/4 rounded-sm overflow-hidden">
+      <div className="px-4 md:px-5 lg:px-6 pt-3 md:pt-5 lg:pt-6 pb-3 md:pb-5 lg:pb-6 mt-auto">
+        <div data-reveal="scale" className="relative aspect-video md:aspect-5/4 rounded-sm overflow-hidden">
           <Image
             src={pillar.imageSrc}
             alt={pillar.imageAlt}
