@@ -1,6 +1,4 @@
-import type { CSSProperties } from "react";
 import Image from "next/image";
-import Button from "./Button";
 
 type SocialKind = "Website" | "LinkedIn" | "X" | "Instagram";
 type SocialLink = { kind: SocialKind; href: string; label?: string };
@@ -18,9 +16,9 @@ type Props = {
   socials?: SocialLink[];
 };
 
-const DEFAULT_QUOTE = `"2–3 sentences. Structural and grounded. Should carry the DNA of the narrative without sounding like a brochure."`;
+const DEFAULT_QUOTE = `This has been a major achievement for a small state like Barbados, to be able to [position] itself at the centre of the Americas as a location for the development of a pharmaceutical industry.`;
 const DEFAULT_BODY =
-  "Barbados Pharmaceutical Inc. is building the pharmaceutical infrastructure Barbados and its region deserve and proving that small states can shape the systems they depend on.";
+  "Barbados Pharmaceutical Inc. is building the gateway that connects Caribbean demand with global pharmaceutical expertise.";
 
 const DEFAULT_SOCIALS: SocialLink[] = [
   { kind: "Website", href: "#", label: "Website" },
@@ -32,8 +30,8 @@ const DEFAULT_SOCIALS: SocialLink[] = [
 export default function LeaderSection({
   quote = DEFAULT_QUOTE,
   body = DEFAULT_BODY,
-  name = "[Name]",
-  title = "[Title]",
+  name = "Rt. Hon. Mia Amor Mottley",
+  title = "Prime Minister of Barbados",
   org = "Barbados Pharmaceutical Inc.",
   quoteImageSrc = "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
   quoteImageAlt = "Leader speaking at podium",
@@ -42,80 +40,84 @@ export default function LeaderSection({
   socials = DEFAULT_SOCIALS,
 }: Props) {
   return (
-    <section data-nav-theme="light" className="bg-error-25 px-8 md:px-16 lg:px-28 py-12 md:py-16 lg:py-24">
-      <div data-reveal-stagger className="mx-auto max-w-page flex flex-col gap-y-6 lg:flex-row lg:justify-between mb-9 lg:mb-12">
-        <div className="lg:w-[42%]">
-          <p className="font-display text-display-xs md:text-display-sm font-semibold text-primary-500 leading-tight">
-            {quote}
-          </p>
-        </div>
-        <div className="lg:w-[32%]">
-          <p className="text-sm lg:text-md text-primary-500 leading-relaxed">
-            {body}
-          </p>
-        </div>
+    <section
+      data-nav-theme="light"
+      className="bg-error-25 px-12 md:px-20 lg:px-32 pt-20 md:pt-28 lg:pt-36 pb-16 md:pb-20 lg:pb-28"
+    >
+      {/* TOP: large quote (left) + small body text (right) — no cards */}
+      <div
+        data-reveal-stagger
+        className="mx-auto max-w-page mb-16 md:mb-20 lg:mb-24 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-y-6 gap-x-10"
+      >
+        <blockquote className="lg:w-[55%] font-display text-display-sm md:text-display-md font-normal text-primary-500 leading-[1.2] tracking-tight">
+          &quot;{quote}&quot;
+        </blockquote>
+        <p className="lg:w-[28%] text-base md:text-lg lg:text-xl text-primary-500 leading-relaxed">
+          {body}
+        </p>
       </div>
 
-      <div data-reveal-stagger className="mx-auto max-w-page flex flex-col gap-y-6 lg:flex-row lg:gap-x-5 lg:items-stretch">
-        <div data-reveal="scale" className="lg:w-[55%] relative aspect-4/3 rounded-lg overflow-hidden">
-          <div
-            data-parallax="0.10"
-            className="absolute inset-0"
-            style={{ "--parallax-scale": "1.12" } as CSSProperties}
-          >
+      {/* BOTTOM: primary image (left) + right column (yellow name card + B&W portrait) */}
+      <div
+        data-reveal-stagger
+        className="mx-auto max-w-page flex flex-col gap-y-5 lg:flex-row lg:gap-x-5 lg:items-stretch"
+      >
+        {/* Left: primary image */}
+        <div
+          data-reveal="scale"
+          className="lg:w-[50%] relative aspect-5/4 rounded-[48px] overflow-hidden shrink-0"
+        >
+          <div className="absolute inset-0">
             <Image
               src={quoteImageSrc}
               alt={quoteImageAlt}
               fill
-              sizes="(min-width: 1024px) 55vw, 90vw"
+              sizes="(min-width: 1024px) 50vw, 90vw"
               className="object-cover"
             />
           </div>
         </div>
 
-        <div className="lg:flex-1 flex flex-col gap-5 lg:gap-6">
+        {/* Right column: yellow name card on top + B&W portrait below */}
+        <div className="lg:flex-1 flex flex-col gap-5">
+          {/* Yellow name card */}
           <div
-            className="rounded-lg p-6 lg:p-8"
+            data-reveal
+            className="rounded-4xl p-5 lg:p-6 lg:mt-16"
             style={{ backgroundColor: "#dde885" }}
           >
-            <h3 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.2]">
+            <h3 className="font-display text-base lg:text-lg font-bold text-primary-500 leading-tight">
               {name}, {title}
             </h3>
-            <p className="mt-2 text-sm lg:text-md text-primary-500/80">
+            <p className="mt-0.5 text-xs lg:text-sm text-primary-500/75">
               {org}
             </p>
-            <div className="mt-5 flex items-center gap-3">
+            <div className="mt-4 flex items-center gap-2">
               {socials.map((s) => (
                 <a
                   key={s.kind}
                   href={s.href}
                   aria-label={s.label ?? s.kind}
+                  className="inline-flex items-center justify-center size-7 rounded-full border border-dashed border-primary-500/45 text-primary-500/80 hover:border-primary-500/75 hover:text-primary-500 transition-colors"
                 >
-                  <Button
-                    variant="tertiary-light"
-                    iconOnly="sm"
-                    aria-hidden
-                    tabIndex={-1}
-                  >
-                    <SocialIcon kind={s.kind} />
-                  </Button>
+                  <SocialIcon kind={s.kind} />
                 </a>
               ))}
             </div>
           </div>
 
-          <div data-reveal="scale" className="relative aspect-4/5 w-full lg:w-[55%] rounded-lg overflow-hidden">
-            <div
-              data-parallax="0.14"
-              className="absolute inset-0"
-              style={{ "--parallax-scale": "1.14" } as CSSProperties}
-            >
+          {/* B&W portrait — pushed to the bottom so it aligns with the primary image's bottom edge */}
+          <div
+            data-reveal="scale"
+            className="relative w-full sm:w-[50%] aspect-square rounded-[36px] overflow-hidden lg:mt-auto"
+          >
+            <div className="absolute inset-0">
               <Image
                 src={portraitImageSrc}
                 alt={portraitImageAlt}
                 fill
-                sizes="(min-width: 1024px) 22vw, 90vw"
-                className="object-cover"
+                sizes="(min-width: 1024px) 30vw, 90vw"
+                className="object-cover grayscale"
               />
             </div>
           </div>

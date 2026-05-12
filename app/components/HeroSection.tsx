@@ -48,6 +48,9 @@ export default function HeroSection() {
   const copyWrapRef = useRef<HTMLDivElement>(null);
   const heroWrapRef = useRef<HTMLDivElement>(null);
   const tintRef = useRef<HTMLDivElement>(null);
+  const videoWrapRef = useRef<HTMLDivElement>(null);
+  const navLogoRef = useRef<HTMLDivElement>(null);
+  const navLinksRef = useRef<HTMLDivElement>(null);
 
   const [isDesktop, setIsDesktop] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -104,6 +107,33 @@ export default function HeroSection() {
         // Add a deepening dark layer as we scroll into the video
         tintRef.current.style.opacity = String(0.22 + tintBoost);
       }
+      if (videoWrapRef.current) {
+        // Subtle parallax: video drifts down ~40px over the hero range,
+        // creating depth against the card's scale-up. Stays well within the
+        // card so no edges are exposed.
+        videoWrapRef.current.style.transform = `translate3d(0, ${p * 40}px, 0)`;
+      }
+
+      // Hero-embedded nav fades out early in the scroll. The card scales
+      // up fast and quickly fills the viewport — leaving the embedded nav
+      // sitting on top of the video looks awkward. We fade + lift it out
+      // between ~3 % and ~18 % of the scroll range so it's gone by the
+      // time the user is engaging with the video; the global sticky nav
+      // takes over on scroll-up after ~62 % of the range.
+      const navFadeP = local(p, 0.03, 0.18);
+      const navOpacity = 1 - navFadeP;
+      const navTranslateY = navFadeP * -14;
+      const navTransform = `translate3d(0, ${navTranslateY}px, 0)`;
+      if (navLogoRef.current) {
+        navLogoRef.current.style.opacity = String(navOpacity);
+        navLogoRef.current.style.transform = navTransform;
+      }
+      if (navLinksRef.current) {
+        navLinksRef.current.style.opacity = String(navOpacity);
+        navLinksRef.current.style.transform = navTransform;
+        navLinksRef.current.style.pointerEvents =
+          navOpacity < 0.05 ? "none" : "";
+      }
     };
 
     const onScroll = () => {
@@ -142,6 +172,7 @@ export default function HeroSection() {
 
       <section
         ref={sectionRef}
+        data-page-hero
         className="relative bg-error-25"
         style={pinned ? { height: "180vh" } : undefined}
       >
@@ -170,18 +201,23 @@ export default function HeroSection() {
                 } as CSSProperties
               }
             >
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                preload="metadata"
-                disableRemotePlayback
-                disablePictureInPicture
-                className="hero-video absolute inset-0 w-full h-full object-cover"
+              <div
+                ref={videoWrapRef}
+                className="absolute inset-x-0 top-[-6%] bottom-[-6%] will-change-transform"
               >
-                <source src={VIDEO_SRC} type="video/mp4" />
-              </video>
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="metadata"
+                  disableRemotePlayback
+                  disablePictureInPicture
+                  className="hero-video absolute inset-0 w-full h-full object-cover"
+                >
+                  <source src={VIDEO_SRC} type="video/mp4" />
+                </video>
+              </div>
 
               {/* Brand tint — opacity bumps as we scroll deeper */}
               <div
@@ -198,24 +234,29 @@ export default function HeroSection() {
             </div>
 
             <div
+              ref={navLogoRef}
               data-page-header
-              className="absolute z-20 hero-anim flex items-center"
+              className="absolute z-20 flex items-center will-change-[opacity,transform]"
               style={
                 {
                   left: "var(--logo-left-pct)",
-                  top: 0,
+                  top: "16px",
                   height: "var(--notch-shelf-h-pct)",
-                  "--anim-delay": "0.15s",
                 } as CSSProperties
               }
             >
-              <Logo size={124} className="text-white" />
+              <Logo
+                size={175}
+                className="block text-white hero-anim"
+                style={{ "--anim-delay": "0.15s" } as CSSProperties}
+              />
             </div>
 
             <div
-              className="absolute z-30 hidden md:flex items-center justify-end gap-7 lg:gap-9"
+              ref={navLinksRef}
+              className="absolute z-30 hidden md:flex items-center justify-end gap-7 lg:gap-9 will-change-[opacity,transform]"
               style={{
-                right: "var(--notch-right-pct)",
+                right: "calc(var(--notch-right-pct) + 12px)",
                 top: 0,
                 height: "var(--notch-shelf-h-pct)",
                 maxWidth: "var(--notch-shelf-w-pct)",
@@ -241,7 +282,7 @@ export default function HeroSection() {
                 className="hero-anim-fade"
                 style={{ "--anim-delay": "0.55s" } as CSSProperties}
               >
-                <MenuLauncher size={104} />
+                <MenuLauncher size={92} />
               </div>
             </div>
 
@@ -249,27 +290,27 @@ export default function HeroSection() {
               className="absolute top-3 right-3 z-30 md:hidden hero-anim-fade"
               style={{ "--anim-delay": "0.45s" } as CSSProperties}
             >
-              <MenuLauncher size={84} />
+              <MenuLauncher size={76} />
             </div>
 
             <div
               ref={copyWrapRef}
-              className="absolute bottom-0 left-0 z-10 px-8 lg:px-14 pb-20 lg:pb-28 max-w-2xl"
+              className="absolute bottom-0 left-0 z-10 px-8 lg:px-14 pb-36 lg:pb-48 max-w-2xl"
             >
               <h1
-                className="hero-anim font-display text-display-md lg:text-display-lg font-medium text-white tracking-[-0.03em] leading-[1.02]"
+                className="hero-anim font-display text-display-lg font-semibold text-white tracking-[-0.03em] leading-[1.02]"
                 style={{ "--anim-delay": "0.65s" } as CSSProperties}
               >
-                We are building the pharmaceutical infrastructure Barbados and
-                its region deserve.
+                Building the Caribbean&apos;s pharmaceutical gateway.
               </h1>
               <div className="mt-7 lg:mt-9 flex items-center gap-6">
                 <p
-                  className="hero-anim text-sm text-white/70 max-w-sm leading-[1.6]"
+                  className="hero-anim text-md lg:text-lg text-white/70 max-w-md leading-[1.6]"
                   style={{ "--anim-delay": "0.78s" } as CSSProperties}
                 >
-                  A manufacturer. A regulator. A regional supply chain. A model
-                  for small states.
+                  97% of Caribbean medicines are imported. BPI is building the
+                  manufacturing capacity, supply chain, and regulatory
+                  infrastructure to change that.
                 </p>
                 <div
                   className="hero-anim shrink-0"

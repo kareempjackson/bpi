@@ -19,6 +19,8 @@ type Props = Omit<
   fill?: string;
   /** Add a darken gradient at the bottom of the shape (clipped to the path). */
   darkBottom?: boolean;
+  /** Classes applied to the inner <image> element (e.g. zoom on hover). */
+  imageClassName?: string;
 };
 
 const VIEWBOX = "0 0 372 444";
@@ -39,6 +41,7 @@ export default function LeaderShape({
   fill = "#000036",
   darkBottom = false,
   className,
+  imageClassName,
   ...rest
 }: Props) {
   const rawId = useId().replace(/[^a-zA-Z0-9]/g, "");
@@ -64,35 +67,41 @@ export default function LeaderShape({
         </clipPath>
         {darkBottom ? (
           <linearGradient id={gradientId} x1="0" y1="1" x2="0" y2="0">
-            <stop offset="0%" stopColor="#000000" stopOpacity="0.75" />
-            <stop offset="55%" stopColor="#000000" stopOpacity="0.3" />
+            <stop offset="0%" stopColor="#000000" stopOpacity="0.55" />
+            <stop offset="55%" stopColor="#000000" stopOpacity="0.2" />
             <stop offset="100%" stopColor="#000000" stopOpacity="0" />
           </linearGradient>
         ) : null}
       </defs>
       {imageSrc ? (
-        <image
-          href={imageSrc}
-          x="0"
-          y="0"
-          width={W}
-          height={H}
-          preserveAspectRatio="xMidYMid slice"
-          clipPath={`url(#${clipId})`}
-        />
+        <g clipPath={`url(#${clipId})`}>
+          <image
+            href={imageSrc}
+            x="0"
+            y="0"
+            width={W}
+            height={H}
+            preserveAspectRatio="xMidYMid slice"
+            className={imageClassName}
+            style={
+              imageClassName
+                ? { transformBox: "fill-box", transformOrigin: "center" }
+                : undefined
+            }
+          />
+          {darkBottom ? (
+            <rect
+              x="0"
+              y={H - 200}
+              width={W}
+              height="200"
+              fill={`url(#${gradientId})`}
+            />
+          ) : null}
+        </g>
       ) : (
         <path d={path} fill={fill} />
       )}
-      {darkBottom && imageSrc ? (
-        <rect
-          x="0"
-          y={H - 200}
-          width={W}
-          height="200"
-          fill={`url(#${gradientId})`}
-          clipPath={`url(#${clipId})`}
-        />
-      ) : null}
     </svg>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 type MenuMedia =
   | { type: "video"; src: string }
@@ -258,15 +259,16 @@ export default function Menu({
   }, [hoveredIndex]);
 
   if (!isOpen) return null;
+  if (typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-label="Site menu"
-      className="fixed inset-0 z-50 bg-warning-500/0 p-3 lg:p-4"
+      className="fixed inset-0 z-50 flex p-3 lg:p-4 bg-error-25"
     >
-      <div className="relative w-full h-full rounded-lg overflow-hidden flex">
+      <div className="relative flex-1 rounded-lg overflow-hidden flex min-h-0">
         {/* Combined main + sub-menu region */}
         <div
           className="flex-1 flex"
@@ -281,14 +283,15 @@ export default function Menu({
             <div className="h-12 lg:h-16" />
 
             {/* Links */}
-            <nav className="flex-1 flex flex-col justify-center max-w-2xl">
+            <nav className="flex-1 flex flex-col justify-center">
               <ul>
                 {links.map((link, i) => {
                   const isActive = hoveredIndex === i;
+                  const isLast = i === links.length - 1;
                   return (
                     <li
                       key={link.href}
-                      className={`border-b border-white/15 ${i === 0 ? "border-t" : ""}`}
+                      className={`border-white/15 ${i === 0 ? "border-t" : ""} ${isLast ? "" : "border-b"}`}
                       onMouseEnter={() => setHoveredIndex(i)}
                     >
                       <a
@@ -309,7 +312,7 @@ export default function Menu({
             </nav>
 
             {/* Footer: legal links + social */}
-            <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
+            <div className="mt-10 pt-6 border-t border-white/15 flex flex-wrap items-center justify-between gap-4">
               <ul className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-white/80">
                 {legalLinks.map((link) => (
                   <li key={link.href}>
@@ -427,19 +430,23 @@ export default function Menu({
           </svg>
         </div>
 
-        {/* Close button — floats over image area on desktop, over panel on mobile */}
+        {/* Close button — top-right of the menu overlay. On lg+, sits over
+            the video panel's "tab" notch (light bg); on mobile, over the
+            blue panel (dark bg). */}
         <button
           type="button"
           onClick={onClose}
           aria-label="Close menu"
-          className="absolute top-5 right-6 lg:top-7 lg:right-8 z-10 group inline-flex items-center gap-3 text-sm font-semibold text-white lg:text-primary-500"
+          className="absolute top-5 right-6 lg:top-7 lg:right-10 z-10 group inline-flex items-center gap-3 text-sm font-semibold text-white lg:text-primary-500 transition-opacity duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-90 focus-visible:outline-none"
         >
-          <span>Close Menu</span>
+          <span className="transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-x-0.5 motion-reduce:transform-none">
+            Close Menu
+          </span>
           <span className="relative inline-flex size-9 items-center justify-center">
             <svg
               viewBox="0 0 36 36"
               fill="none"
-              className="absolute inset-0 w-full h-full text-white lg:text-primary-500"
+              className="absolute inset-0 w-full h-full text-white lg:text-primary-500 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:rotate-90 motion-reduce:transform-none"
               aria-hidden
             >
               <circle
@@ -457,7 +464,7 @@ export default function Menu({
               stroke="currentColor"
               strokeWidth="1.5"
               strokeLinecap="round"
-              className="relative w-3.5 h-3.5"
+              className="relative w-3.5 h-3.5 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:rotate-90 group-active:scale-90 motion-reduce:transform-none"
               aria-hidden
             >
               <path d="M5 5l14 14M19 5L5 19" />
@@ -465,6 +472,7 @@ export default function Menu({
           </span>
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

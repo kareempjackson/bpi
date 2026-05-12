@@ -1,6 +1,5 @@
 import Image from "next/image";
-import ArrowRight from "./ArrowRight";
-import Button from "./Button";
+import ArrowCircle from "./ArrowCircle";
 import BlogPostShape from "./shapes/BlogPostShape";
 
 type Pillar = "Alliance" | "Sovereignty" | "Dignity";
@@ -48,7 +47,7 @@ export default function BlogSection({
   posts = DEFAULT_POSTS,
 }: Props) {
   return (
-    <section data-nav-theme="light" className="bg-error-25 px-8 md:px-16 lg:px-28 py-10 md:py-14 lg:py-20">
+    <section data-nav-theme="light" className="bg-error-25 px-12 md:px-20 lg:px-32 py-10 md:py-14 lg:py-20">
       <div className="mx-auto max-w-page rounded-lg bg-warning-50 px-4 md:px-6 lg:px-8 py-5 md:py-6 lg:py-8">
         <div data-reveal-stagger className="flex items-center justify-between gap-4 mb-5 md:mb-7">
           <h2 className="font-display text-xl md:text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1]">
@@ -56,17 +55,15 @@ export default function BlogSection({
           </h2>
           <a
             href={viewAllHref}
-            className="flex items-center gap-2 text-primary-500 hover:opacity-70 transition-opacity"
+            className="group/viewall flex items-center gap-3 text-primary-500 transition-opacity duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-80 focus-visible:outline-none focus-visible:opacity-100"
           >
-            <span className="text-xs font-semibold">View all</span>
-            <Button
-              variant="tertiary"
-              iconOnly="sm"
-              aria-label="View all news"
-              tabIndex={-1}
-            >
-              <ArrowRight />
-            </Button>
+            <span className="text-base lg:text-lg font-normal transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/viewall:-translate-x-0.5 motion-reduce:transform-none">
+              View all
+            </span>
+            <ArrowCircle
+              size={48}
+              className="text-primary-500 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/viewall:translate-x-1 group-hover/viewall:rotate-[8deg] motion-reduce:transform-none"
+            />
           </a>
         </div>
 
@@ -82,14 +79,17 @@ export default function BlogSection({
 
 function BlogCard({ post }: { post: Post }) {
   return (
-    <a href={post.href} className="block group">
-      <BlogPostShape size={280} fill="#ffffff">
+    <a
+      href={post.href}
+      className="block group transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 motion-reduce:transform-none focus-visible:outline-none"
+    >
+      <BlogPostShape size={360} fill="#ffffff">
         <div className="absolute inset-0">
-          <div className="px-4 md:px-5 pt-5 md:pt-6 pr-6">
-            <div className="text-[10px] font-bold tracking-[0.12em] text-primary-500 uppercase">
+          <div className="px-5 md:px-6 pt-6 md:pt-7 pr-7">
+            <div className="text-[11px] font-bold tracking-[0.12em] text-primary-500 uppercase">
               {post.pillar}
             </div>
-            <h3 className="mt-2 text-xs md:text-sm text-primary-500 leading-[1.35] group-hover:opacity-80 transition-opacity">
+            <h3 className="mt-2 text-sm md:text-base text-primary-500 leading-[1.35] group-hover:opacity-80 transition-opacity">
               {post.title}
             </h3>
           </div>
@@ -101,20 +101,16 @@ function BlogCard({ post }: { post: Post }) {
                 alt={post.imageAlt ?? ""}
                 fill
                 sizes="(min-width: 768px) 18vw, 42vw"
-                className="object-cover"
+                className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.06] motion-reduce:transform-none"
               />
             ) : null}
           </div>
 
-          <div className="absolute right-[4%] bottom-[4%]">
-            <Button
-              variant="tertiary-light"
-              iconOnly="sm"
-              aria-label={`Read: ${post.title}`}
-              tabIndex={-1}
-            >
-              <ArrowRight />
-            </Button>
+          <div className="absolute right-[5%] bottom-[5%]">
+            <ArrowCircle
+              size={44}
+              className="text-primary-500 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1 group-hover:rotate-[8deg] motion-reduce:transform-none"
+            />
           </div>
         </div>
       </BlogPostShape>

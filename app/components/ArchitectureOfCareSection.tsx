@@ -1,13 +1,13 @@
-import type { CSSProperties } from "react";
-import Image from "next/image";
-import ArrowRight from "./ArrowRight";
-import Button from "./Button";
+"use client";
 
-type Pillar = "Dignity" | "Sovereignty" | "Alliance";
+import type { CSSProperties } from "react";
+import { useRef } from "react";
+import Image from "next/image";
+import ArrowCircle from "./ArrowCircle";
 
 type Item = {
-  pillar: Pillar;
   title: string;
+  description: string;
   href: string;
   imageSrc: string;
   imageAlt?: string;
@@ -23,63 +23,101 @@ type Props = {
 
 const DEFAULT_ITEMS: Item[] = [
   {
-    pillar: "Dignity",
-    title:
-      "Queen Elizabeth Hospital receives first shipment from the AMA IV fluids corridor",
-    href: "/news/qeh-ama-iv-fluids",
+    title: "Attract & Facilitate Investment",
+    description:
+      "Giving global capital a clear pathway into the Caribbean pharmaceutical market.",
+    href: "/priorities/investment",
     imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-    imageAlt: "Queen Elizabeth Hospital exterior",
-    color: "#cee2ef",
+    imageAlt: "Attract and facilitate investment",
+    color: "#CAF1FF",
   },
   {
-    pillar: "Sovereignty",
-    title:
-      "BMPRA regulatory framework moves to next phase in partnership with WHO",
-    href: "/news/bmpra-who-partnership",
+    title: "Build & Incubate Capacity",
+    description: "Moving strategic projects from concept to execution.",
+    href: "/priorities/capacity",
     imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-    imageAlt: "United Nations emblem",
+    imageAlt: "Build and incubate capacity",
     color: "#dde885",
   },
   {
-    pillar: "Alliance",
-    title:
-      "First pharmaceutical cargo between Africa and the Caribbean departs Kaduna for Bridgetown",
-    href: "/news/first-cargo-kaduna-bridgetown",
+    title: "Strengthen Regional Supply Chains",
+    description:
+      "Building the trade corridors and distribution infrastructure the Caribbean depends on.",
+    href: "/priorities/supply-chains",
     imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-    imageAlt: "Cargo truck departing manufacturing facility at sunrise",
+    imageAlt: "Strengthen regional supply chains",
     color: "#38fe9c",
   },
   {
-    pillar: "Sovereignty",
-    title:
-      "BMPRA regulatory framework moves to next phase in partnership with WHO",
-    href: "/news/bmpra-who-partnership-2",
+    title: "Build the Ecosystem Foundations",
+    description:
+      "Developing the regulatory, workforce, and research foundations for a permanent sector.",
+    href: "/priorities/ecosystem",
     imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-    imageAlt: "Queen Elizabeth Hospital exterior",
+    imageAlt: "Build the ecosystem foundations",
     color: "#b5d4e6",
   },
 ];
 
 export default function ArchitectureOfCareSection({
-  heading = "The Architecture of Care",
-  description = "The structure through which a small state and a region care for their own. Built deliberately. Piece by piece. With the people it is for.",
+  heading = "Four Strategic Priorities",
+  description = "Each one a deliberate step toward a Caribbean that manufactures, distributes, and regulates its own medicines.",
   items = DEFAULT_ITEMS,
 }: Props) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollByCard = (direction: -1 | 1) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const first = el.firstElementChild as HTMLElement | null;
+    const cardWidth = first?.offsetWidth ?? 320;
+    const gap = 20;
+    el.scrollBy({
+      left: (cardWidth + gap) * direction,
+      behavior: "smooth",
+    });
+  };
+
   return (
-    <section data-nav-theme="light" className="bg-error-25 px-8 md:px-16 lg:px-28 py-10 md:py-14 lg:py-20">
-      <div className="mx-auto max-w-page rounded-lg bg-white px-5 md:px-8 lg:px-10 py-7 md:py-10 lg:py-12">
-        <div data-reveal-stagger className="mb-7 md:mb-10 max-w-2xl">
-          <h2 className="font-display text-display-sm lg:text-display-md font-semibold text-primary-500 leading-[1.05] tracking-[-0.02em]">
-            {heading}
-          </h2>
-          <p className="mt-3 text-sm text-primary-500 leading-relaxed">
-            {description}
-          </p>
+    <section
+      data-nav-theme="light"
+      className="bg-error-25 px-12 md:px-20 lg:px-32 pt-16 md:pt-20 lg:pt-28 pb-12 md:pb-16 lg:pb-24"
+    >
+      <div className="mx-auto max-w-page rounded-3xl bg-white px-8 md:px-14 lg:px-20 py-16 md:py-20 lg:py-28">
+        {/* Header */}
+        <div
+          data-reveal-stagger
+          className="flex items-start justify-between gap-6 mb-12 md:mb-16"
+        >
+          <div className="max-w-2xl">
+            <h2 className="font-display text-display-sm lg:text-display-md font-semibold text-primary-500 leading-[1.05] tracking-[-0.02em]">
+              {heading}
+            </h2>
+            <p className="mt-3 text-sm md:text-base text-primary-500 leading-relaxed">
+              {description}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <CarouselButton
+              onClick={() => scrollByCard(-1)}
+              direction="prev"
+            />
+            <CarouselButton
+              onClick={() => scrollByCard(1)}
+              direction="next"
+            />
+          </div>
         </div>
 
-        <div data-reveal-stagger className="grid grid-cols-1 md:grid-cols-2 gap-x-5 lg:gap-x-8 gap-y-5 lg:gap-y-6">
+        {/* Horizontal carousel */}
+        <div
+          ref={scrollRef}
+          data-reveal-stagger
+          className="flex gap-5 lg:gap-6 overflow-x-auto snap-x snap-mandatory no-scrollbar"
+        >
           {items.map((item, idx) => (
-            <PairCard key={`${item.href}-${idx}`} item={item} />
+            <PriorityCard key={`${item.href}-${idx}`} item={item} />
           ))}
         </div>
       </div>
@@ -87,49 +125,54 @@ export default function ArchitectureOfCareSection({
   );
 }
 
-function PairCard({ item }: { item: Item }) {
+function CarouselButton({
+  onClick,
+  direction,
+}: {
+  onClick: () => void;
+  direction: "prev" | "next";
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={direction === "prev" ? "Previous" : "Next"}
+      className={`group/arrow inline-flex text-primary-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-90 active:scale-95 motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500/40 rounded-full ${
+        direction === "prev"
+          ? "hover:-translate-x-0.5"
+          : "hover:translate-x-0.5"
+      }`}
+    >
+      <ArrowCircle size={48} direction={direction} />
+    </button>
+  );
+}
+
+function PriorityCard({ item }: { item: Item }) {
   return (
     <a
       href={item.href}
-      className="grid grid-cols-2 gap-3 lg:gap-4 group items-stretch"
+      className="shrink-0 snap-start w-[85%] sm:w-[60%] lg:w-[44%] aspect-4/3 rounded-3xl p-7 lg:p-9 flex flex-col group"
+      style={{ backgroundColor: item.color } as CSSProperties}
     >
-      <div className="relative aspect-square rounded-lg overflow-hidden">
-        <div
-          data-parallax="0.10"
-          className="absolute inset-0"
-          style={{ "--parallax-scale": "1.12" } as CSSProperties}
-        >
+      <h3 className="font-display text-xs lg:text-sm font-bold uppercase tracking-[0.06em] text-primary-500 leading-tight group-hover:opacity-80 transition-opacity">
+        {item.title}
+      </h3>
+      <p className="mt-3 lg:mt-4 font-display text-xl lg:text-2xl font-light text-primary-500/85 leading-[1.3] tracking-tight max-w-md">
+        {item.description}
+      </p>
+
+      <div className="mt-auto pt-6 flex items-end justify-between gap-4">
+        <div className="relative w-[42%] aspect-square rounded-2xl overflow-hidden">
           <Image
             src={item.imageSrc}
             alt={item.imageAlt ?? ""}
             fill
-            sizes="(min-width: 768px) 22vw, 45vw"
+            sizes="(min-width: 1024px) 22vw, 45vw"
             className="object-cover"
           />
         </div>
-      </div>
-
-      <div
-        className="relative aspect-square rounded-lg p-5 md:p-6 flex flex-col"
-        style={{ backgroundColor: item.color }}
-      >
-        <div className="text-[11px] font-bold tracking-[0.12em] text-primary-500 uppercase">
-          {item.pillar}
-        </div>
-        <h3 className="mt-3 text-sm md:text-md text-primary-500 leading-[1.35] group-hover:opacity-80 transition-opacity pr-2">
-          {item.title}
-        </h3>
-
-        <div className="mt-auto flex justify-end">
-          <Button
-            variant="tertiary-light"
-            iconOnly="sm"
-            aria-label={`Read: ${item.title}`}
-            tabIndex={-1}
-          >
-            <ArrowRight />
-          </Button>
-        </div>
+        <ArrowCircle size={44} className="shrink-0 text-primary-500" />
       </div>
     </a>
   );

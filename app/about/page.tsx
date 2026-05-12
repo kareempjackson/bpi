@@ -1,28 +1,23 @@
+import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import Image from "next/image";
 
 import ArrowRight from "../components/ArrowRight";
 import Button from "../components/Button";
 import Logo from "../components/Logo";
-import MenuLauncher from "../components/MenuLauncher";
 import BlogPostShape from "../components/shapes/BlogPostShape";
 import LeaderShape from "../components/shapes/LeaderShape";
 import UnionShape from "../components/shapes/UnionShape";
 import WhyShape from "../components/shapes/WhyShape";
+import CountUp from "./CountUp";
 import InitiativesPanel, { type Initiative } from "./InitiativesPanel";
 import MissionCarousel from "./MissionCarousel";
 
 export const metadata: Metadata = {
-  title: "About — BPI",
+  title: "About BPI | Barbados Pharmaceutical Inc.",
   description:
-    "Advancing Caribbean Excellence in Pharmaceutical Innovation. Building a regional hub for life sciences innovation, manufacturing, and regulatory leadership across the CARICOM.",
+    "BPI is the institution advancing pharmaceutical manufacturing, investment, and essential medicines access across the Caribbean and beyond.",
 };
-
-const NAV_LINKS = [
-  { label: "ECOSYSTEM", href: "/#ecosystem" },
-  { label: "ABOUT", href: "/about" },
-  { label: "INITIATIVE", href: "/#initiative" },
-];
 
 const HERO_IMAGE = "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg";
 
@@ -54,7 +49,7 @@ const MISSION_CARDS: MissionCard[] = [
     href: "/initiatives/human-capital",
     imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
     imageAlt: "Researcher working in pharmaceutical lab",
-    bg: "#cee2ef",
+    bg: "#CAF1FF",
   },
   {
     eyebrow: "Regional Excellence",
@@ -74,7 +69,7 @@ const MISSION_CARDS: MissionCard[] = [
     href: "/initiatives/manufacturing-capacity",
     imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
     imageAlt: "Manufacturing facility tour",
-    bg: "#cee2ef",
+    bg: "#CAF1FF",
   },
 ];
 
@@ -85,24 +80,24 @@ type Stat = {
 
 const STATS: Stat[] = [
   {
-    value: "13000 +",
+    value: "$31.3M",
     description:
-      "Our work is driven by a commitment to quality standards, responsible innovation",
+      "Total investment in the AMA IV fluids manufacturing facility at Grantley Adams Industrial Estate.",
   },
   {
-    value: "21000 +",
+    value: "12M",
     description:
-      "Our work is driven by a commitment to quality standards, responsible innovation",
+      "Bags of IV fluids to be produced annually, the first of their kind manufactured in the Caribbean.",
   },
   {
-    value: "3000 +",
+    value: "180M",
     description:
-      "Our work is driven by a commitment to quality standards, responsible innovation",
+      "Lives touched by the PAHO revolving fund that BPI's regional supply hub will support.",
   },
   {
-    value: "122 +",
+    value: "€3M",
     description:
-      "Our work is driven by a commitment to quality standards, responsible innovation",
+      "EU PharmaNext investment mobilized to build a transatlantic pharmaceutical investment bridge.",
   },
 ];
 
@@ -201,28 +196,28 @@ const LEADERS: Leader[] = [
 
 const PILLARS: Pillar[] = [
   {
-    eyebrow: "Research & Development",
+    eyebrow: "Manufacture",
     description:
-      "Driving pharmaceutical innovation through continuous scientific advancement.",
+      "Local production of essential medicines, starting with IV fluids, scaling to ARVs, diagnostics, and NCDs.",
     imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-    imageAlt: "Cargo at delivery hub at sunrise",
+    imageAlt: "Pharmaceutical manufacturing line",
     bg: "#ffffff",
   },
   {
-    eyebrow: "Manufacturing Excellence",
+    eyebrow: "Distribute",
     description:
-      "Delivering quality focused pharmaceutical production with international standards.",
+      "A regional logistics model that puts medicines where they are needed, reliably and at lower cost.",
     imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-    imageAlt: "Researcher in laboratory coat",
+    imageAlt: "Regional pharmaceutical logistics",
     bg: "#83ffc1",
     highlight: true,
   },
   {
-    eyebrow: "Supply Chain & Distribution",
+    eyebrow: "Build",
     description:
-      "Strengthening pharmaceutical accessibility through efficient logistics and distribution systems.",
+      "The regulatory, workforce, and institutional foundations that sustain a pharmaceutical sector for generations.",
     imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-    imageAlt: "Cargo at delivery hub at sunrise",
+    imageAlt: "Workforce training and regulatory development",
     bg: "#ffffff",
   },
 ];
@@ -230,55 +225,43 @@ const PILLARS: Pillar[] = [
 export default function AboutPage() {
   return (
     <main className="bg-error-25">
-      <header className="relative px-8 lg:px-12 pt-6 lg:pt-8">
-        <a href="/" aria-label="BPI home" className="inline-block">
-          <Logo size={140} className="text-primary-500" />
-        </a>
-        <div className="absolute top-4 right-6 lg:top-6 lg:right-8 flex items-center gap-7 lg:gap-9">
-          <nav data-hide-on-menu className="hidden md:flex items-center gap-6 lg:gap-8 text-[11px] font-bold tracking-[0.08em] text-primary-500">
-            {NAV_LINKS.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="hover:opacity-60 transition-opacity"
-              >
-                {link.label}
-              </a>
-            ))}
-          </nav>
-          <MenuLauncher size={95} />
-        </div>
-      </header>
-
-      <section className="px-12 md:px-20 lg:px-32 pt-12 md:pt-16 lg:pt-20 pb-12 lg:pb-16">
+      <section className="px-12 md:px-20 lg:px-32 pt-8 md:pt-10 lg:pt-12 pb-14 lg:pb-20">
         <div className="mx-auto max-w-page relative">
-          <UnionShape
-            size={1200}
-            imageSrc={HERO_IMAGE}
-            imageAlt="Barbados Pharmaceutical Inc. team"
-            className="w-full h-auto"
-          />
+          <div data-reveal="scale">
+            <UnionShape
+              size={1200}
+              imageSrc={HERO_IMAGE}
+              imageAlt="Barbados Pharmaceutical Inc. team"
+              className="w-full h-auto"
+            />
+          </div>
 
           <div
-            className="absolute left-0 w-[54%] pt-5 lg:pt-8 pr-4 lg:pr-10"
-            style={{ top: "59.5%" }}
+            className="absolute left-0 w-[52%] pt-4 lg:pt-6 pr-4 lg:pr-10"
+            style={{ top: "60%" }}
           >
-            <h1 className="font-display text-display-sm md:text-display-md lg:text-display-lg font-semibold text-primary-500 leading-[1.05]">
-              Advancing Caribbean Excellence in Pharmaceutical Innovation
+            <h1
+              className="hero-anim font-display text-display-xs md:text-display-sm lg:text-display-md font-semibold text-primary-500 leading-[1.08] tracking-tight max-w-lg"
+              style={{ "--anim-delay": "0s" } as CSSProperties}
+            >
+              We&apos;re not a traditional agency.
+              <br />
+              We&apos;re a market creator.
             </h1>
-            <p className="mt-3 lg:mt-4 text-xs lg:text-sm text-primary-500/80 leading-relaxed max-w-sm">
-              Building a regional hub for life sciences innovation,
-              manufacturing, and regulatory leadership across the CARICOM
+            <p
+              className="hero-anim mt-3 text-sm md:text-base lg:text-lg text-primary-500/70 leading-relaxed max-w-sm"
+              style={{ "--anim-delay": "0.12s" } as CSSProperties}
+            >
+              Established to bring access to essential medicines to Bajans,
+              Caribbean people and beyond.
             </p>
-            <div className="mt-5 lg:mt-6 flex flex-wrap items-center gap-3">
+            <div
+              className="hero-anim mt-4 lg:mt-5 flex flex-wrap items-center gap-3"
+              style={{ "--anim-delay": "0.24s" } as CSSProperties}
+            >
               <a href="/contact" className="inline-flex">
                 <Button variant="primary" size="sm">
-                  Partner With BPI
-                </Button>
-              </a>
-              <a href="/#ecosystem" className="inline-flex">
-                <Button variant="tertiary" size="sm">
-                  Our Ecosystem
+                  Partner with BPI
                 </Button>
               </a>
             </div>
@@ -286,20 +269,20 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="px-12 md:px-20 lg:px-32 pt-8 md:pt-12 lg:pt-16 pb-8 lg:pb-10">
+      <section className="px-12 md:px-20 lg:px-32 pt-10 md:pt-12 lg:pt-16 pb-10 lg:pb-14">
         <div
-          className="mx-auto max-w-page rounded-lg p-6 md:p-8 lg:p-10"
-          style={{ backgroundColor: "#cee2ef" }}
+          data-reveal-stagger
+          className="mx-auto max-w-page rounded-lg px-5 py-14 md:px-8 md:py-16 lg:px-12 lg:py-24"
+          style={{ backgroundColor: "#CAF1FF" }}
         >
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-8 lg:mb-10">
-            <div className="max-w-xl">
-              <h2 className="font-display text-display-sm lg:text-display-md font-semibold text-primary-500 leading-[1.1]">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-5 lg:mb-6">
+            <div className="max-w-lg">
+              <h2 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
                 Our Vision
               </h2>
-              <p className="mt-3 text-sm lg:text-md text-primary-500/80 leading-relaxed">
-                To become a globally respected pharmaceutical company
-                recognized for advancing healthcare accessibility, research
-                excellence, and regional pharmaceutical leadership.
+              <p className="mt-2 text-sm lg:text-base text-primary-500/75 leading-relaxed">
+                To transform Barbados into the trusted pharmaceutical
+                manufacturing gateway for the Caribbean and the Global South.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3 shrink-0">
@@ -316,7 +299,7 @@ export default function AboutPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-5">
+          <div data-reveal-stagger className="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-4">
             {PILLARS.map((pillar) => (
               <PillarCard key={pillar.eyebrow} pillar={pillar} />
             ))}
@@ -326,42 +309,42 @@ export default function AboutPage() {
 
       <section className="px-12 md:px-20 lg:px-32 pt-12 lg:pt-16 pb-12 lg:pb-16">
         <div className="mx-auto max-w-page">
-          <div className="max-w-2xl mb-8 lg:mb-10">
-            <h2 className="font-display text-display-sm lg:text-display-md font-semibold text-primary-500 leading-[1.1]">
+          <div data-reveal-stagger className="max-w-2xl mb-6 lg:mb-8">
+            <h2 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
               Our Mission
             </h2>
-            <p className="mt-3 text-xs lg:text-sm text-primary-500/80 leading-relaxed">
-              Our mission is to create a pharmaceutical ecosystem where every
-              person in the Caribbean has access to healthy, innovative, and
-              affordable medicines while building regional manufacturing
-              excellence.
+            <p className="mt-3 text-sm lg:text-base text-primary-500/75 leading-relaxed">
+              To accelerate access to high-quality, affordable medicines
+              across the Caribbean by building a resilient pharmaceutical
+              industry, attracting global investment, and positioning
+              Barbados as the gateway to the region and beyond.
             </p>
           </div>
 
+          <div data-reveal="fade">
           <MissionCarousel>
             {MISSION_CARDS.map((card) => (
               <MissionCardItem key={card.eyebrow} card={card} />
             ))}
           </MissionCarousel>
+          </div>
         </div>
       </section>
 
-      <section className="px-12 md:px-20 lg:px-32 pt-12 lg:pt-16 pb-14 lg:pb-20">
+      <section className="px-12 md:px-20 lg:px-32 pt-12 lg:pt-16 pb-12 lg:pb-16">
         <div className="mx-auto max-w-page">
-          <div className="max-w-3xl mb-8 lg:mb-10">
-            <h2 className="font-display text-display-sm lg:text-display-md font-semibold text-primary-500 leading-[1.1]">
-              Building The Future Of Pharmaceutical Access
+          <div data-reveal-stagger className="max-w-3xl mb-6 lg:mb-8">
+            <h2 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
+              By the Numbers
             </h2>
-            <p className="mt-3 text-xs lg:text-sm text-primary-500/80 leading-relaxed">
-              Barbados Pharmaceutical Inc. was established with a vision to
-              strengthen pharmaceutical capacity within the region while
-              supporting global healthcare advancement. We operate at the
-              intersection of pharmaceutical production, education, research,
-              and strategic healthcare development.
+            <p className="mt-3 text-sm lg:text-base text-primary-500/75 leading-relaxed">
+              In three years, BPI has gone from a founding mandate to five
+              bankable projects and the first pharmaceutical trade corridor
+              between Africa and the Caribbean.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-5">
+          <div data-reveal-stagger className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
             {STATS.map((stat) => (
               <StatCard key={stat.value} stat={stat} />
             ))}
@@ -369,27 +352,35 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="px-12 md:px-20 lg:px-32 pt-8 lg:pt-12 pb-6 lg:pb-8">
+      <section className="px-12 md:px-20 lg:px-32 pt-8 lg:pt-10 pb-8 lg:pb-10">
         <div className="mx-auto max-w-page">
-          <div className="relative aspect-16/7 rounded-lg overflow-hidden">
-            <Image
-              src="/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg"
-              alt="Barbados Pharmaceutical Inc. team"
-              fill
-              sizes="100vw"
-              className="object-cover"
-            />
+          <div
+            data-reveal="scale"
+            className="relative aspect-2/1 rounded-lg overflow-hidden"
+          >
+            <div
+              data-parallax="0.06"
+              className="absolute inset-x-0 top-[-12%] bottom-[-12%]"
+            >
+              <Image
+                src="/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg"
+                alt="Barbados Pharmaceutical Inc. team"
+                fill
+                sizes="100vw"
+                className="object-cover"
+              />
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="px-12 md:px-20 lg:px-32 pt-4 lg:pt-6 pb-14 lg:pb-20">
-        <div className="mx-auto max-w-page rounded-lg bg-white p-6 md:p-8 lg:p-12">
-          <div className="mb-8 lg:mb-10">
-            <p className="text-[10px] lg:text-xs font-bold tracking-[0.12em] text-primary-500/70 uppercase">
-              What we&apos;re building
+      <section className="px-12 md:px-20 lg:px-32 pt-10 lg:pt-14 pb-14 lg:pb-20">
+        <div data-reveal-stagger className="mx-auto max-w-page rounded-lg bg-white px-5 py-14 md:px-8 md:py-16 lg:px-12 lg:py-24">
+          <div className="mb-6 lg:mb-8">
+            <p className="text-[10px] lg:text-xs font-bold tracking-[0.14em] text-primary-500/70 uppercase">
+              Where Investment Meets Execution
             </p>
-            <h2 className="mt-2 font-display text-display-sm lg:text-display-md font-semibold text-primary-500 leading-[1.1]">
+            <h2 className="mt-2 font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
               Initiatives
             </h2>
           </div>
@@ -398,31 +389,33 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="px-12 md:px-20 lg:px-32 pt-4 lg:pt-6 pb-14 lg:pb-20">
+      <section className="px-12 md:px-20 lg:px-32 pt-10 lg:pt-14 pb-14 lg:pb-20">
         <div
-          className="mx-auto max-w-page rounded-lg p-6 md:p-8 lg:p-12"
-          style={{ backgroundColor: "#cee2ef" }}
+          className="mx-auto max-w-page rounded-lg px-5 py-14 md:px-8 md:py-16 lg:px-12 lg:py-24"
+          style={{ backgroundColor: "#CAF1FF" }}
         >
-          <div className="max-w-md mb-8 lg:mb-10">
-            <h2 className="font-display text-display-sm lg:text-display-md font-semibold text-primary-500 leading-[1.1]">
-              Leadership
-            </h2>
-            <p className="mt-3 text-xs lg:text-sm text-primary-500/80 leading-relaxed">
-              Barbados Pharmaceutical Inc. was established with a vision to
-              strengthen pharmaceutical capacity within the region while
-              supporting global healthcare advancement.
-            </p>
-          </div>
+          <div data-reveal-stagger className="mx-auto max-w-5xl xl:max-w-6xl">
+            <div className="max-w-md mb-6 lg:mb-8">
+              <h2 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
+                Leadership
+              </h2>
+              <p className="mt-3 text-sm lg:text-base text-primary-500/75 leading-relaxed">
+                BPI is led by a team of global health strategists, investment
+                specialists, and pharmaceutical sector experts united by a
+                single mandate.
+              </p>
+            </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-5">
-            {LEADERS.map((leader, idx) => (
-              <LeaderCard
-                key={leader.name + leader.role + idx}
-                leader={leader}
-                index={idx}
-              />
-            ))}
-            <LeadershipContactCard />
+            <div data-reveal-stagger className="grid grid-cols-2 md:grid-cols-3 gap-3 lg:gap-4">
+              {LEADERS.map((leader, idx) => (
+                <LeaderCard
+                  key={leader.name + leader.role + idx}
+                  leader={leader}
+                  index={idx}
+                />
+              ))}
+              <LeadershipContactCard />
+            </div>
           </div>
         </div>
       </section>
@@ -437,50 +430,90 @@ function LeaderCard({
   leader: Leader;
   index: number;
 }) {
-  // 1-based card numbers: 2 + 4 use leader2/leader4 (notch bottom-right),
-  // 6 + 8 use leader6/leader8 (notch top-left). Odd cards stay plain.
   const cardNumber = index + 1;
   const isEven = cardNumber % 2 === 0;
-  const variant: "br" | "tl" = cardNumber === 2 || cardNumber === 4 ? "br" : "tl";
+  const variant: "br" | "tl" =
+    cardNumber === 2 || cardNumber === 4 ? "br" : "tl";
 
   if (isEven) {
+    const labelClass =
+      variant === "br"
+        ? "left-[2.7%] bottom-[6%] right-[45.6%] px-3 lg:px-4"
+        : "left-[2.7%] right-[2.7%] bottom-[6%] px-3 lg:px-4";
     return (
-      <div className="relative w-full aspect-372/444">
+      <div className="group relative w-full aspect-372/444">
         <LeaderShape
           variant={variant}
           imageSrc={leader.imageSrc}
           imageAlt={leader.imageAlt}
           darkBottom
           className="absolute inset-0 w-full h-full"
+          imageClassName="transition-transform duration-900 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.035]"
         />
-        <div className="absolute left-[2.7%] right-[2.7%] bottom-[6%] px-3 lg:px-4 pointer-events-none">
-          <p className="font-display text-md lg:text-lg font-bold text-white leading-tight">
-            {leader.name}
-          </p>
-          <p className="mt-0.5 text-xs lg:text-sm text-white/85 leading-snug">
-            {leader.role}
-          </p>
-        </div>
+        <LeaderLabel
+          name={leader.name}
+          role={leader.role}
+          className={labelClass}
+        />
       </div>
     );
   }
 
   return (
-    <div className="relative aspect-372/444 rounded-lg overflow-hidden bg-primary-500">
-      <Image
-        src={leader.imageSrc}
-        alt={leader.imageAlt}
-        fill
-        sizes="(min-width: 768px) 30vw, 45vw"
-        className="object-cover"
-      />
-      <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 via-black/30 to-transparent pt-10 pb-4 px-4 lg:pb-5 lg:px-5">
-        <p className="font-display text-md lg:text-lg font-bold text-white leading-tight">
-          {leader.name}
-        </p>
-        <p className="mt-0.5 text-xs lg:text-sm text-white/85 leading-snug">
-          {leader.role}
-        </p>
+    <div className="relative w-full aspect-372/444">
+      <div
+        className="group absolute rounded-2xl overflow-hidden isolate transform-gpu bg-primary-500/5"
+        style={{
+          left: `${(10 / 372) * 100}%`,
+          right: `${(10 / 372) * 100}%`,
+          top: 0,
+          bottom: `${(20 / 444) * 100}%`,
+        }}
+      >
+        <Image
+          src={leader.imageSrc}
+          alt={leader.imageAlt}
+          fill
+          sizes="(min-width: 768px) 30vw, 45vw"
+          className="object-cover transition-transform duration-900 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.035]"
+        />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-linear-to-t from-black/70 via-black/30 to-transparent" />
+        <LeaderLabel
+          name={leader.name}
+          role={leader.role}
+          className="inset-x-0 bottom-0 px-4 lg:px-5 pb-4 lg:pb-5"
+        />
+      </div>
+    </div>
+  );
+}
+
+function LeaderLabel({
+  name,
+  role,
+  className,
+}: {
+  name: string;
+  role: string;
+  className: string;
+}) {
+  return (
+    <div className={`absolute ${className}`}>
+      <p className="font-display text-base lg:text-lg font-semibold text-white leading-tight tracking-tight">
+        {name}
+      </p>
+      <p className="mt-1 text-xs lg:text-sm text-white/80 leading-snug">
+        {role}
+      </p>
+      <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-[grid-template-rows] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]">
+        <div className="overflow-hidden">
+          <a
+            href="#"
+            className="mt-3 inline-flex items-center rounded-round border border-dashed border-primary-500/60 bg-error-500 px-4 py-1.5 text-sm font-semibold text-primary-500 opacity-0 translate-y-2 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-100 group-hover:translate-y-0 hover:bg-error-400"
+          >
+            View Profile
+          </a>
+        </div>
       </div>
     </div>
   );
@@ -488,15 +521,14 @@ function LeaderCard({
 
 function LeadershipContactCard() {
   return (
-    <div className="rounded-lg bg-transparent flex flex-col h-full aspect-372/444 p-2 lg:p-3">
+    <div className="rounded-2xl bg-transparent flex flex-col h-full aspect-372/444 p-2 lg:p-3">
       <div className="flex-1 flex flex-col justify-center">
-        <h3 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1]">
+        <h3 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
           Contact Us
         </h3>
-        <p className="mt-3 text-xs lg:text-sm text-primary-500/80 leading-relaxed">
-          Get in touch with BPI — we&apos;re here to answer your questions,
-          support your journey, and help you connect with opportunities in
-          pharmaceutical innovation and supply chain excellence.
+        <p className="mt-3 text-sm lg:text-base text-primary-500/75 leading-relaxed">
+          The journey to health resilience and regional health security
+          will require partnerships, not solo action.
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-3">
@@ -518,24 +550,24 @@ function LeadershipContactCard() {
 function MissionCardItem({ card }: { card: MissionCard }) {
   return (
     <div
-      className="rounded-lg p-6 lg:p-8 flex items-stretch gap-6 lg:gap-8 w-140 lg:w-160 shrink-0 min-h-72 lg:min-h-88"
+      className="rounded-lg p-6 lg:p-10 flex items-stretch gap-6 lg:gap-10 w-[82vw] md:w-[70vw] lg:w-[60vw] xl:w-[52vw] shrink-0 min-h-112 lg:min-h-128"
       style={{ backgroundColor: card.bg }}
     >
-      <div className="flex flex-col justify-between gap-6 flex-1 min-w-0">
+      <div className="flex flex-col justify-between gap-5 flex-1 min-w-0">
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-2 text-primary-500">
             <Logo size={60} className="text-primary-500" />
           </div>
-          <h3 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.15]">
+          <h3 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.15] tracking-tight">
             {card.title}
           </h3>
-          <p className="text-xs lg:text-sm text-primary-500/80 leading-relaxed max-w-xs">
+          <p className="text-sm lg:text-base text-primary-500/75 leading-relaxed max-w-md">
             {card.description}
           </p>
         </div>
         <a
           href={card.href}
-          className="inline-flex items-center gap-2 text-xs lg:text-sm font-semibold text-primary-500 hover:opacity-70 transition-opacity"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-primary-500 hover:opacity-70 transition-opacity"
         >
           Learn more
           <ArrowRight />
@@ -543,12 +575,12 @@ function MissionCardItem({ card }: { card: MissionCard }) {
       </div>
 
       {card.imageSrc ? (
-        <div className="shrink-0 self-stretch flex items-center">
+        <div data-reveal="scale" className="shrink-0 self-stretch flex items-center">
           <WhyShape
-            size={240}
+            size={420}
             imageSrc={card.imageSrc}
             imageAlt={card.imageAlt ?? ""}
-            className="w-full max-w-60 h-auto"
+            className="w-full max-w-md lg:max-w-lg h-auto"
           />
         </div>
       ) : null}
@@ -558,11 +590,12 @@ function MissionCardItem({ card }: { card: MissionCard }) {
 
 function StatCard({ stat }: { stat: Stat }) {
   return (
-    <div className="rounded-lg p-6 lg:p-8 bg-error-100 flex flex-col justify-between min-h-64 lg:min-h-80 gap-12 lg:gap-16">
-      <p className="font-display text-display-md lg:text-display-lg font-semibold text-primary-500 leading-none">
-        {stat.value}
-      </p>
-      <p className="text-xs text-primary-500/80 leading-relaxed">
+    <div className="rounded-lg p-5 lg:p-6 bg-error-100 flex flex-col justify-between min-h-52 lg:min-h-64 gap-8 lg:gap-10">
+      <CountUp
+        value={stat.value}
+        className="font-display text-display-sm lg:text-display-md font-semibold text-primary-500 leading-none tracking-tight"
+      />
+      <p className="text-sm text-primary-500/75 leading-relaxed">
         {stat.description}
       </p>
     </div>
@@ -576,7 +609,7 @@ function PillarCard({ pillar }: { pillar: Pillar }) {
         className="rounded-lg overflow-hidden flex flex-col"
         style={{ backgroundColor: pillar.bg }}
       >
-        <div className="p-5 lg:p-6">
+        <div data-reveal="scale" className="p-5 lg:p-6">
           <BlogPostShape
             size={320}
             imageSrc={pillar.imageSrc}
@@ -588,7 +621,7 @@ function PillarCard({ pillar }: { pillar: Pillar }) {
           <span className="text-[10px] lg:text-xs font-bold tracking-[0.12em] text-primary-500 uppercase">
             {pillar.eyebrow}
           </span>
-          <p className="text-xs lg:text-sm text-primary-500/80 leading-relaxed">
+          <p className="text-sm lg:text-base text-primary-500/80 leading-relaxed">
             {pillar.description}
           </p>
         </div>
@@ -605,12 +638,12 @@ function PillarCard({ pillar }: { pillar: Pillar }) {
         <span className="text-[10px] lg:text-xs font-bold tracking-[0.12em] text-primary-500 uppercase">
           {pillar.eyebrow}
         </span>
-        <p className="text-xs lg:text-sm text-primary-500/80 leading-relaxed">
+        <p className="text-sm lg:text-base text-primary-500/80 leading-relaxed">
           {pillar.description}
         </p>
       </div>
       <div className="px-5 lg:px-6 pt-5 lg:pt-6 pb-5 lg:pb-6 mt-auto">
-        <div className="relative aspect-5/4 rounded-sm overflow-hidden">
+        <div data-reveal="scale" className="relative aspect-5/4 rounded-sm overflow-hidden">
           <Image
             src={pillar.imageSrc}
             alt={pillar.imageAlt}

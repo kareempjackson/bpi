@@ -16,16 +16,18 @@ export default function BuildingSection({
   return (
     <section data-nav-theme="light" className="pt-3 lg:pt-4">
       <div className="rounded-t-[3rem] lg:rounded-t-[5rem] bg-error-200 overflow-hidden px-4 md:px-6 lg:px-10 pt-10 md:pt-16 lg:pt-20 pb-10 md:pb-16 lg:pb-20">
-        <div data-reveal-stagger className="relative mx-auto max-w-350">
-          <FooterImageShape
-            size={1245}
-            imageSrc={imageSrc}
-            imageAlt={imageAlt}
-            className="w-full h-auto"
-          />
+        <div className="relative mx-auto max-w-350">
+          <div data-reveal="scale">
+            <FooterImageShape
+              size={1245}
+              imageSrc={imageSrc}
+              imageAlt={imageAlt}
+              className="w-full h-auto"
+            />
+          </div>
 
           {/* Headline + intro in the right-side negative space */}
-          <div className="absolute right-[4%] top-[39%] w-[42%]">
+          <div data-reveal-stagger className="absolute right-[4%] top-[39%] w-[42%]">
             <h2 className="font-display text-base md:text-2xl lg:text-4xl font-bold text-primary-500 leading-[1.05]">
               Building the architecture of care.
             </h2>
@@ -37,7 +39,7 @@ export default function BuildingSection({
           </div>
 
           {/* CTA buttons in the bottom-left cutout */}
-          <div className="absolute left-[1.5%] bottom-0 flex flex-col items-stretch gap-2.5 lg:gap-3 w-[18%] min-w-56">
+          <div data-reveal-stagger className="absolute left-[1.5%] bottom-0 flex flex-col items-stretch gap-2.5 lg:gap-3 w-[18%] min-w-56">
             <a
               href={primaryHref}
               className="rounded-round border border-dashed border-primary-500/40 bg-error-500 px-6 lg:px-8 py-2.5 lg:py-3 text-sm lg:text-base font-semibold text-primary-500 text-center transition hover:bg-error-400"

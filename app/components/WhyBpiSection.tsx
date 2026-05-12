@@ -23,15 +23,15 @@ export default function WhyBpiSection({
   imageAlt = "BPI team meeting in Barbados",
 }: Props) {
   return (
-    <section data-nav-theme="light" className="bg-error-25 px-8 md:px-16 lg:px-28 py-10 md:py-14 lg:py-20">
-      <div className="mx-auto max-w-page rounded-lg bg-error-500 px-5 md:px-8 lg:px-10 py-7 md:py-9 lg:py-11">
-        <div data-reveal-stagger className="grid grid-cols-1 md:grid-cols-5 gap-5 lg:gap-8 items-center">
-          <div className="md:col-span-3 flex flex-col justify-between gap-6 md:gap-8">
-            <div className="flex flex-col gap-4 md:gap-5">
-              <p className="font-display text-display-xs md:text-display-sm lg:text-display-md font-medium text-primary-500 leading-[1.2] tracking-[-0.02em]">
+    <section data-nav-theme="light" className="bg-error-25 px-12 md:px-20 lg:px-32 py-10 md:py-14 lg:py-20">
+      <div className="mx-auto max-w-page rounded-lg bg-error-500 px-6 md:px-10 lg:px-12 py-10 md:py-12 lg:py-14">
+        <div data-reveal-stagger className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-stretch">
+          <div className="flex flex-col justify-center gap-10 md:gap-12">
+            <div className="flex flex-col gap-5 md:gap-6">
+              <p className="font-display text-display-sm md:text-display-md lg:text-display-lg font-medium text-primary-500 leading-[1.2] tracking-[-0.02em]">
                 {quote}
               </p>
-              <p className="text-sm text-primary-500/70 leading-relaxed max-w-md">
+              <p className="text-sm md:text-base text-primary-500/75 leading-relaxed max-w-lg">
                 {body}
               </p>
             </div>
@@ -43,12 +43,12 @@ export default function WhyBpiSection({
             </a>
           </div>
 
-          <div data-reveal="scale" className="md:col-span-2 flex justify-end">
+          <div data-reveal="scale" className="flex justify-end">
             <WhyShape
-              size={500}
+              size={720}
               imageSrc={imageSrc}
               imageAlt={imageAlt}
-              className="w-full max-w-125 h-auto"
+              className="w-full h-auto"
             />
           </div>
         </div>

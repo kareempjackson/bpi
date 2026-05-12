@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import ArrowRight from "./ArrowRight";
-import Button from "./Button";
+import ArrowCircle from "./ArrowCircle";
 import InitiativesShape from "./shapes/InitiativesShape";
 
 type Initiative = {
@@ -74,40 +73,38 @@ export default function InitiativesSection({
   return (
     <section
       data-nav-theme="light"
-      className="bg-error-25 px-8 md:px-16 lg:px-28 py-10 md:py-14 lg:py-20"
+      className="bg-error-25 px-12 md:px-20 lg:px-32 py-10 md:py-14 lg:py-20"
     >
-      <div className="mx-auto max-w-page rounded-lg bg-warning-50 px-4 md:px-6 lg:px-8 py-5 md:py-6 lg:py-8">
+      <div className="mx-auto max-w-page rounded-lg bg-warning-50 px-6 md:px-10 lg:px-12 py-8 md:py-10 lg:py-12">
         <div
           data-reveal-stagger
-          className="flex items-start justify-between gap-4 mb-5 md:mb-7"
+          className="flex items-start justify-between gap-4 mb-8 md:mb-10"
         >
           <div>
-            <div className="text-[10px] md:text-xs font-bold tracking-[0.12em] text-primary-500 uppercase">
+            <div className="text-base md:text-lg lg:text-xl font-normal tracking-[0.08em] text-primary-500 uppercase">
               {eyebrow}
             </div>
-            <h2 className="mt-1 font-display text-xl md:text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1]">
+            <h2 className="mt-3 font-display text-display-md md:text-display-lg lg:text-display-xl font-bold text-primary-500 leading-[1.05] tracking-[-0.02em]">
               {heading}
             </h2>
           </div>
           <a
             href={viewAllHref}
-            className="flex items-center gap-2 text-primary-500 hover:opacity-70 transition-opacity"
+            className="group/viewall flex items-center gap-3 text-primary-500 transition-opacity duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-80 focus-visible:outline-none focus-visible:opacity-100"
           >
-            <span className="text-xs font-semibold">View all</span>
-            <Button
-              variant="tertiary"
-              iconOnly="sm"
-              aria-label="View all initiatives"
-              tabIndex={-1}
-            >
-              <ArrowRight />
-            </Button>
+            <span className="text-base lg:text-lg font-normal transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/viewall:-translate-x-0.5 motion-reduce:transform-none">
+              View all
+            </span>
+            <ArrowCircle
+              size={48}
+              className="text-primary-500 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/viewall:translate-x-1 group-hover/viewall:rotate-[8deg] motion-reduce:transform-none"
+            />
           </a>
         </div>
 
         <div
           data-reveal-stagger
-          className="grid grid-cols-1 md:grid-cols-5 gap-4 lg:gap-5 items-stretch"
+          className="grid grid-cols-1 md:grid-cols-5 gap-6 lg:gap-8 items-stretch"
           onMouseLeave={() => setActiveIndex(null)}
         >
           <div data-reveal="scale" className="md:col-span-2">
@@ -122,7 +119,7 @@ export default function InitiativesSection({
 
           <div
             data-reveal-stagger
-            className="md:col-span-3 flex flex-col gap-2 lg:gap-3"
+            className="md:col-span-3 flex flex-col gap-3 lg:gap-4"
           >
             {initiatives.map((initiative, idx) => (
               <InitiativeRow
@@ -156,39 +153,43 @@ function InitiativeRow({
       href={initiative.href}
       onMouseEnter={onHover}
       onFocus={onHover}
-      className={`group flex flex-1 items-center gap-3 lg:gap-5 rounded-lg pl-4 lg:pl-5 pr-3 lg:pr-4 py-3 lg:py-4 transition-colors ${
-        isActive ? "bg-gray-50" : "bg-white hover:bg-gray-50"
+      className={`group flex flex-1 items-center gap-4 lg:gap-6 rounded-lg pl-6 lg:pl-8 pr-4 lg:pr-6 py-5 lg:py-6 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 ${
+        isActive
+          ? "bg-gray-50 shadow-[0_6px_22px_-14px_rgba(0,0,54,0.25)]"
+          : "bg-white hover:bg-gray-50 hover:shadow-[0_6px_22px_-14px_rgba(0,0,54,0.25)]"
       }`}
     >
-      <div className="shrink-0 w-10 lg:w-14 text-display-md lg:text-display-lg font-light text-gray-300 leading-none">
+      <div
+        className={`shrink-0 w-12 lg:w-16 text-display-lg lg:text-display-xl font-light leading-none transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          isActive ? "text-primary-500/60" : "text-gray-300 group-hover:text-primary-500/60"
+        }`}
+      >
         {index}
       </div>
 
       <div className="flex-1 min-w-0">
         {initiative.featured ? (
-          <div className="text-[10px] font-bold tracking-[0.12em] text-primary-500 uppercase mb-1">
+          <div className="text-xs font-bold tracking-[0.12em] text-primary-500 uppercase mb-1">
             Featured
           </div>
         ) : null}
-        <h3 className="text-xs lg:text-sm font-medium text-primary-500 leading-[1.3]">
+        <h3 className="text-sm lg:text-base font-medium text-primary-500 leading-[1.3] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-0.5 motion-reduce:transform-none">
           {initiative.title}
         </h3>
       </div>
 
-      <p className="hidden lg:block w-[34%] shrink-0 text-xs text-primary-500/70 leading-[1.4]">
+      <p className="hidden lg:block w-[34%] shrink-0 text-sm text-primary-500/70 leading-[1.4]">
         {initiative.description}
       </p>
 
-      <div className="shrink-0">
-        <Button
-          variant="tertiary-light"
-          iconOnly="sm"
-          aria-label={`Read about ${initiative.title}`}
-          tabIndex={-1}
-        >
-          <ArrowRight />
-        </Button>
-      </div>
+      <ArrowCircle
+        size={48}
+        className={`shrink-0 text-primary-500 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transform-none ${
+          isActive
+            ? "translate-x-1 rotate-[8deg]"
+            : "group-hover:translate-x-1 group-hover:rotate-[8deg]"
+        }`}
+      />
     </a>
   );
 }

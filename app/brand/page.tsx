@@ -66,7 +66,7 @@ const ERROR_SCALE = [
 ];
 
 const WARNING_SCALE = [
-  { step: "25", hex: "#cee2ef", bg: "bg-warning-25" },
+  { step: "25", hex: "#CAF1FF", bg: "bg-warning-25" },
   { step: "50", hex: "#b5d4e6", bg: "bg-warning-50" },
   { step: "100", hex: "#84b8d6", bg: "bg-warning-100" },
   { step: "200", hex: "#529bc6", bg: "bg-warning-200" },
