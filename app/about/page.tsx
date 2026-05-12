@@ -243,11 +243,11 @@ export default function AboutPage() {
             style={{ top: "60%" }}
           >
             <h1
-              className="hero-anim font-display text-display-xs md:text-display-sm lg:text-display-md font-semibold text-primary-500 leading-[1.08] tracking-tight max-w-lg"
+              className="hero-anim font-display text-xl md:text-display-sm lg:text-display-md font-semibold text-primary-500 leading-[1.15] md:leading-[1.08] tracking-tight max-w-lg text-balance"
               style={{ "--anim-delay": "0s" } as CSSProperties}
             >
               We&apos;re not a traditional agency.
-              <br className="hidden md:inline" />{" "}
+              <br />
               We&apos;re a market creator.
             </h1>
             <p

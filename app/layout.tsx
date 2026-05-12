@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import Footer from "./components/Footer";
@@ -40,6 +40,13 @@ const inter = localFont({
 export const metadata: Metadata = {
   title: "Barbados Pharmaceutical Inc",
   description: "Barbados Pharmaceutical Inc",
+};
+
+// Tint mobile browser chrome (iOS status bar, Android URL bar) with the
+// site's signature mint so the time/status area reads as a seamless
+// extension of the page background across the entire site.
+export const viewport: Viewport = {
+  themeColor: "#cdffe6",
 };
 
 export default function RootLayout({
