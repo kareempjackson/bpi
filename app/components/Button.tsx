@@ -25,17 +25,17 @@ const ICON_SIZES: Record<IconSize, string> = {
 
 function variantClasses(variant: Variant, onDark: boolean): string {
   if (onDark && variant === "tertiary") {
-    return "border-2 border-dashed border-white/60 bg-transparent text-white hover:bg-white/10 hover:border-white/80";
+    return "border border-dashed border-white/60 bg-transparent text-white hover:bg-white/10 hover:border-white/80";
   }
   switch (variant) {
     case "primary":
-      return "bg-error-500 text-primary-500 hover:bg-error-400 hover:shadow-[0_6px_18px_-8px_rgba(0,0,54,0.35)]";
+      return "border border-dashed border-primary-500/45 bg-error-500 text-primary-500 hover:bg-error-400 hover:border-primary-500/70 hover:shadow-[0_6px_18px_-8px_rgba(0,0,54,0.35)]";
     case "secondary":
       return "border border-gray-200 bg-white text-primary-500 hover:bg-gray-50 hover:border-gray-300 hover:shadow-[0_4px_14px_-8px_rgba(0,0,54,0.18)]";
     case "tertiary":
-      return "border-2 border-dashed border-primary-500 bg-transparent text-primary-500 hover:bg-primary-500/5 hover:border-solid";
+      return "border border-dashed border-primary-500/60 bg-transparent text-primary-500 hover:bg-primary-500/5 hover:border-primary-500/90";
     case "tertiary-light":
-      return "border-2 border-dashed border-primary-500/30 bg-transparent text-primary-500 hover:border-primary-500/50 hover:bg-primary-500/5";
+      return "border border-dashed border-primary-500/30 bg-transparent text-primary-500 hover:border-primary-500/50 hover:bg-primary-500/5";
   }
 }
 

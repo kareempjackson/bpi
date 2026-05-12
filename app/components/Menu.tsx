@@ -47,15 +47,6 @@ const DEFAULT_LINKS: MenuLink[] = [
     },
   },
   {
-    label: "Our Story",
-    href: "/our-story",
-    media: {
-      type: "image",
-      src: "/images/top.png",
-      alt: "BPI story",
-    },
-  },
-  {
     label: "Ecosystem",
     href: "/ecosystem",
     subItems: [
@@ -105,35 +96,6 @@ const DEFAULT_LINKS: MenuLink[] = [
   {
     label: "Initiatives",
     href: "/initiatives",
-    subItems: [
-      {
-        label: "Dignity",
-        href: "/initiatives/dignity",
-        media: {
-          type: "image",
-          src: "/images/top.png",
-          alt: "Dignity initiative",
-        },
-      },
-      {
-        label: "Sovereignty",
-        href: "/initiatives/sovereignty",
-        media: {
-          type: "image",
-          src: "/images/top2.png",
-          alt: "Sovereignty initiative",
-        },
-      },
-      {
-        label: "Alliance",
-        href: "/initiatives/alliance",
-        media: {
-          type: "image",
-          src: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-          alt: "Alliance initiative",
-        },
-      },
-    ],
     media: {
       type: "image",
       src: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
@@ -145,7 +107,7 @@ const DEFAULT_LINKS: MenuLink[] = [
     href: "/news",
     media: {
       type: "image",
-      src: "/images/top.png",
+      src: "/images/DSC03249.jpg",
       alt: "BPI news and media",
     },
   },
@@ -163,7 +125,7 @@ const DEFAULT_LINKS: MenuLink[] = [
     href: "/contact",
     media: {
       type: "image",
-      src: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
+      src: "/images/A6701484.jpg",
       alt: "Contact BPI",
     },
   },
@@ -414,17 +376,7 @@ export default function Menu({
                 </video>
               </foreignObject>
             ) : (
-              <image
-                key={activeMedia.src}
-                href={activeMedia.src}
-                x="0"
-                y="0"
-                width="450"
-                height="917"
-                preserveAspectRatio="xMidYMid slice"
-                clipPath="url(#menu-shape-clip)"
-                aria-label={activeMedia.alt}
-              />
+              <MenuImage media={activeMedia} />
             )}
             <path d={MENU_SHAPE_PATH} fill="#000000" fillOpacity="0.25" />
           </svg>
@@ -474,5 +426,74 @@ export default function Menu({
       </div>
     </div>,
     document.body
+  );
+}
+
+type ImageMedia = { type: "image"; src: string; alt?: string };
+type ImageSlot = { src: string; alt?: string } | null;
+
+/**
+ * Crossfading + scale-in image stage. Two `<img>` slots are mounted at
+ * all times; on each `media` change the dormant slot adopts the new
+ * image and the active flag flips. CSS transitions on opacity + scale
+ * drive a 700 ms cinematic crossfade — the outgoing image dims and
+ * eases slightly out while the incoming image settles into place from
+ * a subtle scale-up. No hard cuts on hover.
+ */
+function MenuImage({ media }: { media: ImageMedia }) {
+  const [slotA, setSlotA] = useState<ImageSlot>({
+    src: media.src,
+    alt: media.alt,
+  });
+  const [slotB, setSlotB] = useState<ImageSlot>(null);
+  const [active, setActive] = useState<"A" | "B">("A");
+
+  useEffect(() => {
+    const currentSrc = active === "A" ? slotA?.src : slotB?.src;
+    if (media.src === currentSrc) return;
+    if (active === "A") {
+      setSlotB({ src: media.src, alt: media.alt });
+      setActive("B");
+    } else {
+      setSlotA({ src: media.src, alt: media.alt });
+      setActive("A");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [media.src]);
+
+  const layerClass = (visible: boolean) =>
+    `absolute inset-0 w-full h-full object-cover transition-all duration-[1100ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+      visible ? "opacity-100 scale-100" : "opacity-0 scale-[1.06]"
+    }`;
+
+  return (
+    <foreignObject
+      x="0"
+      y="0"
+      width="450"
+      height="917"
+      clipPath="url(#menu-shape-clip)"
+    >
+      <div className="relative w-full h-full overflow-hidden">
+        {slotA && (
+          <img
+            src={slotA.src}
+            alt={slotA.alt ?? ""}
+            className={layerClass(active === "A")}
+            style={{ objectPosition: "center center" }}
+            draggable={false}
+          />
+        )}
+        {slotB && (
+          <img
+            src={slotB.src}
+            alt={slotB.alt ?? ""}
+            className={layerClass(active === "B")}
+            style={{ objectPosition: "center center" }}
+            draggable={false}
+          />
+        )}
+      </div>
+    </foreignObject>
   );
 }

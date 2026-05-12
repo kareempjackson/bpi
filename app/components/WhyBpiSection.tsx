@@ -4,6 +4,7 @@ import WhyShape from "./shapes/WhyShape";
 
 type Props = {
   quote?: string;
+  attribution?: string;
   body?: string;
   ctaLabel?: string;
   ctaHref?: string;
@@ -11,26 +12,34 @@ type Props = {
   imageAlt?: string;
 };
 
-const DEFAULT_QUOTE = `"Every piece we build, we build with the people it is for — so that the next generation does not have to wait with it's hand out."`;
-const DEFAULT_BODY = `Barbados Pharmaceutical Inc. is building the pharmaceutical infrastructure Barbados and its region deserve — and proving that small states can shape the systems they depend on.`;
+const DEFAULT_QUOTE = `"Perhaps the biggest game changer since we have come to office is addressing the issue of pharmaceutical equity and creating a platform for jobs, investment and earnings for a pharmaceutical industry in Barbados for the first time."`;
+const DEFAULT_BODY = `BPI is the institution built to deliver on that mandate, reducing pharmaceutical import dependency and building health sovereignty across the Caribbean.`;
+
+const DEFAULT_ATTRIBUTION = "Rt. Hon. Mia Amor Mottley, Prime Minister of Barbados";
 
 export default function WhyBpiSection({
   quote = DEFAULT_QUOTE,
+  attribution = DEFAULT_ATTRIBUTION,
   body = DEFAULT_BODY,
   ctaLabel = "Why BPI?",
   ctaHref = "/why-bpi",
-  imageSrc = "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
+  imageSrc = "/images/cdc-_N7I1JyPYJw-unsplash.jpg",
   imageAlt = "BPI team meeting in Barbados",
 }: Props) {
   return (
-    <section data-nav-theme="light" className="bg-error-25 px-5 md:px-20 lg:px-32 py-8 md:py-14 lg:py-20">
-      <div className="mx-auto max-w-page rounded-lg bg-error-500 px-5 md:px-10 lg:px-12 py-7 md:py-12 lg:py-14">
-        <div data-reveal-stagger className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 lg:gap-12 items-stretch">
-          <div className="flex flex-col justify-center gap-6 md:gap-12">
-            <div className="flex flex-col gap-4 md:gap-6">
-              <p className="font-display text-display-xs md:text-display-md lg:text-display-lg font-medium text-primary-500 leading-[1.2] tracking-[-0.02em]">
-                {quote}
-              </p>
+    <section data-nav-theme="light" className="bg-error-25 px-5 md:px-20 lg:px-32 py-8 md:py-12 lg:py-16">
+      <div className="mx-auto max-w-page rounded-lg bg-error-500 px-6 md:px-10 lg:px-14 py-7 md:py-10 lg:py-14">
+        <div data-reveal-stagger className="grid grid-cols-1 md:grid-cols-12 gap-7 md:gap-8 lg:gap-12 items-center">
+          <div className="md:col-span-7 flex flex-col justify-center gap-6 md:gap-8">
+            <div className="flex flex-col gap-10 md:gap-12">
+              <div className="flex flex-col gap-3 md:gap-4">
+                <p className="font-display text-2xl md:text-display-xs lg:text-display-sm font-medium text-primary-500 leading-tight tracking-[-0.015em]">
+                  {quote}
+                </p>
+                <p className="text-xs md:text-sm font-semibold tracking-[0.04em] text-primary-500/80">
+                  {attribution}
+                </p>
+              </div>
               <p className="text-sm md:text-base text-primary-500/75 leading-relaxed max-w-lg">
                 {body}
               </p>
@@ -43,12 +52,13 @@ export default function WhyBpiSection({
             </a>
           </div>
 
-          <div data-reveal="scale" className="flex justify-end">
+          <div data-reveal="scale" className="md:col-span-5 flex justify-end">
             <WhyShape
-              size={720}
+              size={480}
               imageSrc={imageSrc}
               imageAlt={imageAlt}
-              className="w-full h-auto"
+              imagePosition="xMidYMin slice"
+              className="w-full h-auto max-w-sm md:max-w-none"
             />
           </div>
         </div>

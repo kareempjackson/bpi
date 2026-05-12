@@ -306,15 +306,17 @@ export default function CareMapSection({
   };
 
   // Two-state theme: mint (baseline) or deep cinematic teal (post-heading).
-  // The bg color is applied to a sticky overlay layer (not the section
-  // itself) so the section's surface always matches the page mint — no
-  // visible boundary line between the section and the page above.
-  // Combined overlay-presence value. Used to invert text only while the
-  // dark teal is substantially visible. Text flips at the 50% threshold
-  // and the CSS color transition smooths the swap inside the scroll
-  // runway.
-  const darkness = enterP * (1 - exitP);
-  const onDark = darkness > 0.5;
+  // Snaps cleanly between 0 and 1 — no glassy mid-range. The overlay
+  // crossfades via a CSS transition on opacity, so the visual change is
+  // still smooth, but the bg is *always* either solid mint or solid
+  // dark teal. The exit threshold is held high (0.88) so the page has
+  // visibly started to scroll past the section before the teal lets go
+  // and returns to mint — no premature flash to mint while the diagram
+  // is still on screen. `onDark` controls text-colour inversion in
+  // lockstep.
+  const isDarkPhase = enterP > 0.55 && exitP < 0.88;
+  const darkness = isDarkPhase ? 1 : 0;
+  const onDark = isDarkPhase;
 
   // ─────────────────────────────────────────────────────────────────
   //  Scroll-coupled per-node sequencing.
@@ -372,7 +374,7 @@ export default function CareMapSection({
           a visible "edge" between the section and the page above or below. */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div
-          className="sticky top-0 h-screen w-full overflow-hidden"
+          className="sticky top-0 h-screen w-full overflow-hidden transition-opacity duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
           style={{
             backgroundColor: "#042D2B",
             opacity: darkness,
@@ -491,12 +493,6 @@ export default function CareMapSection({
               viewBox={`0 0 ${VIEWBOX_W} ${VIEWBOX_H}`}
               preserveAspectRatio="xMidYMid meet"
               className="absolute inset-0 w-full h-full pointer-events-none"
-              style={{
-                filter: `drop-shadow(0 0 32px rgba(56, 254, 156, ${
-                  0.18 * darkness
-                })) drop-shadow(0 18px 40px rgba(4, 45, 43, 0.4))`,
-                transition: "filter 700ms cubic-bezier(0.16, 1, 0.3, 1)",
-              }}
               aria-hidden
             >
               <defs>
@@ -774,6 +770,7 @@ export default function CareMapSection({
             })}
             </div>
           </div>
+
         </div>
       </div>
 

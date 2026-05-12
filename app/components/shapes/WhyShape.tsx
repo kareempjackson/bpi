@@ -13,6 +13,14 @@ type Props = Omit<
   imageAlt?: string;
   /** Solid fill when no imageSrc is provided. */
   fill?: string;
+  /**
+   * SVG `preserveAspectRatio` value for the image. Use this to control
+   * what part of the photo stays visible after the slice crop. Defaults
+   * to centred (`xMidYMid slice`). Use `xMidYMin slice` to anchor the
+   * crop to the top of the photo (e.g. to keep a subject's face from
+   * being cut off).
+   */
+  imagePosition?: string;
 };
 
 const VIEWBOX = "0 0 500 500";
@@ -27,6 +35,7 @@ export default function WhyShape({
   imageSrc,
   imageAlt = "",
   fill = "#ffffff",
+  imagePosition = "xMidYMid slice",
   className,
   ...rest
 }: Props) {
@@ -57,7 +66,7 @@ export default function WhyShape({
           y="0"
           width={W}
           height={H}
-          preserveAspectRatio="xMidYMid slice"
+          preserveAspectRatio={imagePosition}
           clipPath={`url(#${clipId})`}
         />
       ) : (

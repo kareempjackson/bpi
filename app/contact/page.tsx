@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import Button from "../components/Button";
-import BlogPostShape from "../components/shapes/BlogPostShape";
+import ContactShape from "../components/shapes/ContactShape";
 import WhyShape from "../components/shapes/WhyShape";
 
 export const metadata: Metadata = {
@@ -35,13 +35,13 @@ const CONTACT_ROWS: ContactRow[] = [
   },
 ];
 
-const HERO_IMAGE = "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg";
-const FORM_IMAGE = "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg";
+const HERO_IMAGE = "/images/A6701484.jpg";
+const FORM_IMAGE = "/images/DSC03039.jpg";
 
 const INPUT_CLASS =
-  "peer w-full rounded-round border border-transparent bg-white px-6 py-4 text-base text-primary-500 placeholder-transparent outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10";
+  "peer w-full rounded-round border border-transparent bg-white px-5 py-3 text-sm text-primary-500 placeholder-transparent outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10";
 const FLOATING_LABEL_CLASS =
-  "pointer-events-none absolute left-6 top-1/2 -translate-y-1/2 text-base text-primary-500 transition-opacity peer-focus:opacity-0 peer-[:not(:placeholder-shown)]:opacity-0";
+  "pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-sm text-primary-500 transition-opacity peer-focus:opacity-0 peer-[:not(:placeholder-shown)]:opacity-0";
 
 export default function ContactPage() {
   return (
@@ -61,7 +61,7 @@ export default function ContactPage() {
           </div>
 
           <div className="lg:col-span-5 lg:h-full">
-            <WhyShape
+            <ContactShape
               size={600}
               imageSrc={HERO_IMAGE}
               imageAlt="BPI partner ready to collaborate"
@@ -73,14 +73,14 @@ export default function ContactPage() {
 
       <section className="px-12 md:px-20 lg:px-32 pt-8 lg:pt-12 pb-14 lg:pb-20">
         <div
-          className="mx-auto max-w-page rounded-lg p-6 md:p-8 lg:p-10 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch"
+          className="mx-auto max-w-page rounded-lg p-5 md:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center"
           style={{ backgroundColor: "#CAF1FF" }}
         >
-          <div className="lg:col-span-6 flex flex-col">
+          <div className="lg:col-span-6 lg:order-1 lg:pl-20 flex flex-col">
             <h2 className="font-display text-display-sm lg:text-display-md font-semibold text-primary-500 leading-[1.1]">
               Contact Us
             </h2>
-            <p className="mt-3 text-base lg:text-lg text-primary-500 leading-relaxed max-w-lg">
+            <p className="mt-3 text-sm lg:text-base text-primary-500/85 leading-relaxed max-w-lg">
               Get in touch with BPI — we&rsquo;re here to answer your
               questions, support your journey, and help you connect with
               opportunities in pharmaceutical innovation and supply chain
@@ -90,9 +90,9 @@ export default function ContactPage() {
             <form
               method="post"
               action="/api/contact"
-              className="mt-auto pt-10 lg:pt-12 flex flex-col gap-4 max-w-xl"
+              className="mt-6 lg:mt-8 flex flex-col gap-3 max-w-xl"
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="relative">
                   <input
                     name="fullName"
@@ -150,13 +150,13 @@ export default function ContactPage() {
             </form>
           </div>
 
-          <div className="lg:col-span-6">
-            <BlogPostShape
-              size={640}
+          <div className="lg:col-span-6 lg:order-2 lg:pr-16 py-6 lg:py-8 flex justify-end">
+            <WhyShape
+              size={480}
               imageSrc={FORM_IMAGE}
               imageAlt="BPI team meeting with partners"
-              flipX
-              className="w-full h-auto"
+              imagePosition="xMidYMin slice"
+              className="w-full lg:max-w-lg h-auto"
             />
           </div>
         </div>

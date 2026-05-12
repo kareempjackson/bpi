@@ -75,7 +75,10 @@ export default function InitiativesSection({
       data-nav-theme="light"
       className="bg-error-25 px-5 md:px-20 lg:px-32 py-8 md:py-14 lg:py-20"
     >
-      <div className="mx-auto max-w-page rounded-lg bg-warning-50 px-4 md:px-10 lg:px-12 py-6 md:py-10 lg:py-12">
+      <div
+        className="mx-auto max-w-page rounded-lg px-4 md:px-10 lg:px-12 py-6 md:py-10 lg:py-12"
+        style={{ backgroundColor: "#CAF1FF" }}
+      >
         <div
           data-reveal-stagger
           className="flex items-start justify-between gap-3 mb-6 md:mb-10"

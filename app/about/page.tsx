@@ -5,10 +5,10 @@ import Image from "next/image";
 import ArrowRight from "../components/ArrowRight";
 import Button from "../components/Button";
 import Logo from "../components/Logo";
-import BlogPostShape from "../components/shapes/BlogPostShape";
 import LeaderShape from "../components/shapes/LeaderShape";
 import UnionShape from "../components/shapes/UnionShape";
-import WhyShape from "../components/shapes/WhyShape";
+import MissionShape from "../components/shapes/MissionShape";
+import VisionShape from "../components/shapes/VisionShape";
 import CountUp from "./CountUp";
 import InitiativesPanel, { type Initiative } from "./InitiativesPanel";
 import MissionCarousel from "./MissionCarousel";
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     "BPI is the institution advancing pharmaceutical manufacturing, investment, and essential medicines access across the Caribbean and beyond.",
 };
 
-const HERO_IMAGE = "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg";
+const HERO_IMAGE = "/images/A6701522.jpg";
 
 type Pillar = {
   eyebrow: string;
@@ -31,7 +31,7 @@ type Pillar = {
 };
 
 type MissionCard = {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   description: string;
   href: string;
@@ -42,34 +42,58 @@ type MissionCard = {
 
 const MISSION_CARDS: MissionCard[] = [
   {
-    eyebrow: "Innovation Hub",
-    title: "Human Capital Development",
+    title: "Market Access & Trade Development",
     description:
-      "Building world-class pharmaceutical talent through education, training, and skills development programs",
-    href: "/initiatives/human-capital",
-    imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-    imageAlt: "Researcher working in pharmaceutical lab",
+      "Opening pharmaceutical trade routes across CARICOM, Latin America, Africa, and the Global South.",
+    href: "/missions/market-access",
+    imageSrc: "/images/tim-winkler-mSldznp15Xg-unsplash.jpg",
+    imageAlt: "Market access and trade development",
     bg: "#CAF1FF",
   },
   {
-    eyebrow: "Regional Excellence",
-    title: "Human Capital Development",
+    title: "Workforce & Talent Development",
     description:
-      "Building world-class pharmaceutical talent through education, training, and skills development programs",
-    href: "/initiatives/regional-excellence",
+      "Building the skilled workforce Caribbean pharmaceutical production depends on.",
+    href: "/missions/workforce",
     imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-    imageAlt: "Pharmaceutical training session",
+    imageAlt: "Workforce and talent development",
     bg: "#9bffcd",
   },
   {
-    eyebrow: "Manufacturing Capacity",
-    title: "Human Capital Development",
+    title: "Research & Development",
     description:
-      "Building world-class pharmaceutical talent through education, training, and skills development programs",
-    href: "/initiatives/manufacturing-capacity",
-    imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-    imageAlt: "Manufacturing facility tour",
+      "Establishing Barbados as a credible site for pharmaceutical research and technology transfer.",
+    href: "/missions/research-development",
+    imageSrc: "/images/amari-shutters-_ldNP1tBteQ-unsplash.jpg",
+    imageAlt: "Research and development",
     bg: "#CAF1FF",
+  },
+  {
+    title: "Innovation & Technology",
+    description:
+      "Creating the conditions for pharmaceutical innovation to take root and scale.",
+    href: "/missions/innovation-technology",
+    imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
+    imageAlt: "Innovation and technology",
+    bg: "#9bffcd",
+  },
+  {
+    title: "Regulatory Development & Policy",
+    description:
+      "Building the regulatory framework that gives investors and manufacturers confidence to commit.",
+    href: "/missions/regulatory-policy",
+    imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
+    imageAlt: "Regulatory development and policy",
+    bg: "#CAF1FF",
+  },
+  {
+    title: "Investment & Financing",
+    description:
+      "Connecting viable projects to the right capital at the right stage.",
+    href: "/missions/investment-financing",
+    imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
+    imageAlt: "Investment and financing",
+    bg: "#9bffcd",
   },
 ];
 
@@ -199,15 +223,15 @@ const PILLARS: Pillar[] = [
     eyebrow: "Manufacture",
     description:
       "Local production of essential medicines, starting with IV fluids, scaling to ARVs, diagnostics, and NCDs.",
-    imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
+    imageSrc: "/images/national-cancer-institute-2fyeLhUeYpg-unsplash.jpg",
     imageAlt: "Pharmaceutical manufacturing line",
     bg: "#ffffff",
   },
   {
     eyebrow: "Distribute",
     description:
-      "A regional logistics model that puts medicines where they are needed, reliably and at lower cost.",
-    imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
+      "A regional logistics\nmodel that puts medicines where they are needed, reliably and at lower cost.",
+    imageSrc: "/images/DSC06909.jpg",
     imageAlt: "Regional pharmaceutical logistics",
     bg: "#83ffc1",
     highlight: true,
@@ -216,7 +240,7 @@ const PILLARS: Pillar[] = [
     eyebrow: "Build",
     description:
       "The regulatory, workforce, and institutional foundations that sustain a pharmaceutical sector for generations.",
-    imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
+    imageSrc: "/images/DSC03002.jpg",
     imageAlt: "Workforce training and regulatory development",
     bg: "#ffffff",
   },
@@ -232,6 +256,7 @@ export default function AboutPage() {
               size={1200}
               imageSrc={HERO_IMAGE}
               imageAlt="Barbados Pharmaceutical Inc. team"
+              imagePosition="xMidYMid slice"
               className="w-full h-auto"
             />
           </div>
@@ -239,19 +264,19 @@ export default function AboutPage() {
           {/* Hero copy — sits inside the shape's bottom-left negative space
               at every viewport. */}
           <div
-            className="absolute left-0 w-[58%] md:w-[52%] pt-2 md:pt-4 lg:pt-6 pr-3 md:pr-4 lg:pr-10"
+            className="absolute left-0 w-[58%] md:w-[62%] lg:w-[68%] pt-2 md:pt-4 lg:pt-6 pr-3 md:pr-6 lg:pr-12"
             style={{ top: "60%" }}
           >
             <h1
-              className="hero-anim font-display text-xl md:text-display-sm lg:text-display-md font-semibold text-primary-500 leading-[1.15] md:leading-[1.08] tracking-tight max-w-lg text-balance"
+              className="hero-anim font-display text-xl md:text-display-md lg:text-display-lg font-bold text-primary-500 leading-[1.15] md:leading-[1.05] tracking-tight md:max-w-3xl lg:max-w-4xl text-balance"
               style={{ "--anim-delay": "0s" } as CSSProperties}
             >
-              We&apos;re not a traditional agency.
+              We&rsquo;re not a traditional agency.
               <br />
               We&apos;re a market creator.
             </h1>
             <p
-              className="hero-anim mt-3 text-sm md:text-base lg:text-lg text-primary-500/70 leading-relaxed max-w-sm"
+              className="hero-anim mt-3 md:mt-4 text-sm md:text-lg lg:text-xl text-primary-500/75 leading-relaxed md:max-w-xl lg:max-w-2xl"
               style={{ "--anim-delay": "0.12s" } as CSSProperties}
             >
               Established to bring access to essential medicines to Bajans,
@@ -277,7 +302,7 @@ export default function AboutPage() {
           className="mx-auto max-w-page rounded-lg px-5 py-10 md:px-8 md:py-16 lg:px-12 lg:py-24"
           style={{ backgroundColor: "#CAF1FF" }}
         >
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 md:gap-4 mb-7 md:mb-5 lg:mb-6">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5 md:gap-8 mb-8 md:mb-10 lg:mb-12">
             <div className="max-w-lg">
               <h2 className="font-display text-lg md:text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
                 Our Vision
@@ -287,7 +312,7 @@ export default function AboutPage() {
                 manufacturing gateway for the Caribbean and the Global South.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2 md:gap-3 shrink-0">
+            <div className="flex flex-wrap items-center gap-2 md:gap-3 shrink-0 md:ml-auto">
               <a href="/contact" className="inline-flex">
                 <Button variant="primary" size="sm">
                   Partner With BPI
@@ -301,7 +326,7 @@ export default function AboutPage() {
             </div>
           </div>
 
-          <div data-reveal-stagger className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-3 lg:gap-4">
+          <div data-reveal-stagger className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 lg:gap-8">
             {PILLARS.map((pillar) => (
               <PillarCard key={pillar.eyebrow} pillar={pillar} />
             ))}
@@ -326,7 +351,7 @@ export default function AboutPage() {
           <div data-reveal="fade">
           <MissionCarousel>
             {MISSION_CARDS.map((card) => (
-              <MissionCardItem key={card.eyebrow} card={card} />
+              <MissionCardItem key={card.href} card={card} />
             ))}
           </MissionCarousel>
           </div>
@@ -552,24 +577,33 @@ function LeadershipContactCard() {
 function MissionCardItem({ card }: { card: MissionCard }) {
   return (
     <div
-      className="rounded-lg p-4 md:p-6 lg:p-10 flex items-stretch gap-4 md:gap-6 lg:gap-10 w-[86vw] md:w-[70vw] lg:w-[60vw] xl:w-[52vw] shrink-0 min-h-80 md:min-h-112 lg:min-h-128"
+      className="rounded-lg p-5 md:p-8 lg:p-12 flex items-stretch gap-5 md:gap-8 lg:gap-12 w-[84vw] md:w-[78vw] lg:w-[74vw] xl:w-[66vw] shrink-0 min-h-80 md:min-h-112 lg:min-h-128"
       style={{ backgroundColor: card.bg }}
     >
       <div className="flex flex-col justify-between gap-4 md:gap-5 flex-1 min-w-0">
-        <div className="flex flex-col gap-3 md:gap-4">
+        <div className="flex flex-col gap-4 md:gap-6">
           <div className="flex items-center gap-2 text-primary-500">
-            <Logo size={60} className="text-primary-500 w-10 md:w-14 lg:w-15 h-auto" />
+            <Logo
+              iconOnly
+              size={28}
+              className="text-primary-500 w-5 md:w-6 lg:w-7 h-auto shrink-0"
+            />
+            {card.eyebrow ? (
+              <span className="text-sm md:text-base lg:text-lg font-semibold text-primary-500 leading-none">
+                {card.eyebrow}
+              </span>
+            ) : null}
           </div>
-          <h3 className="font-display text-base md:text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.15] tracking-tight">
+          <h3 className="font-display text-xl md:text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.15] tracking-tight">
             {card.title}
           </h3>
-          <p className="text-xs md:text-sm lg:text-base text-primary-500/75 leading-relaxed max-w-md">
+          <p className="text-sm md:text-base lg:text-lg text-primary-500/75 leading-relaxed max-w-md">
             {card.description}
           </p>
         </div>
         <a
           href={card.href}
-          className="inline-flex items-center gap-2 text-xs md:text-sm font-semibold text-primary-500 hover:opacity-70 transition-opacity"
+          className="inline-flex items-center gap-2 text-sm md:text-base font-semibold text-primary-500 hover:opacity-70 transition-opacity"
         >
           Learn more
           <ArrowRight />
@@ -577,12 +611,15 @@ function MissionCardItem({ card }: { card: MissionCard }) {
       </div>
 
       {card.imageSrc ? (
-        <div data-reveal="scale" className="shrink-0 self-stretch flex items-center">
-          <WhyShape
+        <div
+          data-reveal="scale"
+          className="shrink-0 self-stretch flex items-center"
+        >
+          <MissionShape
             size={420}
             imageSrc={card.imageSrc}
             imageAlt={card.imageAlt ?? ""}
-            className="w-full max-w-32 md:max-w-md lg:max-w-lg h-auto"
+            className="w-full max-w-40 md:max-w-md lg:max-w-lg h-auto"
           />
         </div>
       ) : null}
@@ -608,22 +645,22 @@ function PillarCard({ pillar }: { pillar: Pillar }) {
   if (pillar.highlight) {
     return (
       <div
-        className="rounded-lg overflow-hidden flex flex-col"
+        className="rounded-2xl overflow-hidden flex flex-col min-h-120 md:min-h-140 lg:min-h-160"
         style={{ backgroundColor: pillar.bg }}
       >
-        <div data-reveal="scale" className="p-3 md:p-5 lg:p-6">
-          <BlogPostShape
+        <div data-reveal="scale" className="p-5 md:p-6 lg:p-7">
+          <VisionShape
             size={320}
             imageSrc={pillar.imageSrc}
             imageAlt={pillar.imageAlt}
             className="w-full h-auto"
           />
         </div>
-        <div className="px-4 md:px-5 lg:px-6 pb-4 md:pb-6 lg:pb-7 flex flex-col gap-2 md:gap-3">
-          <span className="text-[10px] lg:text-xs font-bold tracking-[0.12em] text-primary-500 uppercase">
+        <div className="-mt-8 md:-mt-12 lg:-mt-16 pl-8 md:pl-10 lg:pl-12 pr-5 md:pr-6 lg:pr-7 pb-6 md:pb-7 lg:pb-8 flex flex-col gap-3 md:gap-4 max-w-[62%]">
+          <span className="text-[11px] md:text-xs lg:text-sm font-bold tracking-[0.14em] text-primary-500 uppercase leading-tight">
             {pillar.eyebrow}
           </span>
-          <p className="text-xs md:text-sm lg:text-base text-primary-500/80 leading-relaxed">
+          <p className="whitespace-pre-line text-sm md:text-base lg:text-lg text-primary-500/80 leading-relaxed">
             {pillar.description}
           </p>
         </div>
@@ -633,19 +670,19 @@ function PillarCard({ pillar }: { pillar: Pillar }) {
 
   return (
     <div
-      className="rounded-lg overflow-hidden flex flex-col"
+      className="rounded-2xl overflow-hidden flex flex-col min-h-120 md:min-h-140 lg:min-h-160"
       style={{ backgroundColor: pillar.bg }}
     >
-      <div className="px-4 md:px-5 lg:px-6 pt-4 md:pt-6 lg:pt-7 flex flex-col gap-2 md:gap-3">
-        <span className="text-[10px] lg:text-xs font-bold tracking-[0.12em] text-primary-500 uppercase">
+      <div className="px-5 md:px-6 lg:px-7 pt-6 md:pt-7 lg:pt-8 flex flex-col gap-3 md:gap-4">
+        <span className="text-[11px] md:text-xs lg:text-sm font-bold tracking-[0.14em] text-primary-500 uppercase">
           {pillar.eyebrow}
         </span>
-        <p className="text-xs md:text-sm lg:text-base text-primary-500/80 leading-relaxed">
+        <p className="text-sm md:text-base lg:text-lg text-primary-500/80 leading-relaxed">
           {pillar.description}
         </p>
       </div>
-      <div className="px-4 md:px-5 lg:px-6 pt-3 md:pt-5 lg:pt-6 pb-3 md:pb-5 lg:pb-6 mt-auto">
-        <div data-reveal="scale" className="relative aspect-5/4 rounded-sm overflow-hidden">
+      <div className="px-5 md:px-6 lg:px-7 pt-4 md:pt-5 lg:pt-6 pb-5 md:pb-6 lg:pb-7 mt-auto">
+        <div data-reveal="scale" className="relative aspect-5/4 rounded-lg overflow-hidden">
           <Image
             src={pillar.imageSrc}
             alt={pillar.imageAlt}
