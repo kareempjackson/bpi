@@ -227,7 +227,7 @@ export default function AboutPage() {
     <main className="bg-error-25">
       <section className="px-5 md:px-20 lg:px-32 pt-6 md:pt-10 lg:pt-12 pb-24 md:pb-14 lg:pb-20">
         <div className="mx-auto max-w-page relative">
-          <div data-reveal="scale" className="mx-auto max-w-xs md:max-w-none">
+          <div data-reveal="scale">
             <UnionShape
               size={1200}
               imageSrc={HERO_IMAGE}
@@ -271,13 +271,13 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="px-5 md:px-20 lg:px-32 pt-6 md:pt-12 lg:pt-16 pb-6 md:pb-10 lg:pb-14">
+      <section className="px-5 md:px-20 lg:px-32 pt-12 md:pt-12 lg:pt-16 pb-12 md:pb-10 lg:pb-14">
         <div
           data-reveal-stagger
-          className="mx-auto max-w-page rounded-lg px-4 py-6 md:px-8 md:py-16 lg:px-12 lg:py-24"
+          className="mx-auto max-w-page rounded-lg px-5 py-10 md:px-8 md:py-16 lg:px-12 lg:py-24"
           style={{ backgroundColor: "#CAF1FF" }}
         >
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3 md:gap-4 mb-4 md:mb-5 lg:mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 md:gap-4 mb-7 md:mb-5 lg:mb-6">
             <div className="max-w-lg">
               <h2 className="font-display text-lg md:text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
                 Our Vision
@@ -301,7 +301,7 @@ export default function AboutPage() {
             </div>
           </div>
 
-          <div data-reveal-stagger className="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-4">
+          <div data-reveal-stagger className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-3 lg:gap-4">
             {PILLARS.map((pillar) => (
               <PillarCard key={pillar.eyebrow} pillar={pillar} />
             ))}
@@ -309,9 +309,9 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="px-5 md:px-20 lg:px-32 pt-8 md:pt-12 lg:pt-16 pb-8 md:pb-12 lg:pb-16">
+      <section className="px-5 md:px-20 lg:px-32 pt-12 md:pt-12 lg:pt-16 pb-12 md:pb-12 lg:pb-16">
         <div className="mx-auto max-w-page">
-          <div data-reveal-stagger className="max-w-2xl mb-6 lg:mb-8">
+          <div data-reveal-stagger className="max-w-2xl mb-8 lg:mb-8">
             <h2 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
               Our Mission
             </h2>
@@ -333,9 +333,9 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="px-5 md:px-20 lg:px-32 pt-8 md:pt-12 lg:pt-16 pb-8 md:pb-12 lg:pb-16">
+      <section className="px-5 md:px-20 lg:px-32 pt-12 md:pt-12 lg:pt-16 pb-12 md:pb-12 lg:pb-16">
         <div className="mx-auto max-w-page">
-          <div data-reveal-stagger className="max-w-3xl mb-6 lg:mb-8">
+          <div data-reveal-stagger className="max-w-3xl mb-8 lg:mb-8">
             <h2 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
               By the Numbers
             </h2>
@@ -346,7 +346,7 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div data-reveal-stagger className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
+          <div data-reveal-stagger className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-3 lg:gap-4">
             {STATS.map((stat) => (
               <StatCard key={stat.value} stat={stat} />
             ))}
@@ -376,9 +376,9 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="px-5 md:px-20 lg:px-32 pt-8 md:pt-10 lg:pt-14 pb-10 md:pb-14 lg:pb-20">
-        <div data-reveal-stagger className="mx-auto max-w-page rounded-lg bg-white px-5 py-8 md:px-8 md:py-16 lg:px-12 lg:py-24">
-          <div className="mb-6 lg:mb-8">
+      <section className="px-5 md:px-20 lg:px-32 pt-12 md:pt-10 lg:pt-14 pb-14 md:pb-14 lg:pb-20">
+        <div data-reveal-stagger className="mx-auto max-w-page rounded-lg bg-white px-5 py-12 md:px-8 md:py-16 lg:px-12 lg:py-24">
+          <div className="mb-8 lg:mb-8">
             <p className="text-[10px] lg:text-xs font-bold tracking-[0.14em] text-primary-500/70 uppercase">
               Where Investment Meets Execution
             </p>
@@ -391,13 +391,13 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="px-5 md:px-20 lg:px-32 pt-8 md:pt-10 lg:pt-14 pb-10 md:pb-14 lg:pb-20">
+      <section className="px-5 md:px-20 lg:px-32 pt-12 md:pt-10 lg:pt-14 pb-14 md:pb-14 lg:pb-20">
         <div
-          className="mx-auto max-w-page rounded-lg px-5 py-8 md:px-8 md:py-16 lg:px-12 lg:py-24"
+          className="mx-auto max-w-page rounded-lg px-5 py-10 md:px-8 md:py-16 lg:px-12 lg:py-24"
           style={{ backgroundColor: "#CAF1FF" }}
         >
           <div data-reveal-stagger className="mx-auto max-w-5xl xl:max-w-6xl">
-            <div className="max-w-md mb-6 lg:mb-8">
+            <div className="max-w-md mb-8 lg:mb-8">
               <h2 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
                 Leadership
               </h2>
@@ -408,7 +408,7 @@ export default function AboutPage() {
               </p>
             </div>
 
-            <div data-reveal-stagger className="grid grid-cols-2 md:grid-cols-3 gap-3 lg:gap-4">
+            <div data-reveal-stagger className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-3 lg:gap-4">
               {LEADERS.map((leader, idx) => (
                 <LeaderCard
                   key={leader.name + leader.role + idx}
@@ -645,7 +645,7 @@ function PillarCard({ pillar }: { pillar: Pillar }) {
         </p>
       </div>
       <div className="px-4 md:px-5 lg:px-6 pt-3 md:pt-5 lg:pt-6 pb-3 md:pb-5 lg:pb-6 mt-auto">
-        <div data-reveal="scale" className="relative aspect-video md:aspect-5/4 rounded-sm overflow-hidden">
+        <div data-reveal="scale" className="relative aspect-5/4 rounded-sm overflow-hidden">
           <Image
             src={pillar.imageSrc}
             alt={pillar.imageAlt}

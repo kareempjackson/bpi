@@ -215,11 +215,11 @@ export default function StickyTopNav() {
         setOverHero(nextOverHero);
       }
 
-      // Over the hero, the nav uses a frosted navy tint — mirror that on
-      // the mobile status bar so the time area reads as part of the
+      // Over the hero, keep the mobile status bar tinted with the site's
+      // mint so the time area reads as part of the page surrounding the
       // hero card, not a white strip above it.
       if (nextOverHero) {
-        setThemeColor("#000036");
+        setThemeColor(FALLBACK_BG);
       }
 
       // Only sample the page background when the nav is *not* over the
