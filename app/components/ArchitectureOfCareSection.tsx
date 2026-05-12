@@ -81,19 +81,19 @@ export default function ArchitectureOfCareSection({
   return (
     <section
       data-nav-theme="light"
-      className="bg-error-25 px-12 md:px-20 lg:px-32 pt-16 md:pt-20 lg:pt-28 pb-12 md:pb-16 lg:pb-24"
+      className="bg-error-25 px-5 md:px-20 lg:px-32 pt-10 md:pt-20 lg:pt-28 pb-8 md:pb-16 lg:pb-24"
     >
-      <div className="mx-auto max-w-page rounded-3xl bg-white px-8 md:px-14 lg:px-20 py-16 md:py-20 lg:py-28">
+      <div className="mx-auto max-w-page rounded-3xl bg-white px-5 md:px-14 lg:px-20 py-10 md:py-20 lg:py-28">
         {/* Header */}
         <div
           data-reveal-stagger
-          className="flex items-start justify-between gap-6 mb-12 md:mb-16"
+          className="flex items-start justify-between gap-4 md:gap-6 mb-8 md:mb-16"
         >
           <div className="max-w-2xl">
-            <h2 className="font-display text-display-sm lg:text-display-md font-semibold text-primary-500 leading-[1.05] tracking-[-0.02em]">
+            <h2 className="font-display text-display-xs md:text-display-sm lg:text-display-md font-semibold text-primary-500 leading-[1.05] tracking-[-0.02em]">
               {heading}
             </h2>
-            <p className="mt-3 text-sm md:text-base text-primary-500 leading-relaxed">
+            <p className="mt-2 md:mt-3 text-sm md:text-base text-primary-500 leading-relaxed">
               {description}
             </p>
           </div>
@@ -152,7 +152,7 @@ function PriorityCard({ item }: { item: Item }) {
   return (
     <a
       href={item.href}
-      className="shrink-0 snap-start w-[85%] sm:w-[60%] lg:w-[44%] aspect-4/3 rounded-3xl p-7 lg:p-9 flex flex-col group"
+      className="shrink-0 snap-start w-[85%] sm:w-[60%] lg:w-[44%] aspect-4/3 rounded-3xl p-5 md:p-7 lg:p-9 flex flex-col group"
       style={{ backgroundColor: item.color } as CSSProperties}
     >
       <h3 className="font-display text-xs lg:text-sm font-bold uppercase tracking-[0.06em] text-primary-500 leading-tight group-hover:opacity-80 transition-opacity">

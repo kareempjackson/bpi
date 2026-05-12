@@ -16,7 +16,7 @@ type Props = {
   socials?: SocialLink[];
 };
 
-const DEFAULT_QUOTE = `This has been a major achievement for a small state like Barbados, to be able to [position] itself at the centre of the Americas as a location for the development of a pharmaceutical industry.`;
+const DEFAULT_QUOTE = `This has been a major achievement for a small state like Barbados, to be able to position itself at the centre of the Americas as a location for the development of a pharmaceutical industry.`;
 const DEFAULT_BODY =
   "Barbados Pharmaceutical Inc. is building the gateway that connects Caribbean demand with global pharmaceutical expertise.";
 
@@ -42,17 +42,17 @@ export default function LeaderSection({
   return (
     <section
       data-nav-theme="light"
-      className="bg-error-25 px-12 md:px-20 lg:px-32 pt-20 md:pt-28 lg:pt-36 pb-16 md:pb-20 lg:pb-28"
+      className="bg-error-25 px-5 md:px-20 lg:px-32 pt-12 md:pt-28 lg:pt-36 pb-10 md:pb-20 lg:pb-28"
     >
       {/* TOP: large quote (left) + small body text (right) — no cards */}
       <div
         data-reveal-stagger
-        className="mx-auto max-w-page mb-16 md:mb-20 lg:mb-24 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-y-6 gap-x-10"
+        className="mx-auto max-w-page mb-10 md:mb-20 lg:mb-24 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-y-5 gap-x-10"
       >
-        <blockquote className="lg:w-[55%] font-display text-display-sm md:text-display-md font-normal text-primary-500 leading-[1.2] tracking-tight">
+        <blockquote className="lg:w-[55%] font-display text-display-xs md:text-display-md font-normal text-primary-500 leading-[1.2] tracking-tight">
           &quot;{quote}&quot;
         </blockquote>
-        <p className="lg:w-[28%] text-base md:text-lg lg:text-xl text-primary-500 leading-relaxed">
+        <p className="lg:w-[28%] text-sm md:text-lg lg:text-xl text-primary-500 leading-relaxed">
           {body}
         </p>
       </div>
@@ -65,7 +65,7 @@ export default function LeaderSection({
         {/* Left: primary image */}
         <div
           data-reveal="scale"
-          className="lg:w-[50%] relative aspect-5/4 rounded-[48px] overflow-hidden shrink-0"
+          className="lg:w-[50%] relative aspect-5/4 rounded-3xl overflow-hidden shrink-0"
         >
           <div className="absolute inset-0">
             <Image
@@ -83,16 +83,16 @@ export default function LeaderSection({
           {/* Yellow name card */}
           <div
             data-reveal
-            className="rounded-4xl p-5 lg:p-6 lg:mt-16"
+            className="rounded-3xl p-4 md:p-5 lg:p-6 lg:mt-16"
             style={{ backgroundColor: "#dde885" }}
           >
-            <h3 className="font-display text-base lg:text-lg font-bold text-primary-500 leading-tight">
+            <h3 className="font-display text-sm md:text-base lg:text-lg font-bold text-primary-500 leading-tight">
               {name}, {title}
             </h3>
-            <p className="mt-0.5 text-xs lg:text-sm text-primary-500/75">
+            <p className="mt-0.5 text-[11px] md:text-xs lg:text-sm text-primary-500/75">
               {org}
             </p>
-            <div className="mt-4 flex items-center gap-2">
+            <div className="mt-3 md:mt-4 flex items-center gap-2">
               {socials.map((s) => (
                 <a
                   key={s.kind}
@@ -109,7 +109,7 @@ export default function LeaderSection({
           {/* B&W portrait — pushed to the bottom so it aligns with the primary image's bottom edge */}
           <div
             data-reveal="scale"
-            className="relative w-full sm:w-[50%] aspect-square rounded-[36px] overflow-hidden lg:mt-auto"
+            className="relative w-full sm:w-[50%] aspect-square rounded-3xl overflow-hidden lg:mt-auto"
           >
             <div className="absolute inset-0">
               <Image
@@ -178,7 +178,13 @@ function SocialIcon({ kind }: { kind: SocialKind }) {
         >
           <rect x="3" y="3" width="18" height="18" rx="5" />
           <circle cx="12" cy="12" r="4" />
-          <circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none" />
+          <circle
+            cx="17.5"
+            cy="6.5"
+            r="0.8"
+            fill="currentColor"
+            stroke="none"
+          />
         </svg>
       );
   }

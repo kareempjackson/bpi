@@ -1,41 +1,92 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import ArrowRight from "./ArrowRight";
 import Button from "./Button";
 import Logo from "./Logo";
 import MenuLauncher from "./MenuLauncher";
 
-const HERO_SHAPE_PATH =
-  "M930.407 0C937.54 2.56009e-05 944.381 2.78212 949.425 7.73438C954.469 12.6868 957.303 19.4044 957.303 26.4082V48.0488C957.303 65.7218 971.63 80.0488 989.303 80.0488H1385.1L1385.77 80.0566C1392.66 80.2245 1399.24 82.9855 1404.12 87.7832C1409.17 92.7355 1412 99.4525 1412 106.456V972C1412 998.51 1390.51 1020 1364 1020H48C21.4903 1020 5.0742e-07 998.51 0 972V48C0 21.4903 21.4903 1.07108e-06 48 0H930.407Z";
-
 const VIDEO_SRC = "/videos/Procur%20%20Motion%20animation%20V3%20SD.mp4";
 
-const HERO_GEO = {
-  vbW: 1412,
-  vbH: 1020,
-  notchRightX: 1385,
-  notchLeftX: 989,
-  notchBottomY: 80,
-  logoLeftX: 48,
-} as const;
+// The hero card has a notched top-right where the embedded nav sits. The
+// original path was authored at 1412×1020 and clipped with `objectBoundingBox`
+// units — which non-uniformly stretches the path to whatever aspect the card
+// has, squishing curves on mobile and elongating them on wide desktops. We
+// now generate the path procedurally with pixel-stable radii and clip with
+// `userSpaceOnUse`, so the silhouette stays sleek at every viewport size.
+type HeroGeo = {
+  R: number;       // outer corner radius (TL, BL, BR)
+  nr: number;      // notch corner radius (all 3 notch curves + TR card corner)
+  nh: number;      // notch height (y-coordinate of the shelf)
+  notchW: number;  // total notch horizontal extent
+};
 
-const heroVars = {
-  "--notch-right-pct": `${
-    ((HERO_GEO.vbW - HERO_GEO.notchRightX) / HERO_GEO.vbW) * 100
-  }%`,
-  "--notch-shelf-h-pct": `${(HERO_GEO.notchBottomY / HERO_GEO.vbH) * 100}%`,
-  "--notch-shelf-w-pct": `${
-    ((HERO_GEO.notchRightX - HERO_GEO.notchLeftX) / HERO_GEO.vbW) * 100
-  }%`,
-  "--logo-left-pct": `${(HERO_GEO.logoLeftX / HERO_GEO.vbW) * 100}%`,
-} as CSSProperties;
+function computeHeroGeo(cardW: number): HeroGeo {
+  if (cardW < 640) {
+    // Mobile: the HamburgerMenu at size=76 renders at 76×34px (120:54 aspect).
+    // Position is top:12 / right:12, so the pill occupies y=12→46 and
+    // x=cardW-88→cardW-12. Hug the pill with ~10px breathing room on the
+    // outside edges; anything taller leaves dead space inside the notch.
+    return {
+      R: 20,
+      nr: 12,
+      nh: 58,
+      notchW: Math.min(Math.max(cardW * 0.32, 116), 138),
+    };
+  }
+  if (cardW < 1024) {
+    return {
+      R: 28,
+      nr: 18,
+      nh: 84,
+      notchW: Math.min(Math.max(cardW * 0.36, 300), 380),
+    };
+  }
+  return {
+    R: 36,
+    nr: 22,
+    nh: 76,
+    notchW: Math.min(Math.max(cardW * 0.32, 420), 540),
+  };
+}
+
+function computeLogoSize(cardW: number): number {
+  if (cardW < 640) return 118;
+  if (cardW < 1024) return 150;
+  return 175;
+}
+
+function buildHeroPath(W: number, H: number, geo: HeroGeo): string {
+  const { R, nr, nh } = geo;
+  const minNotchW = 3 * nr;
+  const maxNotchW = Math.max(minNotchW, W - R - nr);
+  const notchW = Math.min(Math.max(geo.notchW, minNotchW), maxNotchW);
+  const x1 = W - notchW;
+  return [
+    `M${R} 0`,
+    `H${x1}`,
+    `A${nr} ${nr} 0 0 1 ${x1 + nr} ${nr}`,
+    `V${nh - nr}`,
+    `A${nr} ${nr} 0 0 0 ${x1 + 2 * nr} ${nh}`,
+    `H${W - nr}`,
+    `A${nr} ${nr} 0 0 1 ${W} ${nh + nr}`,
+    `V${H - R}`,
+    `A${R} ${R} 0 0 1 ${W - R} ${H}`,
+    `H${R}`,
+    `A${R} ${R} 0 0 1 0 ${H - R}`,
+    `V${R}`,
+    `A${R} ${R} 0 0 1 ${R} 0`,
+    "Z",
+  ].join(" ");
+}
+
+const DEFAULT_CARD_SIZE = { w: 1412, h: 1020 } as const;
 
 const NAV_LINKS = [
+  { label: "ABOUT", href: "/about" },
   { label: "ECOSYSTEM", href: "#ecosystem" },
-  { label: "ABOUT", href: "#about" },
-  { label: "INITIATIVE", href: "#initiative" },
+  { label: "INITIATIVES", href: "#initiative" },
 ];
 
 const clamp01 = (n: number) => (n < 0 ? 0 : n > 1 ? 1 : n);
@@ -54,6 +105,9 @@ export default function HeroSection() {
 
   const [isDesktop, setIsDesktop] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [cardSize, setCardSize] = useState<{ w: number; h: number }>(
+    DEFAULT_CARD_SIZE,
+  );
 
   useEffect(() => {
     const mqDesktop = window.matchMedia("(min-width: 768px)");
@@ -69,6 +123,40 @@ export default function HeroSection() {
       mqReduce.removeEventListener("change", onReduce);
     };
   }, []);
+
+  // Track the card's measured pixel size so the clip-path stays sleek.
+  // `offsetWidth` / `offsetHeight` ignore the scroll-driven scale transform
+  // applied to `cardRef`, so the path always reflects the un-transformed box.
+  useLayoutEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const update = () => {
+      setCardSize((prev) => {
+        const w = el.offsetWidth;
+        const h = el.offsetHeight;
+        if (w === prev.w && h === prev.h) return prev;
+        return { w, h };
+      });
+    };
+    update();
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", update);
+      return () => window.removeEventListener("resize", update);
+    }
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const heroGeo = computeHeroGeo(cardSize.w);
+  const heroPath = buildHeroPath(cardSize.w, cardSize.h, heroGeo);
+  const logoSize = computeLogoSize(cardSize.w);
+  const heroVars = {
+    "--hero-logo-left": `${cardSize.w < 640 ? 16 : heroGeo.R}px`,
+    "--hero-notch-h": `${heroGeo.nh}px`,
+    "--hero-notch-right": `${heroGeo.nr}px`,
+    "--hero-notch-w": `${Math.max(heroGeo.notchW - 3 * heroGeo.nr, 0)}px`,
+  } as CSSProperties;
 
   useEffect(() => {
     if (!isDesktop || reducedMotion) return;
@@ -114,25 +202,44 @@ export default function HeroSection() {
         videoWrapRef.current.style.transform = `translate3d(0, ${p * 40}px, 0)`;
       }
 
-      // Hero-embedded nav fades out early in the scroll. The card scales
-      // up fast and quickly fills the viewport — leaving the embedded nav
-      // sitting on top of the video looks awkward. We fade + lift it out
-      // between ~3 % and ~18 % of the scroll range so it's gone by the
-      // time the user is engaging with the video; the global sticky nav
-      // takes over on scroll-up after ~62 % of the range.
-      const navFadeP = local(p, 0.03, 0.18);
-      const navOpacity = 1 - navFadeP;
-      const navTranslateY = navFadeP * -14;
-      const navTransform = `translate3d(0, ${navTranslateY}px, 0)`;
+      // Hero-embedded nav exits with a staggered, cascading lift as the user
+      // begins scrolling. The logo leads, then each nav link, then the menu
+      // launcher — creating a premium "pushed aside" effect rather than a
+      // single block fade. The global sticky nav takes over on scroll-up
+      // after ~62 % of the range.
+      const stagger = (start: number, end: number) =>
+        local(p, start, end);
+      const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
+
+      // Logo: leads the cascade, exits straight up
+      const logoP = easeOut(stagger(0.02, 0.16));
       if (navLogoRef.current) {
-        navLogoRef.current.style.opacity = String(navOpacity);
-        navLogoRef.current.style.transform = navTransform;
+        navLogoRef.current.style.opacity = String(1 - logoP);
+        navLogoRef.current.style.transform = `translate3d(0, ${
+          logoP * -12
+        }px, 0)`;
       }
+
+      // Right nav cluster: stagger each child slightly
       if (navLinksRef.current) {
-        navLinksRef.current.style.opacity = String(navOpacity);
-        navLinksRef.current.style.transform = navTransform;
+        const items = navLinksRef.current.querySelectorAll<HTMLElement>(
+          "[data-nav-item]"
+        );
+        items.forEach((el, i) => {
+          // Each subsequent item starts its exit ~3% later
+          const start = 0.04 + i * 0.025;
+          const end = start + 0.12;
+          const itemP = easeOut(stagger(start, end));
+          el.style.opacity = String(1 - itemP);
+          el.style.transform = `translate3d(${itemP * 14}px, ${
+            itemP * -10
+          }px, 0)`;
+        });
+        // Container handles pointer-events once the last item is gone
+        const lastEnd = 0.04 + (items.length - 1) * 0.025 + 0.12;
+        const containerP = easeOut(stagger(0, lastEnd));
         navLinksRef.current.style.pointerEvents =
-          navOpacity < 0.05 ? "none" : "";
+          containerP > 0.95 ? "none" : "";
       }
     };
 
@@ -153,7 +260,9 @@ export default function HeroSection() {
 
   return (
     <>
-      {/* Hidden SVG defining the notched clip shape (referenced via CSS clip-path) */}
+      {/* Hidden SVG defining the notched clip shape. The path is rebuilt in
+          pixels whenever the card resizes, and clipped with `userSpaceOnUse`
+          so curves don't get stretched by the card's aspect ratio. */}
       <svg
         width="0"
         height="0"
@@ -161,11 +270,8 @@ export default function HeroSection() {
         style={{ position: "absolute", pointerEvents: "none" }}
       >
         <defs>
-          <clipPath id="hero-clip-bbox" clipPathUnits="objectBoundingBox">
-            <path
-              d={HERO_SHAPE_PATH}
-              transform={`scale(${1 / HERO_GEO.vbW} ${1 / HERO_GEO.vbH})`}
-            />
+          <clipPath id="hero-clip-bbox" clipPathUnits="userSpaceOnUse">
+            <path d={heroPath} />
           </clipPath>
         </defs>
       </svg>
@@ -180,8 +286,8 @@ export default function HeroSection() {
           ref={heroWrapRef}
           className={
             pinned
-              ? "sticky top-0 h-dvh overflow-hidden p-3 lg:p-4"
-              : "h-dvh overflow-hidden p-3 lg:p-4"
+              ? "sticky top-0 h-dvh overflow-hidden p-1.5 lg:p-4"
+              : "h-dvh overflow-hidden p-1.5 lg:p-4"
           }
         >
           <div className="relative w-full h-full" style={heroVars}>
@@ -239,14 +345,14 @@ export default function HeroSection() {
               className="absolute z-20 flex items-center will-change-[opacity,transform]"
               style={
                 {
-                  left: "var(--logo-left-pct)",
-                  top: "16px",
-                  height: "var(--notch-shelf-h-pct)",
+                  left: "var(--hero-logo-left)",
+                  top: 0,
+                  height: "var(--hero-notch-h)",
                 } as CSSProperties
               }
             >
               <Logo
-                size={175}
+                size={logoSize}
                 className="block text-white hero-anim"
                 style={{ "--anim-delay": "0.15s" } as CSSProperties}
               />
@@ -256,41 +362,51 @@ export default function HeroSection() {
               ref={navLinksRef}
               className="absolute z-30 hidden md:flex items-center justify-end gap-7 lg:gap-9 will-change-[opacity,transform]"
               style={{
-                right: "calc(var(--notch-right-pct) + 12px)",
+                right: "calc(var(--hero-notch-right) + 12px)",
                 top: 0,
-                height: "var(--notch-shelf-h-pct)",
-                maxWidth: "var(--notch-shelf-w-pct)",
+                height: "var(--hero-notch-h)",
+                maxWidth: "var(--hero-notch-w)",
               }}
             >
               <nav data-page-header className="flex items-center gap-7 lg:gap-9 text-[11px] font-semibold uppercase tracking-[0.14em] text-black">
                 {NAV_LINKS.map((link, i) => (
-                  <a
+                  <div
                     key={link.href}
-                    href={link.href}
-                    className="hero-anim hover:opacity-60 transition-opacity duration-200"
-                    style={
-                      {
-                        "--anim-delay": `${0.25 + i * 0.07}s`,
-                      } as CSSProperties
-                    }
+                    data-nav-item
+                    className="will-change-[opacity,transform]"
                   >
-                    {link.label}
-                  </a>
+                    <a
+                      href={link.href}
+                      className="hero-anim hover:opacity-60 transition-opacity duration-200"
+                      style={
+                        {
+                          "--anim-delay": `${0.25 + i * 0.07}s`,
+                        } as CSSProperties
+                      }
+                    >
+                      {link.label}
+                    </a>
+                  </div>
                 ))}
               </nav>
               <div
-                className="hero-anim-fade"
-                style={{ "--anim-delay": "0.55s" } as CSSProperties}
+                data-nav-item
+                className="will-change-[opacity,transform]"
               >
-                <MenuLauncher size={92} />
+                <div
+                  className="hero-anim-fade"
+                  style={{ "--anim-delay": "0.55s" } as CSSProperties}
+                >
+                  <MenuLauncher size={92} />
+                </div>
               </div>
             </div>
 
             <div
-              className="absolute top-3 right-3 z-30 md:hidden hero-anim-fade"
+              className="absolute top-0 right-0 z-30 md:hidden hero-anim-fade"
               style={{ "--anim-delay": "0.45s" } as CSSProperties}
             >
-              <MenuLauncher size={76} />
+              <MenuLauncher size={104} />
             </div>
 
             <div

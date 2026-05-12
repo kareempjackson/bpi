@@ -73,18 +73,18 @@ export default function InitiativesSection({
   return (
     <section
       data-nav-theme="light"
-      className="bg-error-25 px-12 md:px-20 lg:px-32 py-10 md:py-14 lg:py-20"
+      className="bg-error-25 px-5 md:px-20 lg:px-32 py-8 md:py-14 lg:py-20"
     >
-      <div className="mx-auto max-w-page rounded-lg bg-warning-50 px-6 md:px-10 lg:px-12 py-8 md:py-10 lg:py-12">
+      <div className="mx-auto max-w-page rounded-lg bg-warning-50 px-4 md:px-10 lg:px-12 py-6 md:py-10 lg:py-12">
         <div
           data-reveal-stagger
-          className="flex items-start justify-between gap-4 mb-8 md:mb-10"
+          className="flex items-start justify-between gap-3 mb-6 md:mb-10"
         >
           <div>
-            <div className="text-base md:text-lg lg:text-xl font-normal tracking-[0.08em] text-primary-500 uppercase">
+            <div className="text-[11px] md:text-lg lg:text-xl font-normal tracking-[0.08em] text-primary-500 uppercase">
               {eyebrow}
             </div>
-            <h2 className="mt-3 font-display text-display-md md:text-display-lg lg:text-display-xl font-bold text-primary-500 leading-[1.05] tracking-[-0.02em]">
+            <h2 className="mt-2 md:mt-3 font-display text-display-sm md:text-display-lg lg:text-display-xl font-bold text-primary-500 leading-[1.05] tracking-[-0.02em]">
               {heading}
             </h2>
           </div>
@@ -92,7 +92,7 @@ export default function InitiativesSection({
             href={viewAllHref}
             className="group/viewall flex items-center gap-3 text-primary-500 transition-opacity duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-80 focus-visible:outline-none focus-visible:opacity-100"
           >
-            <span className="text-base lg:text-lg font-normal transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/viewall:-translate-x-0.5 motion-reduce:transform-none">
+            <span className="hidden md:inline text-base lg:text-lg font-normal transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/viewall:-translate-x-0.5 motion-reduce:transform-none">
               View all
             </span>
             <ArrowCircle
@@ -153,14 +153,14 @@ function InitiativeRow({
       href={initiative.href}
       onMouseEnter={onHover}
       onFocus={onHover}
-      className={`group flex flex-1 items-center gap-4 lg:gap-6 rounded-lg pl-6 lg:pl-8 pr-4 lg:pr-6 py-5 lg:py-6 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 ${
+      className={`group flex flex-1 items-center gap-3 md:gap-4 lg:gap-6 rounded-lg pl-4 md:pl-6 lg:pl-8 pr-3 md:pr-4 lg:pr-6 py-4 md:py-5 lg:py-6 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 ${
         isActive
           ? "bg-gray-50 shadow-[0_6px_22px_-14px_rgba(0,0,54,0.25)]"
           : "bg-white hover:bg-gray-50 hover:shadow-[0_6px_22px_-14px_rgba(0,0,54,0.25)]"
       }`}
     >
       <div
-        className={`shrink-0 w-12 lg:w-16 text-display-lg lg:text-display-xl font-light leading-none transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        className={`shrink-0 w-9 md:w-12 lg:w-16 text-display-md md:text-display-lg lg:text-display-xl font-light leading-none transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           isActive ? "text-primary-500/60" : "text-gray-300 group-hover:text-primary-500/60"
         }`}
       >

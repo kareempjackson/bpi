@@ -334,37 +334,110 @@ export default function StickyTopNav() {
   );
 }
 
+type LanguageCode = "EN" | "ES" | "FR" | "PT" | "NL";
+type Language = { code: LanguageCode; label: string };
+
+const LANGUAGES: Language[] = [
+  { code: "EN", label: "English" },
+  { code: "ES", label: "Español" },
+  { code: "FR", label: "Français" },
+  { code: "PT", label: "Português" },
+  { code: "NL", label: "Nederlands" },
+];
+
 function LanguageToggle() {
-  const [lang, setLang] = useState<"EN" | "ES">("EN");
+  const [lang, setLang] = useState<LanguageCode>("EN");
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
   return (
     <div
-      role="group"
-      aria-label="Language"
-      className="hidden md:inline-flex items-center gap-1 text-[11px] font-medium tracking-[0.01em]"
+      ref={wrapRef}
+      className="hidden md:inline-block relative text-[11.5px] font-medium tracking-[0.06em] uppercase"
     >
       <button
         type="button"
-        onClick={() => setLang("EN")}
-        aria-pressed={lang === "EN"}
-        className={`px-0.5 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-90 motion-reduce:transform-none focus-visible:outline-none ${
-          lang === "EN" ? "opacity-100" : "opacity-50 hover:opacity-80"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label="Change language"
+        className="group inline-flex items-center gap-1.5 py-1 px-0.5 transition-opacity duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-70 focus-visible:outline-none focus-visible:opacity-100"
+      >
+        <span>{lang}</span>
+        <svg
+          viewBox="0 0 12 12"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={`w-3 h-3 transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            open ? "rotate-180" : "rotate-0"
+          }`}
+          aria-hidden
+        >
+          <path d="m3 4.5 3 3 3-3" />
+        </svg>
+      </button>
+
+      <div
+        className={`absolute right-0 mt-3 min-w-44 origin-top-right transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${
+          open
+            ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 scale-[0.98] -translate-y-1 pointer-events-none"
         }`}
       >
-        En
-      </button>
-      <span aria-hidden className="opacity-30">
-        /
-      </span>
-      <button
-        type="button"
-        onClick={() => setLang("ES")}
-        aria-pressed={lang === "ES"}
-        className={`px-0.5 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-90 motion-reduce:transform-none focus-visible:outline-none ${
-          lang === "ES" ? "opacity-100" : "opacity-50 hover:opacity-80"
-        }`}
-      >
-        Es
-      </button>
+        <ul
+          role="listbox"
+          aria-label="Languages"
+          className="overflow-hidden rounded-xl border border-primary-500/8 bg-white/95 backdrop-blur-xl shadow-[0_20px_50px_-24px_rgba(0,0,54,0.25)] text-primary-500 py-1.5"
+        >
+          {LANGUAGES.map((l) => {
+            const selected = l.code === lang;
+            return (
+              <li key={l.code}>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={selected}
+                  onClick={() => {
+                    setLang(l.code);
+                    setOpen(false);
+                  }}
+                  className="group/lang relative flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors duration-200 hover:bg-primary-500/4 focus-visible:bg-primary-500/4 focus-visible:outline-none"
+                >
+                  <span className="font-semibold tracking-[0.12em] text-[10.5px] w-7 shrink-0">
+                    {l.code}
+                  </span>
+                  <span
+                    className={`normal-case tracking-[0.005em] text-[13px] transition-colors duration-200 ${
+                      selected ? "text-primary-500" : "text-primary-500/45"
+                    }`}
+                  >
+                    {l.label}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </div>
   );
 }

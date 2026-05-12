@@ -104,7 +104,7 @@ function SocialIcon({ name }: { name: SocialName }) {
 
 function PartnerMark({ name }: { name: string }) {
   return (
-    <span className="text-base lg:text-lg font-semibold tracking-tight text-white/40">
+    <span className="text-sm md:text-base lg:text-lg font-semibold tracking-tight text-white/40">
       {name}
     </span>
   );
@@ -133,27 +133,27 @@ export default function Footer({
       <div
         aria-hidden
         data-reveal="fade"
-        className="pointer-events-none absolute -bottom-24 -right-16 md:-bottom-32 md:-right-24 lg:-bottom-40 lg:-right-32 z-0"
+        className="pointer-events-none absolute -bottom-16 -right-10 md:-bottom-32 md:-right-24 lg:-bottom-40 lg:-right-32 z-0"
       >
         <Logo
           iconOnly
           size={420}
-          className="footer-watermark text-white"
+          className="footer-watermark text-white w-56 md:w-80 lg:w-105 h-auto"
         />
       </div>
 
-      <div data-reveal-stagger className="relative z-10 mx-auto max-w-7xl px-6 sm:px-8 lg:px-12 pt-28 pb-8 md:pt-36 md:pb-10 lg:pt-44 lg:pb-12">
+      <div data-reveal-stagger className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8 lg:px-12 pt-16 pb-6 md:pt-36 md:pb-10 lg:pt-44 lg:pb-12">
         {/* Newsletter row */}
-        <div className="flex flex-col lg:flex-row lg:items-center gap-5 lg:gap-6">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4 md:gap-5 lg:gap-6">
           <a href="/" aria-label="BPI home" className="shrink-0">
-            <Logo size={128} className="text-white" />
+            <Logo size={128} className="text-white w-24 md:w-28 lg:w-32 h-auto" />
           </a>
           <form
             action={newsletterAction}
             method="post"
             className="flex-1 flex flex-col md:flex-row md:items-center gap-3 md:gap-4 lg:ml-8"
           >
-            <span className="font-display text-2xl lg:text-display-xs text-white shrink-0 tracking-[-0.01em]">
+            <span className="font-display text-xl md:text-2xl lg:text-display-xs text-white shrink-0 tracking-[-0.01em]">
               Newsletter signup
             </span>
             <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -180,7 +180,7 @@ export default function Footer({
             </div>
             <button
               type="submit"
-              className="shrink-0 rounded-round border border-dashed border-error-700/50 bg-error-500 px-6 py-3.5 text-base font-semibold text-primary-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-error-400 hover:border-error-700/80 hover:-translate-y-0.5 hover:shadow-[0_8px_22px_-10px_rgba(0,0,54,0.5)] active:translate-y-0 active:scale-[0.98] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-error-500/60"
+              className="shrink-0 rounded-round border border-dashed border-error-700/50 bg-error-500 px-5 py-3 text-sm md:px-6 md:py-3.5 md:text-base font-semibold text-primary-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-error-400 hover:border-error-700/80 hover:-translate-y-0.5 hover:shadow-[0_8px_22px_-10px_rgba(0,0,54,0.5)] active:translate-y-0 active:scale-[0.98] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-error-500/60"
             >
               Sign up for newsletter
             </button>
@@ -188,28 +188,28 @@ export default function Footer({
         </div>
 
         {/* Title block */}
-        <div className="mt-16 lg:mt-24">
-          <h2 className="font-display text-display-sm lg:text-display-md font-bold text-warning-100 leading-[1.05] tracking-[-0.02em]">
+        <div className="mt-10 md:mt-16 lg:mt-24">
+          <h2 className="font-display text-display-xs md:text-display-sm lg:text-display-md font-bold text-warning-100 leading-[1.05] tracking-[-0.02em]">
             Barbados Pharmaceutical Inc.
           </h2>
-          <p className="font-display text-display-sm lg:text-display-md text-warning-100/70 leading-[1.05] tracking-[-0.02em]">
+          <p className="font-display text-display-xs md:text-display-sm lg:text-display-md text-warning-100/70 leading-[1.05] tracking-[-0.02em]">
             The Caribbean&rsquo;s pharmaceutical gateway.
           </p>
         </div>
 
         {/* Nav columns */}
-        <div className="mt-16 lg:mt-24 mx-auto max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-10 lg:gap-x-20">
+        <div className="mt-10 md:mt-16 lg:mt-24 mx-auto max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-8 md:gap-y-10 lg:gap-x-20">
           {navGroups.map((group) => (
             <nav key={group.title} aria-label={group.title}>
-              <h3 className="text-xs font-semibold tracking-[0.18em] text-white/80 uppercase">
+              <h3 className="text-[11px] md:text-xs font-semibold tracking-[0.18em] text-white/80 uppercase">
                 {group.title}
               </h3>
-              <ul className="mt-5 border-t border-white/15">
+              <ul className="mt-4 md:mt-5 border-t border-white/15">
                 {group.links.map((link) => (
                   <li key={link.href} className="border-b border-white/15">
                     <a
                       href={link.href}
-                      className="block py-3.5 text-base text-white hover:text-error-300 transition-colors"
+                      className="block py-3 md:py-3.5 text-sm md:text-base text-white hover:text-error-300 transition-colors"
                     >
                       {link.label}
                     </a>
@@ -221,11 +221,11 @@ export default function Footer({
         </div>
 
         {/* Partners row */}
-        <div className="mt-20 lg:mt-28 mx-auto max-w-4xl flex flex-col items-center gap-4 lg:gap-5">
-          <span className="text-xs font-semibold tracking-[0.18em] text-white/40 uppercase">
+        <div className="mt-12 md:mt-20 lg:mt-28 mx-auto max-w-4xl flex flex-col items-center gap-3 md:gap-4 lg:gap-5">
+          <span className="text-[11px] md:text-xs font-semibold tracking-[0.18em] text-white/40 uppercase">
             Partners
           </span>
-          <div className="flex flex-wrap items-center justify-center gap-x-9 gap-y-4 lg:gap-x-14">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 md:gap-x-9 md:gap-y-4 lg:gap-x-14">
             {partners.map((p) =>
               p.href ? (
                 <a
@@ -244,7 +244,7 @@ export default function Footer({
         </div>
 
         {/* Bottom legal row */}
-        <div className="mt-24 lg:mt-32 pt-8 border-t border-white/10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between text-sm text-white/65">
+        <div className="mt-14 md:mt-24 lg:mt-32 pt-6 md:pt-8 border-t border-white/10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between text-xs md:text-sm text-white/65">
           <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-7">
             <span>© {year} Barbados Pharmaceutical Inc. All rights reserved.</span>
             <ul className="flex flex-wrap items-center gap-6">

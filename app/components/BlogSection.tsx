@@ -47,17 +47,17 @@ export default function BlogSection({
   posts = DEFAULT_POSTS,
 }: Props) {
   return (
-    <section data-nav-theme="light" className="bg-error-25 px-12 md:px-20 lg:px-32 py-10 md:py-14 lg:py-20">
+    <section data-nav-theme="light" className="bg-error-25 px-5 md:px-20 lg:px-32 py-8 md:py-14 lg:py-20">
       <div className="mx-auto max-w-page rounded-lg bg-warning-50 px-4 md:px-6 lg:px-8 py-5 md:py-6 lg:py-8">
-        <div data-reveal-stagger className="flex items-center justify-between gap-4 mb-5 md:mb-7">
-          <h2 className="font-display text-xl md:text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1]">
+        <div data-reveal-stagger className="flex items-center justify-between gap-3 mb-4 md:mb-7">
+          <h2 className="font-display text-lg md:text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1]">
             {heading}
           </h2>
           <a
             href={viewAllHref}
-            className="group/viewall flex items-center gap-3 text-primary-500 transition-opacity duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-80 focus-visible:outline-none focus-visible:opacity-100"
+            className="group/viewall flex items-center gap-2 md:gap-3 text-primary-500 transition-opacity duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-80 focus-visible:outline-none focus-visible:opacity-100"
           >
-            <span className="text-base lg:text-lg font-normal transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/viewall:-translate-x-0.5 motion-reduce:transform-none">
+            <span className="hidden md:inline text-base lg:text-lg font-normal transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/viewall:-translate-x-0.5 motion-reduce:transform-none">
               View all
             </span>
             <ArrowCircle

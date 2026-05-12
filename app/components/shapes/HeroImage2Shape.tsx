@@ -15,12 +15,12 @@ type Props = Omit<
 };
 
 const SVG_RAW = fs.readFileSync(
-  path.join(process.cwd(), "public/icons/header.svg"),
+  path.join(process.cwd(), "public/icons/hero_section.svg"),
   "utf-8",
 );
 
 const VIEWBOX =
-  SVG_RAW.match(/viewBox="([^"]+)"/)?.[1] ?? "0 0 1412 1069";
+  SVG_RAW.match(/viewBox="([^"]+)"/)?.[1] ?? "0 0 1412 1020";
 const PATH_D = SVG_RAW.match(/<path[^>]*\sd="([^"]+)"/)?.[1] ?? "";
 
 const [, , vbWidth, vbHeight] = VIEWBOX.split(/\s+/).map(Number);
