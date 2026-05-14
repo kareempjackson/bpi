@@ -80,7 +80,7 @@
 
   /* ─── Fonts ──────────────────────────────────────────────────── */
   --font-display: var(--font-albert-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-avenir), ui-sans-serif, system-ui, sans-serif;
 
   /* ─── Display type scale (Albert Sans) ───────────────────────── */
   --text-display-2xl: 4.5rem;
@@ -100,7 +100,7 @@
   --text-display-xs: 1.5rem;
   --text-display-xs--line-height: 2rem;
 
-  /* ─── Body type scale (Inter, stand-in for Avenir Next) ──────── */
+  /* ─── Body type scale (Avenir Next via Metropolis) ──────── */
   --text-xl: 1.25rem;
   --text-xl--line-height: 1.875rem;
   --text-lg: 1.125rem;
@@ -195,6 +195,76 @@ html.lenis body {
   }
 }
 
+/* ─── Care-map node hover ──────────────────────────────────────
+   When a node is hovered we zoom + pan the image inside its
+   clip-path circle so it reads like a gif/film still — something
+   is "going on inside" the porthole. The Ken-Burns drift is
+   subtle (5 s cycle) so it feels alive rather than gimmicky. ── */
+@keyframes care-node-drift {
+  /* Smooth "pulled in" entry — image starts at native size and is
+     drawn deeper into the porthole, then continues to drift slowly so
+     the scene reads as a window into another space, not a static
+     photo. The mid keyframes oscillate scale and translate slightly
+     out of phase to suggest depth/parallax. */
+  0% {
+    transform: scale(1) translate(0%, 0%);
+  }
+  18% {
+    transform: scale(1.22) translate(-1.5%, -1%);
+  }
+  42% {
+    transform: scale(1.26) translate(1.2%, -1.8%);
+  }
+  66% {
+    transform: scale(1.3) translate(1.6%, 1.2%);
+  }
+  100% {
+    transform: scale(1.26) translate(-1%, 1.6%);
+  }
+}
+
+/* ─── Care-map portal transition ───────────────────────────────
+   Click → "going to a new dimension". The chosen node's clip
+   region scales up to fill the viewport while its surrounding
+   stage fades to black with a slight zoom-in of the perspective
+   wrapper. The route push fires partway through, so the new
+   page lands as the portal completes. ──────────────────────── */
+@keyframes care-portal-zoom {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(14);
+    opacity: 0;
+  }
+}
+@keyframes care-portal-veil {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ─── Footer partner-logo marquee ──────────────────────────────
+   The marquee track contains the partner list duplicated. Sliding
+   it from 0 to -50 % moves the first copy out as the duplicate
+   slides in from the right, producing a seamless infinite loop. */
+@keyframes partners-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
 /* ─── Hero entrance stagger ──────────────────────────────────── */
 @keyframes hero-rise {
   from {
@@ -250,6 +320,42 @@ html.lenis body {
   .hero-video {
     animation: none;
     transform: none;
+  }
+}
+
+/* ─── Leader portrait — slow cinematic drift ──────────────────
+   Subtle Ken-Burns-style scale + parallax on the portrait under
+   the hero so the frame breathes rather than sitting still. Long
+   cycle so the motion never reads as "animated" — just alive. */
+@keyframes leader-portrait-drift {
+  0%   { transform: scale(1.04) translate3d(-0.4%, -0.3%, 0); }
+  100% { transform: scale(1.08) translate3d(0.4%, 0.3%, 0); }
+}
+.leader-portrait-drift {
+  animation: leader-portrait-drift 22s ease-in-out infinite alternate;
+  transform-origin: center;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .leader-portrait-drift {
+    animation: none;
+    transform: none;
+  }
+}
+
+/* ─── InitiativesShape cinematic drift ─── */
+/* Slow Ken Burns inside the SVG — the image scales / shifts gently
+   so the cinematic treatment never looks static. Applied to a <g>
+   wrapper around the photo so the SVG filter + overlays stay fixed. */
+@keyframes init-cinematic-drift {
+  0%   { transform: scale(1.03) translate(-0.25%, -0.15%); }
+  50%  { transform: scale(1.05) translate(0.2%, 0.15%); }
+  100% { transform: scale(1.03) translate(-0.25%, -0.15%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  [style*="init-cinematic-drift"] {
+    animation: none !important;
+    transform: none !important;
   }
 }
 

@@ -2,12 +2,42 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
+import Image from "next/image";
 import ArrowRight from "./ArrowRight";
 import Button from "./Button";
+import CtaLink from "./CtaLink";
 import Logo from "./Logo";
+import type { MenuConfig } from "./Menu";
 import MenuLauncher from "./MenuLauncher";
 
-const VIDEO_SRC = "/videos/Procur%20%20Motion%20animation%20V3%20SD.mp4";
+const DEFAULT_VIDEO_SRC = "/videos/Procur%20%20Motion%20animation%20V3%20SD.mp4";
+const DEFAULT_HEADLINE = "Building the Caribbean's pharmaceutical gateway.";
+const DEFAULT_BODY =
+  "97% of Caribbean medicines are imported. BPI is building the manufacturing capacity, supply chain, and regulatory infrastructure to change that.";
+const DEFAULT_NAV_LINKS: NavLink[] = [
+  { label: "ABOUT", href: "/about" },
+  { label: "ECOSYSTEM", href: "#ecosystem", disabled: true },
+  { label: "INITIATIVES", href: "#initiative" },
+];
+
+export type NavLink = {
+  label: string;
+  href: string;
+  disabled?: boolean;
+};
+
+export type HeroSectionProps = {
+  headline?: string;
+  body?: string;
+  /** "video" (default) renders the autoplay loop; "image" renders a still. */
+  backgroundKind?: "video" | "image";
+  videoSrc?: string;
+  imageSrc?: string;
+  imageAlt?: string;
+  ctaHref?: string;
+  navLinks?: NavLink[];
+  menuConfig?: MenuConfig;
+};
 
 // The hero card has a notched top-right where the embedded nav sits. The
 // original path was authored at 1412×1020 and clipped with `objectBoundingBox`
@@ -52,9 +82,9 @@ function computeHeroGeo(cardW: number): HeroGeo {
 }
 
 function computeLogoSize(cardW: number): number {
-  if (cardW < 640) return 118;
-  if (cardW < 1024) return 150;
-  return 175;
+  if (cardW < 640) return 92;
+  if (cardW < 1024) return 118;
+  return 138;
 }
 
 function buildHeroPath(W: number, H: number, geo: HeroGeo): string {
@@ -83,17 +113,23 @@ function buildHeroPath(W: number, H: number, geo: HeroGeo): string {
 
 const DEFAULT_CARD_SIZE = { w: 1412, h: 1020 } as const;
 
-const NAV_LINKS = [
-  { label: "ABOUT", href: "/about" },
-  { label: "ECOSYSTEM", href: "#ecosystem" },
-  { label: "INITIATIVES", href: "#initiative" },
-];
-
 const clamp01 = (n: number) => (n < 0 ? 0 : n > 1 ? 1 : n);
 const local = (p: number, start: number, end: number) =>
   clamp01((p - start) / (end - start));
 
-export default function HeroSection() {
+export default function HeroSection({
+  headline = DEFAULT_HEADLINE,
+  body = DEFAULT_BODY,
+  backgroundKind = "video",
+  videoSrc = DEFAULT_VIDEO_SRC,
+  imageSrc,
+  imageAlt = "",
+  ctaHref,
+  navLinks = DEFAULT_NAV_LINKS,
+  menuConfig,
+}: HeroSectionProps = {}) {
+  const NAV_LINKS = navLinks;
+  const showImage = backgroundKind === "image" && !!imageSrc;
   const sectionRef = useRef<HTMLElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const copyWrapRef = useRef<HTMLDivElement>(null);
@@ -311,18 +347,31 @@ export default function HeroSection() {
                 ref={videoWrapRef}
                 className="absolute inset-x-0 top-[-6%] bottom-[-6%] will-change-transform"
               >
-                <video
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  preload="metadata"
-                  disableRemotePlayback
-                  disablePictureInPicture
-                  className="hero-video absolute inset-0 w-full h-full object-cover"
-                >
-                  <source src={VIDEO_SRC} type="video/mp4" />
-                </video>
+                {showImage ? (
+                  <Image
+                    key={imageSrc}
+                    src={imageSrc!}
+                    alt={imageAlt}
+                    fill
+                    priority
+                    sizes="100vw"
+                    className="hero-video object-cover"
+                  />
+                ) : (
+                  <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="metadata"
+                    disableRemotePlayback
+                    disablePictureInPicture
+                    className="hero-video absolute inset-0 w-full h-full object-cover"
+                    key={videoSrc}
+                  >
+                    <source src={videoSrc} />
+                  </video>
+                )}
               </div>
 
               {/* Brand tint — opacity bumps as we scroll deeper */}
@@ -362,32 +411,52 @@ export default function HeroSection() {
               ref={navLinksRef}
               className="absolute z-30 hidden md:flex items-center justify-end gap-7 lg:gap-9 will-change-[opacity,transform]"
               style={{
-                right: "calc(var(--hero-notch-right) + 12px)",
+                right: "calc(var(--hero-notch-right) + 4px)",
                 top: 0,
                 height: "var(--hero-notch-h)",
                 maxWidth: "var(--hero-notch-w)",
               }}
             >
               <nav data-page-header className="flex items-center gap-7 lg:gap-9 text-[11px] font-semibold uppercase tracking-[0.14em] text-black">
-                {NAV_LINKS.map((link, i) => (
-                  <div
-                    key={link.href}
-                    data-nav-item
-                    className="will-change-[opacity,transform]"
-                  >
-                    <a
-                      href={link.href}
-                      className="hero-anim hover:opacity-60 transition-opacity duration-200"
-                      style={
-                        {
-                          "--anim-delay": `${0.25 + i * 0.07}s`,
-                        } as CSSProperties
-                      }
+                {NAV_LINKS.map((link, i) =>
+                  link.disabled ? (
+                    <div
+                      key={link.href}
+                      data-nav-item
+                      className="will-change-[opacity,transform]"
                     >
-                      {link.label}
-                    </a>
-                  </div>
-                ))}
+                      <span
+                        aria-disabled="true"
+                        className="hero-anim opacity-40 cursor-not-allowed select-none"
+                        style={
+                          {
+                            "--anim-delay": `${0.25 + i * 0.07}s`,
+                          } as CSSProperties
+                        }
+                      >
+                        {link.label}
+                      </span>
+                    </div>
+                  ) : (
+                    <div
+                      key={link.href}
+                      data-nav-item
+                      className="will-change-[opacity,transform]"
+                    >
+                      <CtaLink
+                        href={link.href}
+                        className="hero-anim hover:opacity-60 transition-opacity duration-200"
+                        style={
+                          {
+                            "--anim-delay": `${0.25 + i * 0.07}s`,
+                          } as CSSProperties
+                        }
+                      >
+                        {link.label}
+                      </CtaLink>
+                    </div>
+                  )
+                )}
               </nav>
               <div
                 data-nav-item
@@ -397,7 +466,7 @@ export default function HeroSection() {
                   className="hero-anim-fade"
                   style={{ "--anim-delay": "0.55s" } as CSSProperties}
                 >
-                  <MenuLauncher size={92} />
+                  <MenuLauncher size={120} menuConfig={menuConfig} />
                 </div>
               </div>
             </div>
@@ -406,7 +475,7 @@ export default function HeroSection() {
               className="absolute top-0 right-0 z-30 md:hidden hero-anim-fade"
               style={{ "--anim-delay": "0.45s" } as CSSProperties}
             >
-              <MenuLauncher size={104} />
+              <MenuLauncher size={104} menuConfig={menuConfig} />
             </div>
 
             <div
@@ -417,28 +486,34 @@ export default function HeroSection() {
                 className="hero-anim font-display text-display-lg font-semibold text-white tracking-[-0.03em] leading-[1.02]"
                 style={{ "--anim-delay": "0.65s" } as CSSProperties}
               >
-                Building the Caribbean&apos;s pharmaceutical gateway.
+                {headline}
               </h1>
               <div className="mt-7 lg:mt-9 flex items-center gap-6">
                 <p
                   className="hero-anim text-md lg:text-lg text-white/70 max-w-md leading-[1.6]"
                   style={{ "--anim-delay": "0.78s" } as CSSProperties}
                 >
-                  97% of Caribbean medicines are imported. BPI is building the
-                  manufacturing capacity, supply chain, and regulatory
-                  infrastructure to change that.
+                  {body}
                 </p>
                 <div
                   className="hero-anim shrink-0"
                   style={{ "--anim-delay": "0.9s" } as CSSProperties}
                 >
-                  <Button
-                    variant="primary"
-                    iconOnly="md"
-                    aria-label="Learn more"
-                  >
-                    <ArrowRight />
-                  </Button>
+                  {ctaHref ? (
+                    <CtaLink href={ctaHref} className="inline-flex" aria-label="Learn more">
+                      <Button variant="primary" iconOnly="md">
+                        <ArrowRight />
+                      </Button>
+                    </CtaLink>
+                  ) : (
+                    <Button
+                      variant="primary"
+                      iconOnly="md"
+                      aria-label="Learn more"
+                    >
+                      <ArrowRight />
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>

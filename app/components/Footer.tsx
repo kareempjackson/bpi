@@ -1,9 +1,15 @@
+import Link from "next/link";
 import Logo from "./Logo";
 
 type NavLink = { label: string; href: string };
 type SocialName = "LinkedIn" | "X" | "Instagram" | "YouTube";
 type SocialLink = { name: SocialName; href: string };
-type Partner = { name: string; href?: string };
+type Partner = {
+  name: string;
+  /** URL of the partner logo image (PNG/SVG with transparent bg recommended). */
+  logoSrc?: string;
+  href?: string;
+};
 
 type NavGroup = {
   title: string;
@@ -102,10 +108,26 @@ function SocialIcon({ name }: { name: SocialName }) {
   }
 }
 
-function PartnerMark({ name }: { name: string }) {
+function PartnerMark({ partner }: { partner: Partner }) {
+  // Image partners — uploaded via Sanity. We pin a consistent HEIGHT and
+  // let WIDTH adapt to each logo's natural aspect ratio, so a wide
+  // wordmark renders wider than a square icon while both share the same
+  // baseline. `brightness-0 invert opacity-70` tints any source colour
+  // to white over the dark footer so brand logos read uniformly.
+  if (partner.logoSrc) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={partner.logoSrc}
+        alt={partner.name}
+        className="shrink-0 h-9 md:h-10 lg:h-11 w-auto object-contain brightness-0 invert opacity-70 hover:opacity-100 transition-opacity"
+      />
+    );
+  }
+  // Text fallback for the hardcoded defaults that have no upload.
   return (
-    <span className="text-sm md:text-base lg:text-lg font-semibold tracking-tight text-white/40">
-      {name}
+    <span className="shrink-0 whitespace-nowrap text-sm md:text-base lg:text-lg font-semibold tracking-tight text-white/40">
+      {partner.name}
     </span>
   );
 }
@@ -121,6 +143,16 @@ export default function Footer({
   const year = new Date().getFullYear();
   const pillField =
     "w-full rounded-round border border-dashed border-white/50 bg-white px-6 py-3.5 text-base text-primary-500 placeholder:text-gray-400 outline-none focus:border-white focus:ring-2 focus:ring-error-500/30";
+
+  // The marquee duplicates the list to make the loop seamless. If the
+  // editor only uploaded one or two logos, that 2× duplicate looks like
+  // a tiny ping-pong. Repeat the source array enough times that each
+  // half of the loop is at least 8 items wide; the visible viewport
+  // never shows the "wrap" point as a result.
+  const minPerHalf = 8;
+  const repeats = Math.max(1, Math.ceil(minPerHalf / Math.max(partners.length, 1)));
+  const partnerSeq = Array.from({ length: repeats }, () => partners).flat();
+  const loopedPartners = [...partnerSeq, ...partnerSeq];
 
   return (
     <footer
@@ -142,12 +174,17 @@ export default function Footer({
         />
       </div>
 
-      <div data-reveal-stagger className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8 lg:px-12 pt-16 pb-6 md:pt-36 md:pb-10 lg:pt-44 lg:pb-12">
-        {/* Newsletter row */}
+      {/* Newsletter row — spans the full footer width with just a
+          gutter, so the logo sits flush to the left edge and the form
+          stretches across the entire row, matching the reference. */}
+      <div
+        data-reveal-stagger
+        className="relative z-10 px-20 sm:px-32 lg:px-40 pt-16 md:pt-36 lg:pt-44"
+      >
         <div className="flex flex-col lg:flex-row lg:items-center gap-4 md:gap-5 lg:gap-6">
-          <a href="/" aria-label="BPI home" className="shrink-0">
-            <Logo size={128} className="text-white w-24 md:w-28 lg:w-32 h-auto" />
-          </a>
+          <Link href="/" aria-label="BPI home" className="shrink-0">
+            <Logo size={220} className="text-white w-44 md:w-52 lg:w-56 h-auto" />
+          </Link>
           <form
             action={newsletterAction}
             method="post"
@@ -186,7 +223,11 @@ export default function Footer({
             </button>
           </form>
         </div>
+      </div>
 
+      {/* Centered content — title, columns, partners — stays capped at
+          the 7xl page width so it sits in a comfortable reading band. */}
+      <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8 lg:px-12 pb-6 md:pb-10 lg:pb-12">
         {/* Title block */}
         <div className="mt-10 md:mt-16 lg:mt-24">
           <h2 className="font-display text-display-xs md:text-display-sm lg:text-display-md font-bold text-warning-100 leading-[1.05] tracking-[-0.02em]">
@@ -198,21 +239,21 @@ export default function Footer({
         </div>
 
         {/* Nav columns */}
-        <div className="mt-10 md:mt-16 lg:mt-24 mx-auto max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-8 md:gap-y-10 lg:gap-x-20">
+        <div className="mt-10 md:mt-16 lg:mt-24 grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-8 md:gap-y-10 lg:gap-x-20">
           {navGroups.map((group) => (
             <nav key={group.title} aria-label={group.title}>
-              <h3 className="text-[11px] md:text-xs font-semibold tracking-[0.18em] text-white/80 uppercase">
+              <h3 className="text-xs md:text-sm font-bold tracking-[0.18em] text-white uppercase">
                 {group.title}
               </h3>
               <ul className="mt-4 md:mt-5 border-t border-white/15">
                 {group.links.map((link) => (
                   <li key={link.href} className="border-b border-white/15">
-                    <a
+                    <Link
                       href={link.href}
                       className="block py-3 md:py-3.5 text-sm md:text-base text-white hover:text-error-300 transition-colors"
                     >
                       {link.label}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -220,39 +261,72 @@ export default function Footer({
           ))}
         </div>
 
-        {/* Partners row */}
-        <div className="mt-12 md:mt-20 lg:mt-28 mx-auto max-w-4xl flex flex-col items-center gap-3 md:gap-4 lg:gap-5">
-          <span className="text-[11px] md:text-xs font-semibold tracking-[0.18em] text-white/40 uppercase">
+        {/* Partners row — label on the left, infinite marquee on the
+            right. The marquee track contains the partner list twice
+            and translates -50 % over a linear 28 s loop, so the second
+            copy seamlessly replaces the first. Edges are softly faded
+            with a gradient mask so partners appear/disappear smoothly. */}
+        <div className="mt-12 md:mt-20 lg:mt-28 flex flex-row items-center justify-center gap-6 md:gap-8 lg:gap-10">
+          <span className="shrink-0 text-[11px] md:text-xs font-semibold tracking-[0.18em] text-white/40 uppercase">
             Partners
           </span>
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 md:gap-x-9 md:gap-y-4 lg:gap-x-14">
-            {partners.map((p) =>
-              p.href ? (
-                <a
-                  key={p.name}
-                  href={p.href}
-                  className="opacity-80 hover:opacity-100 transition-opacity"
-                  aria-label={p.name}
-                >
-                  <PartnerMark name={p.name} />
-                </a>
-              ) : (
-                <PartnerMark key={p.name} name={p.name} />
-              ),
-            )}
+          <div
+            className="relative overflow-hidden flex-1 max-w-3xl"
+            style={{
+              maskImage:
+                "linear-gradient(to right, transparent 0, black 6%, black 94%, transparent 100%)",
+              WebkitMaskImage:
+                "linear-gradient(to right, transparent 0, black 6%, black 94%, transparent 100%)",
+            }}
+          >
+            <div
+              className="flex w-max items-center gap-x-6 md:gap-x-10 lg:gap-x-14 motion-reduce:animate-none"
+              style={{
+                animation: "partners-marquee 28s linear infinite",
+              }}
+            >
+              {loopedPartners.map((p, idx) => {
+                // First half is the "real" pass for screen readers; the
+                // second half is the duplicate that gives the loop its
+                // seamless wrap, hidden from assistive tech.
+                const isLoopCopy = idx >= partnerSeq.length;
+                return p.href ? (
+                  <a
+                    key={`${p.name}-${idx}`}
+                    href={p.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 inline-flex items-center"
+                    aria-label={p.name}
+                    aria-hidden={isLoopCopy}
+                    tabIndex={isLoopCopy ? -1 : undefined}
+                  >
+                    <PartnerMark partner={p} />
+                  </a>
+                ) : (
+                  <PartnerMark key={`${p.name}-${idx}`} partner={p} />
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        {/* Bottom legal row */}
-        <div className="mt-14 md:mt-24 lg:mt-32 pt-6 md:pt-8 border-t border-white/10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between text-xs md:text-sm text-white/65">
+      </div>
+
+      {/* Bottom legal row — sits outside the inner max-w-7xl wrapper so
+          it spans the full footer width edge-to-edge (just a small
+          horizontal gutter), separating the legal/social strip
+          visually from the centred content above. */}
+      <div className="relative z-10 px-16 sm:px-24 lg:px-32 pb-6 md:pb-8">
+        <div className="mt-10 md:mt-16 lg:mt-20 pt-6 md:pt-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between text-xs md:text-sm text-white/65">
           <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-7">
             <span>© {year} Barbados Pharmaceutical Inc. All rights reserved.</span>
             <ul className="flex flex-wrap items-center gap-6">
               {legalLinks.map((link) => (
                 <li key={link.href}>
-                  <a href={link.href} className="hover:text-white transition-colors">
+                  <Link href={link.href} className="hover:text-white transition-colors">
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

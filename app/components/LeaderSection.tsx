@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-type SocialKind = "Website" | "LinkedIn" | "X" | "Instagram";
+type SocialKind = "Website" | "LinkedIn" | "X" | "Instagram" | "YouTube";
 type SocialLink = { kind: SocialKind; href: string; label?: string };
 
 type Props = {
@@ -10,13 +10,15 @@ type Props = {
   title?: string;
   org?: string;
   quoteImageSrc?: string;
+  quoteVideoSrc?: string;
   quoteImageAlt?: string;
   portraitImageSrc?: string;
+  portraitVideoSrc?: string;
   portraitImageAlt?: string;
   socials?: SocialLink[];
 };
 
-const DEFAULT_QUOTE = `This has been a major achievement for a small state like Barbados, to be able to position itself at the centre of the Americas as a location for the development of a pharmaceutical industry.`;
+const DEFAULT_QUOTE = `We are building the vehicle that protects our citizens and re-writes what we believe about ourselves.`;
 const DEFAULT_BODY =
   "Barbados Pharmaceutical Inc. is building the gateway that connects Caribbean demand with global pharmaceutical expertise.";
 
@@ -30,65 +32,88 @@ const DEFAULT_SOCIALS: SocialLink[] = [
 export default function LeaderSection({
   quote = DEFAULT_QUOTE,
   body = DEFAULT_BODY,
-  name = "Rt. Hon. Mia Amor Mottley",
-  title = "Prime Minister of Barbados",
+  name = "Dr Cindi A. Lewis",
+  title = "Deputy Chief Executive Officer",
   org = "Barbados Pharmaceutical Inc.",
-  quoteImageSrc = "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
+  quoteImageSrc = "/images/A6701488.jpg",
+  quoteVideoSrc,
   quoteImageAlt = "Leader speaking at podium",
   portraitImageSrc = "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
+  portraitVideoSrc,
   portraitImageAlt = "Leader portrait",
   socials = DEFAULT_SOCIALS,
 }: Props) {
   return (
     <section
       data-nav-theme="light"
-      className="bg-error-25 px-5 md:px-20 lg:px-32 pt-12 md:pt-28 lg:pt-36 pb-10 md:pb-20 lg:pb-28"
+      className="bg-error-25 px-6 md:px-28 lg:px-52 pt-16 md:pt-32 lg:pt-44 pb-8 md:pb-16 lg:pb-20"
     >
       {/* TOP: large quote (left) + small body text (right) — no cards */}
       <div
         data-reveal-stagger
-        className="mx-auto max-w-page mb-10 md:mb-20 lg:mb-24 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-y-5 gap-x-10"
+        className="mx-auto max-w-page mb-8 md:mb-14 lg:mb-16 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-y-4 gap-x-8"
       >
-        <blockquote className="lg:w-[55%] font-display text-display-xs md:text-display-md font-normal text-primary-500 leading-[1.2] tracking-tight">
+        <blockquote className="lg:w-[58%] font-display text-display-xs md:text-display-sm lg:text-display-md font-normal text-primary-500 leading-[1.2] tracking-tight">
           &quot;{quote}&quot;
         </blockquote>
-        <p className="lg:w-[28%] text-sm md:text-lg lg:text-xl text-primary-500 leading-relaxed">
+        <p className="lg:w-[30%] text-sm md:text-base lg:text-lg text-primary-500 leading-relaxed">
           {body}
         </p>
       </div>
 
-      {/* BOTTOM: primary image (left) + right column (yellow name card + B&W portrait) */}
+      {/* BOTTOM: primary image (left) + right column (yellow name card + portrait) */}
       <div
         data-reveal-stagger
-        className="mx-auto max-w-page flex flex-col gap-y-5 lg:flex-row lg:gap-x-5 lg:items-stretch"
+        className="mx-auto max-w-page flex flex-col gap-y-4 lg:flex-row lg:gap-x-4 lg:items-stretch"
       >
         {/* Left: primary image */}
         <div
           data-reveal="scale"
-          className="lg:w-[50%] relative aspect-5/4 rounded-3xl overflow-hidden shrink-0"
+          className="lg:w-[52%] relative aspect-5/4 rounded-[36px] overflow-hidden shrink-0"
         >
           <div className="absolute inset-0">
-            <Image
-              src={quoteImageSrc}
-              alt={quoteImageAlt}
-              fill
-              sizes="(min-width: 1024px) 50vw, 90vw"
-              className="object-cover"
-            />
+            {quoteVideoSrc ? (
+              <video
+                src={quoteVideoSrc}
+                poster={quoteImageSrc}
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="metadata"
+                disableRemotePlayback
+                disablePictureInPicture
+                aria-label={quoteImageAlt || undefined}
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ objectPosition: "center top" }}
+              />
+            ) : (
+              <Image
+                src={quoteImageSrc}
+                alt={quoteImageAlt}
+                fill
+                sizes="(min-width: 1024px) 50vw, 90vw"
+                className="object-cover"
+                style={{ objectPosition: "center top" }}
+              />
+            )}
           </div>
         </div>
 
-        {/* Right column: yellow name card on top + B&W portrait below */}
-        <div className="lg:flex-1 flex flex-col gap-5">
+        {/* Right column: yellow name card on top + portrait below */}
+        <div className="lg:flex-1 flex flex-col gap-4">
           {/* Yellow name card */}
           <div
             data-reveal
-            className="rounded-3xl p-4 md:p-5 lg:p-6 lg:mt-16"
+            className="rounded-3xl p-4 md:p-5 lg:p-6"
             style={{ backgroundColor: "#dde885" }}
           >
             <h3 className="font-display text-sm md:text-base lg:text-lg font-bold text-primary-500 leading-tight">
-              {name}, {title}
+              {name}
             </h3>
+            <h4 className="mt-0.5 font-display text-xs md:text-sm lg:text-base font-semibold text-primary-500 leading-tight">
+              {title}
+            </h4>
             <p className="mt-0.5 text-[11px] md:text-xs lg:text-sm text-primary-500/75">
               {org}
             </p>
@@ -106,20 +131,113 @@ export default function LeaderSection({
             </div>
           </div>
 
-          {/* B&W portrait — pushed to the bottom so it aligns with the primary image's bottom edge */}
+          {/* Portrait — pushed to the bottom of the column and nudged
+              left of the right edge for breathing room between it and
+              the page margin. Treated cinematically: subtle contrast +
+              de-saturation filter on the media, a slow Ken Burns drift,
+              a soft top-corner glow, and a graded bottom scrim that
+              reads as filmic depth without obscuring the face. */}
           <div
             data-reveal="scale"
-            className="relative w-full sm:w-[50%] aspect-square rounded-3xl overflow-hidden lg:mt-auto"
+            className="group/portrait relative w-full sm:w-[65%] aspect-square rounded-[36px] overflow-hidden lg:mt-auto lg:self-start isolate"
           >
-            <div className="absolute inset-0">
-              <Image
-                src={portraitImageSrc}
-                alt={portraitImageAlt}
-                fill
-                sizes="(min-width: 1024px) 30vw, 90vw"
-                className="object-cover grayscale"
-              />
+            <div className="absolute inset-0 leader-portrait-drift">
+              {portraitVideoSrc ? (
+                <video
+                  src={portraitVideoSrc}
+                  poster={portraitImageSrc}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="metadata"
+                  disableRemotePlayback
+                  disablePictureInPicture
+                  aria-label={portraitImageAlt || undefined}
+                  className="absolute inset-0 w-full h-full object-cover filter-[contrast(1.1)_saturate(0.88)_brightness(0.98)_sepia(0.04)] transition-[filter,transform] duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/portrait:filter-[contrast(1.12)_saturate(0.92)_brightness(1.02)_sepia(0.02)]"
+                />
+              ) : (
+                <Image
+                  src={portraitImageSrc}
+                  alt={portraitImageAlt}
+                  fill
+                  sizes="(min-width: 1024px) 30vw, 90vw"
+                  className="object-cover filter-[contrast(1.1)_saturate(0.88)_brightness(0.98)_sepia(0.04)] transition-[filter,transform] duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/portrait:filter-[contrast(1.12)_saturate(0.92)_brightness(1.02)_sepia(0.02)]"
+                />
+              )}
             </div>
+
+            {/* Navy cool-cast — light multiply that just nudges the
+                shadows toward brand navy without crushing them. */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 mix-blend-multiply opacity-60"
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(0, 0, 54, 0.1) 0%, rgba(8, 50, 90, 0.16) 100%)",
+              }}
+            />
+
+            {/* Split-tone wash — cool teal upper-left into warm amber
+                lower-right via mix-blend so the grade reads as colour
+                rather than a flat overlay. */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 mix-blend-soft-light opacity-70"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgba(8, 112, 173, 0.55) 0%, rgba(0, 0, 54, 0) 45%, rgba(221, 232, 133, 0.45) 100%)",
+              }}
+            />
+
+            {/* Top-corner light bloom — subtle directional highlight,
+                reads as window light catching the subject. */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background:
+                  "radial-gradient(ellipse 70% 60% at 22% 12%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 60%)",
+              }}
+            />
+
+            {/* Full-frame vignette — soft edge darkening that draws
+                the eye centre without making the corners feel heavy. */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background:
+                  "radial-gradient(ellipse 90% 90% at 50% 50%, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 30, 0.28) 100%)",
+              }}
+            />
+
+            {/* Bottom scrim — graded shadow that anchors the frame
+                and gives the face air. */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-linear-to-t from-black/55 via-black/15 to-transparent"
+            />
+
+            {/* Film grain — fine static SVG noise dialled low, breaks
+                up the smooth gradients so the surface reads like
+                emulsion rather than CGI. */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 mix-blend-overlay opacity-15"
+              style={{
+                backgroundImage:
+                  "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
+                backgroundSize: "160px 160px",
+              }}
+            />
+
+            {/* Inner edge — barely-there ring that defines the frame
+                without darkening the centre. */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 rounded-[36px] ring-1 ring-inset ring-black/18"
+            />
           </div>
         </div>
       </div>
@@ -185,6 +303,17 @@ function SocialIcon({ kind }: { kind: SocialKind }) {
             fill="currentColor"
             stroke="none"
           />
+        </svg>
+      );
+    case "YouTube":
+      return (
+        <svg
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="w-4 h-4"
+          aria-hidden
+        >
+          <path d="M23.5 6.5a3 3 0 0 0-2.1-2.1C19.5 4 12 4 12 4s-7.5 0-9.4.4A3 3 0 0 0 .5 6.5C.1 8.4.1 12 .1 12s0 3.6.4 5.5a3 3 0 0 0 2.1 2.1C4.5 20 12 20 12 20s7.5 0 9.4-.4a3 3 0 0 0 2.1-2.1c.4-1.9.4-5.5.4-5.5s0-3.6-.4-5.5zM9.75 15.5v-7l6 3.5-6 3.5z" />
         </svg>
       );
   }

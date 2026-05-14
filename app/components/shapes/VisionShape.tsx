@@ -1,17 +1,21 @@
 import type { SVGAttributes, ReactNode } from "react";
 import { useId } from "react";
 
+import ShapeMedia from "./ShapeMedia";
+
 type Props = Omit<
   SVGAttributes<SVGSVGElement>,
   "viewBox" | "xmlns" | "fill" | "width" | "height"
 > & {
   /** Width in px. Height auto-derives from the 312:274 aspect ratio. */
   size?: number;
-  /** Fill color for the card. Defaults to brand green. Ignored when `imageSrc` is set. */
+  /** Fill color for the card. Defaults to brand green. Ignored when media is set. */
   fill?: string;
   /** Optional image filling the shape via clipPath. */
   imageSrc?: string;
-  /** Alt text used when imageSrc is provided. */
+  /** Optional video filling the shape; takes precedence over imageSrc. */
+  videoSrc?: string;
+  /** Alt text used when media is provided. */
   imageAlt?: string;
   /** Optional content positioned on top of the shape. */
   children?: ReactNode;
@@ -30,6 +34,7 @@ export default function VisionShape({
   size = 312,
   fill = "#83ffc1",
   imageSrc,
+  videoSrc,
   imageAlt = "",
   className,
   children,
@@ -39,23 +44,23 @@ export default function VisionShape({
   const rawId = useId().replace(/[^a-zA-Z0-9]/g, "");
   const clipId = `vision-clip-${rawId}`;
   const mirror = flipX ? `scale(-1, 1) translate(${-W}, 0)` : undefined;
+  const hasMedia = !!(imageSrc || videoSrc);
 
   const renderFill = () =>
-    imageSrc ? (
+    hasMedia ? (
       <>
         <defs>
           <clipPath id={clipId}>
             <path d={PATH_D} transform={mirror} />
           </clipPath>
         </defs>
-        <image
-          href={imageSrc}
-          x="0"
-          y="0"
+        <ShapeMedia
+          clipId={clipId}
           width={W}
           height={H}
-          preserveAspectRatio="xMidYMid slice"
-          clipPath={`url(#${clipId})`}
+          imageSrc={imageSrc}
+          imageAlt={imageAlt}
+          videoSrc={videoSrc}
         />
       </>
     ) : (
@@ -71,8 +76,8 @@ export default function VisionShape({
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         className={className}
-        role={imageSrc ? "img" : undefined}
-        aria-label={imageSrc ? imageAlt || undefined : undefined}
+        role={hasMedia ? "img" : undefined}
+        aria-label={hasMedia ? imageAlt || undefined : undefined}
         {...rest}
       >
         {renderFill()}
@@ -84,8 +89,8 @@ export default function VisionShape({
     <div
       className={`relative w-full ${className ?? ""}`}
       style={{ maxWidth: size, aspectRatio: `${W} / ${H}` }}
-      role={imageSrc ? "img" : undefined}
-      aria-label={imageSrc ? imageAlt || undefined : undefined}
+      role={hasMedia ? "img" : undefined}
+      aria-label={hasMedia ? imageAlt || undefined : undefined}
     >
       <svg
         width="100%"

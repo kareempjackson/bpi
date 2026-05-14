@@ -9,6 +9,13 @@ type Props = Omit<
   size?: number;
   /** Solid fill override. When provided, replaces the brand gradient and removes the stroke. */
   fill?: string;
+  /**
+   * Disable the brand-gradient stroke even when using the gradient
+   * fill. Useful for compositions that place artwork on top of the
+   * molecule (e.g. node photos) and don't want the stroke ringing
+   * the photo edges.
+   */
+  noStroke?: boolean;
 };
 
 export const LOGO_SHAPE_VIEWBOX = "0 0 1190 702";
@@ -19,12 +26,14 @@ export const LOGO_SHAPE_PATH_D =
 export default function LogoShape({
   size = 480,
   fill,
+  noStroke = false,
   className,
   ...rest
 }: Props) {
   const rawId = useId().replace(/[^a-zA-Z0-9]/g, "");
   const fillId = `logo-fill-${rawId}`;
   const strokeId = `logo-stroke-${rawId}`;
+  const showStroke = !fill && !noStroke;
 
   return (
     <svg
@@ -39,8 +48,8 @@ export default function LogoShape({
       <path
         d={LOGO_SHAPE_PATH_D}
         fill={fill ?? `url(#${fillId})`}
-        stroke={fill ? "none" : `url(#${strokeId})`}
-        strokeWidth="1.64922"
+        stroke={showStroke ? `url(#${strokeId})` : "none"}
+        strokeWidth={showStroke ? "1.64922" : undefined}
       />
       {!fill && (
         <defs>
@@ -55,17 +64,19 @@ export default function LogoShape({
             <stop stopColor="#00CC67" />
             <stop offset="1" stopColor="#F9FDFF" />
           </linearGradient>
-          <linearGradient
-            id={strokeId}
-            x1="626.463"
-            y1="700.899"
-            x2="265.815"
-            y2="35.8165"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop stopColor="#F9FDFF" />
-            <stop offset="1" stopColor="#00E272" />
-          </linearGradient>
+          {showStroke && (
+            <linearGradient
+              id={strokeId}
+              x1="626.463"
+              y1="700.899"
+              x2="265.815"
+              y2="35.8165"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop stopColor="#F9FDFF" />
+              <stop offset="1" stopColor="#00E272" />
+            </linearGradient>
+          )}
         </defs>
       )}
     </svg>

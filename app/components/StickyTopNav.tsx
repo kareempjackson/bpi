@@ -1,15 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Logo from "./Logo";
+import type { MenuConfig } from "./Menu";
 import MenuLauncher from "./MenuLauncher";
 
-type NavLink = { label: string; href: string };
+export type StickyNavLink = {
+  label: string;
+  href: string;
+  disabled?: boolean;
+};
 
-const NAV_LINKS: NavLink[] = [
+const DEFAULT_NAV_LINKS: StickyNavLink[] = [
   { label: "About", href: "/about" },
-  { label: "Ecosystem", href: "/ecosystem" },
   { label: "Initiatives", href: "/initiatives" },
 ];
 
@@ -73,7 +78,15 @@ function luminance(r: number, g: number, b: number): number {
  * the sampled colour's luminance. Sections can still set `data-nav-bg`
  * to force a specific colour — the sampler honours it if found.
  */
-export default function StickyTopNav() {
+type Props = {
+  navLinks?: StickyNavLink[];
+  menuConfig?: MenuConfig;
+};
+
+export default function StickyTopNav({
+  navLinks = DEFAULT_NAV_LINKS,
+  menuConfig,
+}: Props = {}) {
   const pathname = usePathname() ?? "/";
   // Resolve `hasHero` from the route up front — `usePathname` is valid
   // during SSR so the initial server-rendered nav matches what the user
@@ -97,6 +110,32 @@ export default function StickyTopNav() {
   const lastYRef = useRef(0);
   const surfaceRef = useRef<HTMLDivElement>(null);
 
+  // Reset visibility/hero state synchronously when the route changes
+  // (client-side nav). Without this, the existing `[pathname]` effect
+  // fires *after* the new page has already painted with the previous
+  // route's `visible`/`hasHero`/`overHero` — you get one frame of the
+  // nav in its old configuration (e.g. still frosted-over-hero on a
+  // page with no hero) before it snaps. React's "setState during
+  // render" bail-out pattern updates the values without a stale frame.
+  const [renderedPath, setRenderedPath] = useState(pathname);
+  if (renderedPath !== pathname) {
+    setRenderedPath(pathname);
+    const nextHasHero = HERO_PATHS.has(pathname);
+    setHasHero(nextHasHero);
+    setVisible(!nextHasHero);
+    setOverHero(nextHasHero);
+    setBg(FALLBACK_BG);
+    setIsDark(false);
+    // Pause CSS transitions for the brief window between this reset
+    // and the dynamic detect pass — otherwise the nav visibly animates
+    // its colour/translate from the old route's values to the new
+    // route's values on every navigation. The pathname effect's
+    // double-rAF re-enables transitions after the new state settles.
+    setReady(false);
+    // Refs are kept in sync by the `[pathname]` effect below — React
+    // 19 disallows ref mutation during render.
+  }
+
   useEffect(() => {
     const heroEl = document.querySelector("[data-page-hero]");
     const heroExists = !!heroEl;
@@ -108,6 +147,10 @@ export default function StickyTopNav() {
       setVisible(true);
       visibleRef.current = true;
     }
+    // Keep tracking refs in sync with the route-change state reset.
+    overHeroRef.current = heroExists;
+    bgRef.current = FALLBACK_BG;
+    isDarkRef.current = false;
 
     let raf = 0;
     lastYRef.current = window.scrollY;
@@ -119,6 +162,10 @@ export default function StickyTopNav() {
     const themeMeta = document.querySelector<HTMLMetaElement>(
       'meta[name="theme-color"]'
     );
+    // Snapshot the original theme-color so we can restore it on cleanup.
+    // Without this, a bfcache snapshot of an in-flight sample outlives
+    // its page and the mobile chrome looks mismatched on Back.
+    const originalThemeColor = themeMeta?.getAttribute("content") ?? null;
     let lastThemeColor: string | null = null;
     const setThemeColor = (color: string) => {
       if (!themeMeta || color === lastThemeColor) return;
@@ -131,55 +178,81 @@ export default function StickyTopNav() {
       if (!surface) return null;
 
       // Briefly disable pointer events so the nav itself isn't picked up
-      // as the topmost element at the sample points.
+      // as the topmost element at the sample points. Wrapped in
+      // try/finally — if anything below throws (e.g. a third-party
+      // element with an exotic computed style), we must never leave the
+      // surface unclickable; that state would persist into bfcache.
       const prevPE = surface.style.pointerEvents;
       surface.style.pointerEvents = "none";
 
-      const navRect = surface.getBoundingClientRect();
-      // Sample just below the nav so we read the section underneath, not
-      // the nav itself or a scrim sitting at its edge.
-      const sampleY = Math.max(1, navRect.bottom + 2);
-      const samples = [
-        window.innerWidth * 0.5,
-        window.innerWidth * 0.18,
-        window.innerWidth * 0.82,
-      ];
+      try {
+        const navRect = surface.getBoundingClientRect();
+        // Sample just below the nav so we read the section underneath, not
+        // the nav itself or a scrim sitting at its edge.
+        const sampleY = Math.max(1, navRect.bottom + 2);
+        const samples = [
+          window.innerWidth * 0.5,
+          window.innerWidth * 0.18,
+          window.innerWidth * 0.82,
+        ];
 
-      let chosen: { color: string; dark: boolean } | null = null;
-      outer: for (const x of samples) {
-        const els = document.elementsFromPoint(x, sampleY);
-        for (const el of els) {
-          if (!(el instanceof HTMLElement)) continue;
-          if (surface.contains(el)) continue;
+        let chosen: { color: string; dark: boolean } | null = null;
+        outer: for (const x of samples) {
+          const els = document.elementsFromPoint(x, sampleY);
+          for (const el of els) {
+            if (!(el instanceof HTMLElement)) continue;
+            if (surface.contains(el)) continue;
 
-          // Explicit override wins.
-          const override = el.closest<HTMLElement>("[data-nav-bg]");
-          if (override?.dataset.navBg) {
-            const color = override.dataset.navBg;
-            const parsed = parseRgb(toRgbString(color));
-            const dark = parsed
-              ? luminance(parsed[0], parsed[1], parsed[2]) < 0.5
-              : false;
-            chosen = { color, dark };
-            break outer;
-          }
+            // Explicit override wins.
+            const override = el.closest<HTMLElement>("[data-nav-bg]");
+            if (override?.dataset.navBg) {
+              const color = override.dataset.navBg;
+              const parsed = parseRgb(toRgbString(color));
+              const dark = parsed
+                ? luminance(parsed[0], parsed[1], parsed[2]) < 0.5
+                : false;
+              chosen = { color, dark };
+              break outer;
+            }
 
-          const cs = window.getComputedStyle(el);
-          const parsed = parseRgb(cs.backgroundColor);
-          if (parsed && parsed[3] > 0.5) {
-            const dark = luminance(parsed[0], parsed[1], parsed[2]) < 0.5;
-            chosen = { color: cs.backgroundColor, dark };
-            break outer;
+            const cs = window.getComputedStyle(el);
+            const parsed = parseRgb(cs.backgroundColor);
+            if (parsed && parsed[3] > 0.5) {
+              const dark = luminance(parsed[0], parsed[1], parsed[2]) < 0.5;
+              chosen = { color: cs.backgroundColor, dark };
+              break outer;
+            }
           }
         }
-      }
 
-      surface.style.pointerEvents = prevPE;
-      return chosen;
+        return chosen;
+      } finally {
+        surface.style.pointerEvents = prevPE;
+      }
     };
 
     const update = () => {
       const y = window.scrollY;
+
+      // Sections marked `[data-hide-nav]` (e.g. the immersive Sectors
+      // pinned diagram) take over the viewport — the nav must hide
+      // while any of them overlap the nav's vertical range, otherwise
+      // it covers the node labels and breaks the cinematic effect.
+      const surfaceForRange = surfaceRef.current;
+      const navBottomForRange = surfaceForRange
+        ? surfaceForRange.getBoundingClientRect().bottom
+        : 0;
+      let suppressForSection = false;
+      const hideEls = document.querySelectorAll<HTMLElement>(
+        "[data-hide-nav]"
+      );
+      for (const el of hideEls) {
+        const r = el.getBoundingClientRect();
+        if (r.top < navBottomForRange + 2 && r.bottom > 0) {
+          suppressForSection = true;
+          break;
+        }
+      }
 
       if (heroExists) {
         const dy = y - lastYRef.current;
@@ -192,7 +265,16 @@ export default function StickyTopNav() {
         } else if (dy > 2) {
           nextVisible = false;
         }
+        if (suppressForSection) nextVisible = false;
         lastYRef.current = y;
+        if (nextVisible !== visibleRef.current) {
+          visibleRef.current = nextVisible;
+          setVisible(nextVisible);
+        }
+      } else {
+        // Non-hero pages: the bar is normally always visible, but a
+        // `[data-hide-nav]` section can still override that.
+        const nextVisible = !suppressForSection;
         if (nextVisible !== visibleRef.current) {
           visibleRef.current = nextVisible;
           setVisible(nextVisible);
@@ -262,6 +344,9 @@ export default function StickyTopNav() {
       window.removeEventListener("resize", onScroll);
       cancelAnimationFrame(raf);
       cancelAnimationFrame(readyRaf);
+      if (themeMeta && originalThemeColor !== null) {
+        themeMeta.setAttribute("content", originalThemeColor);
+      }
     };
   }, [pathname]);
 
@@ -292,23 +377,34 @@ export default function StickyTopNav() {
         }}
       >
         <div className="flex items-center justify-between gap-5 px-6 md:px-10 lg:px-14 h-16 lg:h-20">
-          <a
+          <Link
             href="/"
             aria-label="BPI home"
             className="inline-flex items-center shrink-0"
           >
             <Logo size={100} className="block" />
-          </a>
+          </Link>
 
           <nav
             aria-label="Primary"
             className="hidden md:flex items-center gap-8 lg:gap-11"
           >
-            {NAV_LINKS.map((link) => {
+            {navLinks.map((link) => {
+              if (link.disabled) {
+                return (
+                  <span
+                    key={link.href + link.label}
+                    aria-disabled="true"
+                    className="text-[11.5px] font-medium tracking-[0.01em] py-1 opacity-40 cursor-not-allowed select-none"
+                  >
+                    {link.label}
+                  </span>
+                );
+              }
               const active = isActive(link.href);
               return (
-                <a
-                  key={link.href}
+                <Link
+                  key={link.href + link.label}
                   href={link.href}
                   aria-current={active ? "page" : undefined}
                   className="group relative text-[11.5px] font-medium tracking-[0.01em] py-1"
@@ -322,7 +418,7 @@ export default function StickyTopNav() {
                         : "w-0 opacity-0 group-hover:w-full group-hover:opacity-100"
                     }`}
                   />
-                </a>
+                </Link>
               );
             })}
           </nav>
@@ -348,9 +444,7 @@ export default function StickyTopNav() {
               </svg>
             </button>
 
-            <LanguageToggle />
-
-            <MenuLauncher size={70} />
+            <MenuLauncher size={70} menuConfig={menuConfig} />
           </div>
         </div>
       </div>

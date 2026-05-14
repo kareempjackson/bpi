@@ -1,6 +1,8 @@
 import type { SVGAttributes } from "react";
 import { useId } from "react";
 
+import ShapeMedia from "./ShapeMedia";
+
 type Props = Omit<
   SVGAttributes<SVGSVGElement>,
   "viewBox" | "xmlns" | "fill" | "width" | "height"
@@ -9,10 +11,19 @@ type Props = Omit<
   size?: number;
   /** Optional image filling the shape. Without it, `fill` is used. */
   imageSrc?: string;
-  /** Alt text used when imageSrc is provided. */
+  /** Optional video filling the shape; takes precedence over imageSrc. */
+  videoSrc?: string;
+  /** Alt text used when media is provided. */
   imageAlt?: string;
-  /** Solid fill when no imageSrc is provided. */
+  /** Solid fill when no media is provided. */
   fill?: string;
+  /**
+   * Apply a subtle cinematic treatment to the media: gentle teal/orange
+   * colour grade, soft radial vignette, bottom scrim, and a slow Ken
+   * Burns drift on the image. All layers render inside the SVG so they
+   * stay clipped to the notched silhouette.
+   */
+  cinematic?: boolean;
 };
 
 const VIEWBOX = "0 0 414 551";
@@ -25,13 +36,21 @@ const PATH_D =
 export default function InitiativesShape({
   size = 414,
   imageSrc,
+  videoSrc,
   imageAlt = "",
   fill = "#E0F2FF",
+  cinematic = false,
   className,
   ...rest
 }: Props) {
   const rawId = useId().replace(/[^a-zA-Z0-9]/g, "");
   const clipId = `init-clip-${rawId}`;
+  const filterId = `init-grade-${rawId}`;
+  const vignetteId = `init-vignette-${rawId}`;
+  const scrimId = `init-scrim-${rawId}`;
+  const bloomId = `init-bloom-${rawId}`;
+  const hasMedia = !!(imageSrc || videoSrc);
+  const useCinematic = hasMedia && cinematic;
 
   return (
     <svg
@@ -41,25 +60,132 @@ export default function InitiativesShape({
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      role={imageSrc ? "img" : undefined}
-      aria-label={imageSrc ? imageAlt || undefined : undefined}
+      role={hasMedia ? "img" : undefined}
+      aria-label={hasMedia ? imageAlt || undefined : undefined}
       {...rest}
     >
       <defs>
         <clipPath id={clipId}>
           <path d={PATH_D} />
         </clipPath>
+        {useCinematic ? (
+          <>
+            {/* Cinematic colour grade — gentle lift in midtones for
+                clarity, a touch of warm highlights, and a whisper of
+                cyan in the shadows. Tuned to keep the subject crisp
+                rather than darken the frame. */}
+            <filter
+              id={filterId}
+              x="0"
+              y="0"
+              width="100%"
+              height="100%"
+              colorInterpolationFilters="sRGB"
+            >
+              <feColorMatrix
+                type="matrix"
+                values="
+                  1.04 0    0    0  0.01
+                  0    1.03 0    0  0.012
+                  0.02 0    1.02 0  0.015
+                  0    0    0    1  0"
+              />
+              <feComponentTransfer>
+                <feFuncR type="linear" slope="1.04" intercept="0.005" />
+                <feFuncG type="linear" slope="1.04" intercept="0.005" />
+                <feFuncB type="linear" slope="1.02" intercept="0.01" />
+              </feComponentTransfer>
+            </filter>
+            <radialGradient
+              id={vignetteId}
+              cx="50%"
+              cy="48%"
+              r="82%"
+              fx="50%"
+              fy="48%"
+            >
+              <stop offset="45%" stopColor="rgba(0, 0, 54, 0)" />
+              <stop offset="85%" stopColor="rgba(0, 0, 54, 0.18)" />
+              <stop offset="100%" stopColor="rgba(0, 0, 54, 0.4)" />
+            </radialGradient>
+            <linearGradient id={scrimId} x1="0" y1="1" x2="0" y2="0.55">
+              <stop offset="0%" stopColor="rgba(0, 0, 54, 0.42)" />
+              <stop offset="60%" stopColor="rgba(0, 0, 54, 0.12)" />
+              <stop offset="100%" stopColor="rgba(0, 0, 54, 0)" />
+            </linearGradient>
+            <radialGradient
+              id={bloomId}
+              cx="24%"
+              cy="20%"
+              r="55%"
+            >
+              <stop offset="0%" stopColor="rgba(255, 248, 220, 0.16)" />
+              <stop offset="100%" stopColor="rgba(255, 248, 220, 0)" />
+            </radialGradient>
+          </>
+        ) : null}
       </defs>
-      {imageSrc ? (
-        <image
-          href={imageSrc}
-          x="0"
-          y="0"
-          width={W}
-          height={H}
-          preserveAspectRatio="xMidYMid slice"
-          clipPath={`url(#${clipId})`}
-        />
+      {hasMedia ? (
+        useCinematic ? (
+          <g clipPath={`url(#${clipId})`}>
+            {/* Slow Ken Burns — the image scales gently around its
+                centre over ~20s so the photo never feels static. */}
+            <g
+              style={{
+                transformBox: "fill-box",
+                transformOrigin: "center",
+                animation: "init-cinematic-drift 20s ease-in-out infinite",
+              }}
+            >
+              <g filter={`url(#${filterId})`}>
+                <ShapeMedia
+                  clipId={clipId}
+                  width={W}
+                  height={H}
+                  imageSrc={imageSrc}
+                  imageAlt={imageAlt}
+                  videoSrc={videoSrc}
+                />
+              </g>
+            </g>
+            {/* Soft directional bloom — a hint of warm light catching
+                the upper-left of the frame. Reads as window light. */}
+            <rect
+              x="0"
+              y="0"
+              width={W}
+              height={H}
+              fill={`url(#${bloomId})`}
+            />
+            {/* Vignette — centre is clear, edges fall to a deep navy
+                so the eye is drawn toward the subject. */}
+            <rect
+              x="0"
+              y="0"
+              width={W}
+              height={H}
+              fill={`url(#${vignetteId})`}
+            />
+            {/* Bottom scrim — a quiet graded floor so the lower edge
+                feels weighted without dimming the subject. */}
+            <rect
+              x="0"
+              y={H * 0.65}
+              width={W}
+              height={H * 0.35}
+              fill={`url(#${scrimId})`}
+            />
+          </g>
+        ) : (
+          <ShapeMedia
+            clipId={clipId}
+            width={W}
+            height={H}
+            imageSrc={imageSrc}
+            imageAlt={imageAlt}
+            videoSrc={videoSrc}
+          />
+        )
       ) : (
         <path d={PATH_D} fill={fill} />
       )}

@@ -1,6 +1,8 @@
 import type { SVGAttributes } from "react";
 import { useId } from "react";
 
+import ShapeMedia from "./ShapeMedia";
+
 type Props = Omit<
   SVGAttributes<SVGSVGElement>,
   "viewBox" | "xmlns" | "fill" | "width" | "height"
@@ -9,9 +11,11 @@ type Props = Omit<
   size?: number;
   /** Optional image filling the shape. Without it, `fill` is used. */
   imageSrc?: string;
-  /** Alt text used when imageSrc is provided. */
+  /** Optional video filling the shape; takes precedence over imageSrc. */
+  videoSrc?: string;
+  /** Alt text used when media is provided. */
   imageAlt?: string;
-  /** Solid fill when no imageSrc is provided. */
+  /** Solid fill when no media is provided. */
   fill?: string;
   /**
    * SVG `preserveAspectRatio` value for the image. Defaults to centred
@@ -31,6 +35,7 @@ const PATH_D =
 export default function ContactShape({
   size = 500,
   imageSrc,
+  videoSrc,
   imageAlt = "",
   fill = "#ffffff",
   imagePosition = "xMidYMid slice",
@@ -39,6 +44,7 @@ export default function ContactShape({
 }: Props) {
   const rawId = useId().replace(/[^a-zA-Z0-9]/g, "");
   const clipId = `contact-clip-${rawId}`;
+  const hasMedia = !!(imageSrc || videoSrc);
 
   return (
     <svg
@@ -48,8 +54,8 @@ export default function ContactShape({
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      role={imageSrc ? "img" : undefined}
-      aria-label={imageSrc ? imageAlt || undefined : undefined}
+      role={hasMedia ? "img" : undefined}
+      aria-label={hasMedia ? imageAlt || undefined : undefined}
       {...rest}
     >
       <defs>
@@ -57,15 +63,15 @@ export default function ContactShape({
           <path d={PATH_D} />
         </clipPath>
       </defs>
-      {imageSrc ? (
-        <image
-          href={imageSrc}
-          x="0"
-          y="0"
+      {hasMedia ? (
+        <ShapeMedia
+          clipId={clipId}
           width={W}
           height={H}
-          preserveAspectRatio={imagePosition}
-          clipPath={`url(#${clipId})`}
+          imageSrc={imageSrc}
+          imageAlt={imageAlt}
+          videoSrc={videoSrc}
+          imagePosition={imagePosition}
         />
       ) : (
         <path d={PATH_D} fill={fill} />

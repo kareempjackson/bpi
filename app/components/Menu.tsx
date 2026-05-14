@@ -1,33 +1,40 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-type MenuMedia =
+export type MenuMedia =
   | { type: "video"; src: string }
   | { type: "image"; src: string; alt?: string };
 
-type SubMenuLink = {
+export type SubMenuLink = {
   label: string;
   href: string;
   media?: MenuMedia;
 };
 
-type MenuLink = {
+export type MenuLink = {
   label: string;
   href: string;
   subItems?: SubMenuLink[];
   media?: MenuMedia;
 };
-type SocialLink = { name: "LinkedIn" | "X" | "Instagram" | "YouTube"; href: string };
 
-type Props = {
+type SocialKind = "Website" | "LinkedIn" | "X" | "Instagram" | "YouTube";
+export type SocialLink = { name: SocialKind; href: string; label?: string };
+
+export type MenuConfig = {
+  links?: MenuLink[];
+  legalLinks?: { label: string; href: string }[];
+  socialLinks?: SocialLink[];
+  defaultMedia?: MenuMedia;
+};
+
+type Props = MenuConfig & {
   isOpen: boolean;
   onClose: () => void;
-  links?: MenuLink[];
-  legalLinks?: MenuLink[];
-  socialLinks?: SocialLink[];
-  videoSrc?: string;
 };
 
 const MENU_SHAPE_PATH =
@@ -44,53 +51,6 @@ const DEFAULT_LINKS: MenuLink[] = [
       type: "image",
       src: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
       alt: "BPI team",
-    },
-  },
-  {
-    label: "Ecosystem",
-    href: "/ecosystem",
-    subItems: [
-      {
-        label: "Manufacturing",
-        href: "/ecosystem/manufacturing",
-        media: {
-          type: "image",
-          src: "/images/top.png",
-          alt: "Manufacturing facility",
-        },
-      },
-      {
-        label: "Regulatory",
-        href: "/ecosystem/regulatory",
-        media: {
-          type: "image",
-          src: "/images/top2.png",
-          alt: "Regulatory affairs",
-        },
-      },
-      {
-        label: "Supply chain",
-        href: "/ecosystem/supply-chain",
-        media: {
-          type: "image",
-          src: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-          alt: "Supply chain",
-        },
-      },
-      {
-        label: "Research",
-        href: "/ecosystem/research",
-        media: {
-          type: "image",
-          src: "/images/top.png",
-          alt: "Research and development",
-        },
-      },
-    ],
-    media: {
-      type: "image",
-      src: "/images/top2.png",
-      alt: "BPI ecosystem",
     },
   },
   {
@@ -112,12 +72,12 @@ const DEFAULT_LINKS: MenuLink[] = [
     },
   },
   {
-    label: "Resources",
-    href: "/resources",
+    label: "Careers",
+    href: "/careers",
     media: {
       type: "image",
-      src: "/images/top2.png",
-      alt: "BPI resources",
+      src: "/images/olawale-munna-_ObjhzjnMmc-unsplash.jpg",
+      alt: "Join the BPI team",
     },
   },
   {
@@ -125,13 +85,13 @@ const DEFAULT_LINKS: MenuLink[] = [
     href: "/contact",
     media: {
       type: "image",
-      src: "/images/A6701484.jpg",
+      src: "/images/A6701225.jpg",
       alt: "Contact BPI",
     },
   },
 ];
 
-const DEFAULT_LEGAL: MenuLink[] = [
+const DEFAULT_LEGAL = [
   { label: "Terms of Use", href: "/terms" },
   { label: "Media Assets", href: "/media-assets" },
 ];
@@ -145,6 +105,14 @@ const DEFAULT_SOCIAL: SocialLink[] = [
 
 function SocialIcon({ name }: { name: SocialLink["name"] }) {
   switch (name) {
+    case "Website":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="w-4 h-4" aria-hidden>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M3 12h18" />
+          <path d="M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+        </svg>
+      );
     case "LinkedIn":
       return (
         <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4" aria-hidden>
@@ -180,30 +148,69 @@ export default function Menu({
   links = DEFAULT_LINKS,
   legalLinks = DEFAULT_LEGAL,
   socialLinks = DEFAULT_SOCIAL,
-  videoSrc = DEFAULT_VIDEO_SRC,
+  defaultMedia,
 }: Props) {
+  const pathname = usePathname();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [hoveredSubIndex, setHoveredSubIndex] = useState<number | null>(null);
-  const hoveredItem = hoveredIndex !== null ? links[hoveredIndex] : null;
-  const subItems = hoveredItem?.subItems ?? [];
+
+  // Resolve which link in the list matches the current route. Longest-prefix
+  // match so /initiatives/foo still highlights "Initiatives". Root "/" only
+  // matches itself.
+  const currentIndex = useMemo(() => {
+    if (!pathname) return -1;
+    let bestIdx = -1;
+    let bestLen = -1;
+    links.forEach((link, i) => {
+      const h = link.href;
+      if (!h) return;
+      const matches =
+        h === "/"
+          ? pathname === "/"
+          : pathname === h || pathname.startsWith(h + "/");
+      if (matches && h.length > bestLen) {
+        bestIdx = i;
+        bestLen = h.length;
+      }
+    });
+    return bestIdx;
+  }, [pathname, links]);
+
+  // hoveredIndex wins when the user is actively pointing at a link; otherwise
+  // fall back to whichever link matches the current page. That way the panel
+  // is never empty and the current page is always "selected by default".
+  const effectiveIndex =
+    hoveredIndex !== null
+      ? hoveredIndex
+      : currentIndex >= 0
+        ? currentIndex
+        : null;
+  const effectiveItem =
+    effectiveIndex !== null ? links[effectiveIndex] : null;
+  const subItems = effectiveItem?.subItems ?? [];
   const showSub = subItems.length > 0;
   const hoveredSubItem =
     hoveredSubIndex !== null ? subItems[hoveredSubIndex] : null;
+  const fallbackMedia: MenuMedia = defaultMedia ?? {
+    type: "video",
+    src: DEFAULT_VIDEO_SRC,
+  };
   const activeMedia: MenuMedia =
-    hoveredSubItem?.media ??
-    hoveredItem?.media ?? { type: "video", src: videoSrc };
+    hoveredSubItem?.media ?? effectiveItem?.media ?? fallbackMedia;
 
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
-    const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     document.body.classList.add("menu-open");
     window.addEventListener("keydown", onKey);
+    // Reset unconditionally — never restore a captured "prev". If the
+    // page is preserved into bfcache mid-open, restoring to a captured
+    // "hidden" is what leaves the page unscrollable on browser-back.
     return () => {
-      document.body.style.overflow = prev;
+      document.body.style.overflow = "";
       document.body.classList.remove("menu-open");
       window.removeEventListener("keydown", onKey);
     };
@@ -248,7 +255,8 @@ export default function Menu({
             <nav className="flex-1 flex flex-col justify-center">
               <ul>
                 {links.map((link, i) => {
-                  const isActive = hoveredIndex === i;
+                  const isActive = effectiveIndex === i;
+                  const isCurrent = currentIndex === i;
                   const isLast = i === links.length - 1;
                   return (
                     <li
@@ -256,9 +264,10 @@ export default function Menu({
                       className={`border-white/15 ${i === 0 ? "border-t" : ""} ${isLast ? "" : "border-b"}`}
                       onMouseEnter={() => setHoveredIndex(i)}
                     >
-                      <a
+                      <Link
                         href={link.href}
                         onClick={onClose}
+                        aria-current={isCurrent ? "page" : undefined}
                         className={`block font-display text-display-sm lg:text-display-md font-bold py-5 lg:py-6 transition-colors ${
                           isActive
                             ? "text-error-500"
@@ -266,7 +275,7 @@ export default function Menu({
                         }`}
                       >
                         {link.label}
-                      </a>
+                      </Link>
                     </li>
                   );
                 })}
@@ -278,22 +287,22 @@ export default function Menu({
               <ul className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-white/80">
                 {legalLinks.map((link) => (
                   <li key={link.href}>
-                    <a
+                    <Link
                       href={link.href}
                       onClick={onClose}
                       className="hover:text-white transition-colors"
                     >
                       {link.label}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
               <ul className="flex items-center gap-5 text-white">
-                {socialLinks.map((s) => (
-                  <li key={s.name}>
+                {socialLinks.map((s, i) => (
+                  <li key={`${s.name}-${i}`}>
                     <a
                       href={s.href}
-                      aria-label={s.name}
+                      aria-label={s.label ?? s.name}
                       className="inline-flex items-center justify-center hover:opacity-70 transition-opacity"
                     >
                       <SocialIcon name={s.name} />
@@ -314,7 +323,7 @@ export default function Menu({
           >
             <div className="px-8 lg:px-12 py-10 lg:py-14 flex-1 flex flex-col justify-center">
               <p className="text-[11px] font-bold tracking-[0.18em] text-primary-500 uppercase mb-8 lg:mb-10">
-                {hoveredItem?.label ?? ""}
+                {effectiveItem?.label ?? ""}
               </p>
               <ul className="flex flex-col gap-4 lg:gap-5">
                 {subItems.map((sub, j) => (
@@ -322,7 +331,7 @@ export default function Menu({
                     key={sub.href}
                     onMouseEnter={() => setHoveredSubIndex(j)}
                   >
-                    <a
+                    <Link
                       href={sub.href}
                       onClick={onClose}
                       className={`font-display text-lg lg:text-xl transition-colors ${
@@ -332,7 +341,7 @@ export default function Menu({
                       }`}
                     >
                       {sub.label}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -389,12 +398,12 @@ export default function Menu({
           type="button"
           onClick={onClose}
           aria-label="Close menu"
-          className="absolute top-5 right-6 lg:top-7 lg:right-10 z-10 group inline-flex items-center gap-3 text-sm font-semibold text-white lg:text-primary-500 transition-opacity duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-90 focus-visible:outline-none"
+          className="absolute top-4 right-7 lg:top-5 lg:right-10 z-10 group inline-flex items-center gap-3.5 lg:gap-4 text-base font-semibold text-white lg:text-primary-500 transition-opacity duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-90 focus-visible:outline-none"
         >
           <span className="transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-x-0.5 motion-reduce:transform-none">
             Close Menu
           </span>
-          <span className="relative inline-flex size-9 items-center justify-center">
+          <span className="relative inline-flex size-10 lg:size-11 items-center justify-center">
             <svg
               viewBox="0 0 36 36"
               fill="none"
@@ -416,7 +425,7 @@ export default function Menu({
               stroke="currentColor"
               strokeWidth="1.5"
               strokeLinecap="round"
-              className="relative w-3.5 h-3.5 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:rotate-90 group-active:scale-90 motion-reduce:transform-none"
+              className="relative w-4 h-4 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:rotate-90 group-active:scale-90 motion-reduce:transform-none"
               aria-hidden
             >
               <path d="M5 5l14 14M19 5L5 19" />

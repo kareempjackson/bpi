@@ -1,5 +1,6 @@
 import ArrowRight from "./ArrowRight";
 import Button from "./Button";
+import CtaLink from "./CtaLink";
 import WhyShape from "./shapes/WhyShape";
 
 type Props = {
@@ -9,6 +10,7 @@ type Props = {
   ctaLabel?: string;
   ctaHref?: string;
   imageSrc?: string;
+  videoSrc?: string;
   imageAlt?: string;
 };
 
@@ -24,6 +26,7 @@ export default function WhyBpiSection({
   ctaLabel = "Why BPI?",
   ctaHref = "/why-bpi",
   imageSrc = "/images/cdc-_N7I1JyPYJw-unsplash.jpg",
+  videoSrc,
   imageAlt = "BPI team meeting in Barbados",
 }: Props) {
   return (
@@ -44,18 +47,19 @@ export default function WhyBpiSection({
                 {body}
               </p>
             </div>
-            <a href={ctaHref} className="inline-flex">
+            <CtaLink href={ctaHref} className="inline-flex">
               <Button variant="tertiary" size="sm">
                 {ctaLabel}
                 <ArrowRight />
               </Button>
-            </a>
+            </CtaLink>
           </div>
 
           <div data-reveal="scale" className="md:col-span-5 flex justify-end">
             <WhyShape
               size={480}
               imageSrc={imageSrc}
+              videoSrc={videoSrc}
               imageAlt={imageAlt}
               imagePosition="xMidYMin slice"
               className="w-full h-auto max-w-sm md:max-w-none"

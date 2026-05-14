@@ -13,13 +13,15 @@ type Props = Omit<
   variant?: Variant;
   /** Optional image filling the shape. Without it, `fill` is used. */
   imageSrc?: string;
-  /** Alt text used when imageSrc is provided. */
+  /** Optional video filling the shape; takes precedence over imageSrc. */
+  videoSrc?: string;
+  /** Alt text used when media is provided. */
   imageAlt?: string;
-  /** Solid fill when no imageSrc is provided. */
+  /** Solid fill when no media is provided. */
   fill?: string;
   /** Add a darken gradient at the bottom of the shape (clipped to the path). */
   darkBottom?: boolean;
-  /** Classes applied to the inner <image> element (e.g. zoom on hover). */
+  /** Classes applied to the inner image/video element (e.g. zoom on hover). */
   imageClassName?: string;
 };
 
@@ -37,6 +39,7 @@ export default function LeaderShape({
   size = 372,
   variant = "br",
   imageSrc,
+  videoSrc,
   imageAlt = "",
   fill = "#000036",
   darkBottom = false,
@@ -48,6 +51,7 @@ export default function LeaderShape({
   const clipId = `leader-clip-${rawId}`;
   const gradientId = `leader-grad-${rawId}`;
   const path = PATHS[variant];
+  const hasMedia = !!(imageSrc || videoSrc);
 
   return (
     <svg
@@ -57,8 +61,8 @@ export default function LeaderShape({
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      role={imageSrc ? "img" : undefined}
-      aria-label={imageSrc ? imageAlt || undefined : undefined}
+      role={hasMedia ? "img" : undefined}
+      aria-label={hasMedia ? imageAlt || undefined : undefined}
       {...rest}
     >
       <defs>
@@ -67,34 +71,62 @@ export default function LeaderShape({
         </clipPath>
         {darkBottom ? (
           <linearGradient id={gradientId} x1="0" y1="1" x2="0" y2="0">
-            <stop offset="0%" stopColor="#000000" stopOpacity="0.55" />
-            <stop offset="55%" stopColor="#000000" stopOpacity="0.2" />
+            <stop offset="0%" stopColor="#000000" stopOpacity="0.95" />
+            <stop offset="35%" stopColor="#000000" stopOpacity="0.7" />
+            <stop offset="70%" stopColor="#000000" stopOpacity="0.32" />
             <stop offset="100%" stopColor="#000000" stopOpacity="0" />
           </linearGradient>
         ) : null}
       </defs>
-      {imageSrc ? (
+      {hasMedia ? (
         <g clipPath={`url(#${clipId})`}>
-          <image
-            href={imageSrc}
-            x="0"
-            y="0"
-            width={W}
-            height={H}
-            preserveAspectRatio="xMidYMid slice"
-            className={imageClassName}
-            style={
-              imageClassName
-                ? { transformBox: "fill-box", transformOrigin: "center" }
-                : undefined
-            }
-          />
+          {videoSrc ? (
+            <foreignObject x="0" y="0" width={W} height={H}>
+              <video
+                src={videoSrc}
+                poster={imageSrc}
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="metadata"
+                disableRemotePlayback
+                disablePictureInPicture
+                aria-label={imageAlt || undefined}
+                className={imageClassName}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  display: "block",
+                  ...(imageClassName
+                    ? { transformOrigin: "center" }
+                    : null),
+                }}
+              />
+            </foreignObject>
+          ) : (
+            <image
+              href={imageSrc}
+              x="0"
+              y="0"
+              width={W}
+              height={H}
+              preserveAspectRatio="xMidYMid slice"
+              className={imageClassName}
+              style={
+                imageClassName
+                  ? { transformBox: "fill-box", transformOrigin: "center" }
+                  : undefined
+              }
+            />
+          )}
           {darkBottom ? (
             <rect
               x="0"
-              y={H - 200}
+              y={H - 340}
               width={W}
-              height="200"
+              height="340"
               fill={`url(#${gradientId})`}
             />
           ) : null}

@@ -5,13 +5,21 @@ import { useEffect } from "react";
 const SELECTOR =
   "[data-reveal], [data-reveal-stagger], [data-care-mobile]";
 
+/**
+ * Sets `data-in-view` on `[data-reveal]` elements when they enter the
+ * viewport so the CSS reveal animation fires. Without this attribute,
+ * `globals.css` keeps those sections at `opacity: 0`.
+ *
+ * Important: this mounts once at the layout level and uses a
+ * `MutationObserver` to pick up DOM that arrives later — newly-mounted
+ * route pages, lazy-loaded sections, etc. A `[pathname]`-dep effect
+ * would race the route transition: if the effect fires before the new
+ * page's DOM commits, `querySelectorAll` returns nothing and every
+ * section on the new page stays invisible. The MutationObserver path
+ * makes that race impossible.
+ */
 export default function RevealController() {
   useEffect(() => {
-    const els = Array.from(
-      document.querySelectorAll<HTMLElement>(SELECTOR)
-    );
-    if (els.length === 0) return;
-
     const reduce = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
@@ -23,33 +31,45 @@ export default function RevealController() {
       el.setAttribute("data-in-view", "");
     };
 
-    if (reduce) {
-      els.forEach(flip);
-      return;
-    }
+    const observed = new WeakSet<Element>();
 
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          flip(entry.target as HTMLElement);
-          io.unobserve(entry.target);
-        }
-      },
-      { threshold: 0.15, rootMargin: "0px 0px -10% 0px" }
-    );
+    const io = reduce
+      ? null
+      : new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (!entry.isIntersecting) continue;
+              flip(entry.target as HTMLElement);
+              io!.unobserve(entry.target);
+            }
+          },
+          { threshold: 0.15, rootMargin: "0px 0px -10% 0px" }
+        );
 
-    els.forEach((el) => io.observe(el));
-
-    const failSafe = window.setTimeout(() => {
+    const scan = () => {
+      const els = document.querySelectorAll<HTMLElement>(SELECTOR);
       els.forEach((el) => {
-        if (!el.hasAttribute("data-in-view")) flip(el);
+        if (observed.has(el)) return;
+        observed.add(el);
+        if (reduce) {
+          flip(el);
+        } else {
+          io!.observe(el);
+        }
       });
-    }, 2000);
+    };
+
+    scan();
+
+    // Pick up DOM added after this effect mounted — e.g. a new route's
+    // page committing under the shared layout, or sections that mount
+    // late on the same page.
+    const mo = new MutationObserver(() => scan());
+    mo.observe(document.body, { childList: true, subtree: true });
 
     return () => {
-      io.disconnect();
-      window.clearTimeout(failSafe);
+      mo.disconnect();
+      io?.disconnect();
     };
   }, []);
 

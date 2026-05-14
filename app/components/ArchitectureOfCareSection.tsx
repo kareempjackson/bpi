@@ -4,12 +4,14 @@ import type { CSSProperties } from "react";
 import { useRef } from "react";
 import Image from "next/image";
 import ArrowCircle from "./ArrowCircle";
+import CtaLink from "./CtaLink";
 
 type Item = {
   title: string;
   description: string;
   href: string;
   imageSrc: string;
+  videoSrc?: string;
   imageAlt?: string;
   /** Hex color used as the card fill. */
   color: string;
@@ -98,7 +100,7 @@ export default function ArchitectureOfCareSection({
             </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-3 shrink-0 lg:hidden">
             <CarouselButton
               onClick={() => scrollByCard(-1)}
               direction="prev"
@@ -110,11 +112,12 @@ export default function ArchitectureOfCareSection({
           </div>
         </div>
 
-        {/* Horizontal carousel */}
+        {/* Cards — horizontal carousel on mobile/tablet, 4-column grid
+            on desktop so all four sit side-by-side without scrolling. */}
         <div
           ref={scrollRef}
           data-reveal-stagger
-          className="flex gap-5 lg:gap-6 overflow-x-auto snap-x snap-mandatory no-scrollbar"
+          className="flex gap-5 overflow-x-auto snap-x snap-mandatory no-scrollbar lg:grid lg:grid-cols-4 lg:gap-5 lg:overflow-visible"
         >
           {items.map((item, idx) => (
             <PriorityCard key={`${item.href}-${idx}`} item={item} />
@@ -150,30 +153,46 @@ function CarouselButton({
 
 function PriorityCard({ item }: { item: Item }) {
   return (
-    <a
+    <CtaLink
       href={item.href}
-      className="shrink-0 snap-start w-[85%] sm:w-[60%] lg:w-[44%] aspect-4/3 rounded-3xl p-5 md:p-7 lg:p-9 flex flex-col group"
+      className="shrink-0 snap-start w-[85%] sm:w-[60%] aspect-4/3 rounded-3xl p-5 md:p-7 flex flex-col group lg:w-auto lg:shrink lg:aspect-auto lg:h-full lg:p-6"
       style={{ backgroundColor: item.color } as CSSProperties}
     >
-      <h3 className="font-display text-xs lg:text-sm font-bold uppercase tracking-[0.06em] text-primary-500 leading-tight group-hover:opacity-80 transition-opacity">
+      <h3 className="font-display text-xs lg:text-[11px] font-bold uppercase tracking-[0.06em] text-primary-500 leading-tight group-hover:opacity-80 transition-opacity">
         {item.title}
       </h3>
-      <p className="mt-3 lg:mt-4 font-display text-xl lg:text-2xl font-light text-primary-500/85 leading-[1.3] tracking-tight max-w-md">
+      <p className="mt-3 md:mt-4 font-display text-xl md:text-2xl lg:text-base font-light text-primary-500/85 leading-[1.3] tracking-tight max-w-md">
         {item.description}
       </p>
 
       <div className="mt-auto pt-6 flex items-end justify-between gap-4">
         <div className="relative w-[42%] aspect-square rounded-2xl overflow-hidden">
-          <Image
-            src={item.imageSrc}
-            alt={item.imageAlt ?? ""}
-            fill
-            sizes="(min-width: 1024px) 22vw, 45vw"
-            className="object-cover"
-          />
+          {item.videoSrc ? (
+            <video
+              src={item.videoSrc}
+              poster={item.imageSrc}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              disableRemotePlayback
+              disablePictureInPicture
+              aria-label={item.imageAlt || undefined}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <Image
+              src={item.imageSrc}
+              alt={item.imageAlt ?? ""}
+              fill
+              sizes="(min-width: 1024px) 44vw, 45vw"
+              className="object-cover"
+            />
+          )}
         </div>
-        <ArrowCircle size={44} className="shrink-0 text-primary-500" />
+        <ArrowCircle size={48} className="shrink-0 text-primary-500" />
       </div>
-    </a>
+    </CtaLink>
   );
 }

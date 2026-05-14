@@ -1,6 +1,8 @@
 import type { SVGAttributes } from "react";
 import { useId } from "react";
 
+import ShapeMedia from "./ShapeMedia";
+
 type Props = Omit<
   SVGAttributes<SVGSVGElement>,
   "viewBox" | "xmlns" | "fill" | "width" | "height"
@@ -9,9 +11,11 @@ type Props = Omit<
   size?: number;
   /** Optional image filling the shape. Without it, `fill` is used. */
   imageSrc?: string;
-  /** Alt text used when imageSrc is provided. */
+  /** Optional video filling the shape; takes precedence over imageSrc. */
+  videoSrc?: string;
+  /** Alt text used when media is provided. */
   imageAlt?: string;
-  /** Solid fill when no imageSrc is provided. */
+  /** Solid fill when no media is provided. */
   fill?: string;
 };
 
@@ -25,6 +29,7 @@ const PATH_D =
 export default function FooterImageShape({
   size = 1245,
   imageSrc,
+  videoSrc,
   imageAlt = "",
   fill = "#E0F2FF",
   className,
@@ -32,6 +37,7 @@ export default function FooterImageShape({
 }: Props) {
   const rawId = useId().replace(/[^a-zA-Z0-9]/g, "");
   const clipId = `footer-img-clip-${rawId}`;
+  const hasMedia = !!(imageSrc || videoSrc);
 
   return (
     <svg
@@ -41,8 +47,8 @@ export default function FooterImageShape({
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      role={imageSrc ? "img" : undefined}
-      aria-label={imageSrc ? imageAlt || undefined : undefined}
+      role={hasMedia ? "img" : undefined}
+      aria-label={hasMedia ? imageAlt || undefined : undefined}
       {...rest}
     >
       <defs>
@@ -50,15 +56,14 @@ export default function FooterImageShape({
           <path d={PATH_D} />
         </clipPath>
       </defs>
-      {imageSrc ? (
-        <image
-          href={imageSrc}
-          x="0"
-          y="0"
+      {hasMedia ? (
+        <ShapeMedia
+          clipId={clipId}
           width={W}
           height={H}
-          preserveAspectRatio="xMidYMid slice"
-          clipPath={`url(#${clipId})`}
+          imageSrc={imageSrc}
+          imageAlt={imageAlt}
+          videoSrc={videoSrc}
         />
       ) : (
         <path d={PATH_D} fill={fill} fillRule="evenodd" />
