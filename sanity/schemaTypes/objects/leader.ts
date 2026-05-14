@@ -26,9 +26,49 @@ export const leader = defineType({
     defineField({
       name: "bio",
       title: "Bio",
-      type: "text",
-      rows: 5,
-      description: "Short biography shown on leader detail or modal views.",
+      type: "array",
+      description:
+        "Biography shown on leader detail and modal views. Supports rich text — paragraphs, bold/italic, lists, and links.",
+      of: [
+        {
+          type: "block",
+          styles: [
+            { title: "Body", value: "normal" },
+            { title: "Heading", value: "h3" },
+            { title: "Quote", value: "blockquote" },
+          ],
+          lists: [
+            { title: "Bullet", value: "bullet" },
+            { title: "Numbered", value: "number" },
+          ],
+          marks: {
+            decorators: [
+              { title: "Strong", value: "strong" },
+              { title: "Emphasis", value: "em" },
+              { title: "Underline", value: "underline" },
+            ],
+            annotations: [
+              {
+                name: "link",
+                title: "External link",
+                type: "object",
+                fields: [
+                  {
+                    name: "href",
+                    title: "URL",
+                    type: "url",
+                    validation: (Rule) =>
+                      Rule.uri({
+                        allowRelative: true,
+                        scheme: ["http", "https", "mailto", "tel"],
+                      }),
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      ],
     }),
     defineField({
       name: "linkedin",

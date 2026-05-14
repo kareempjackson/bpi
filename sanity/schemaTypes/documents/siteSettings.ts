@@ -200,6 +200,15 @@ export const siteSettings = defineType({
 
     // ──────────────────────────────────────────────────────────── Footer ──
     defineField({
+      name: "showFooterPartners",
+      title: "Show partner marquee in footer",
+      type: "boolean",
+      group: "footer",
+      description:
+        "Toggle to hide the auto-scrolling partner marquee in the footer. When OFF the entire partner row is removed.",
+      initialValue: true,
+    }),
+    defineField({
       name: "footerPartners",
       title: "Footer partner logos (marquee)",
       group: "footer",

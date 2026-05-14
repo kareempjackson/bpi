@@ -60,7 +60,9 @@ export type Leader = {
   name: string;
   role: string;
   image: SanityImage;
-  bio?: string | null;
+  /** Portable Text array (rich) for new entries; legacy entries may still
+      be a plain string. The renderer handles both. */
+  bio?: PortableTextBlock[] | string | null;
   linkedin?: string | null;
 };
 
@@ -109,6 +111,7 @@ export type SiteSettings = {
   menuLegalLinks?: NavLink[] | null;
   menuSocialLinks?: SocialLink[] | null;
   menuBackground?: MenuMedia | null;
+  showFooterPartners?: boolean | null;
   footerPartners?: FooterPartner[] | null;
 };
 
@@ -165,6 +168,11 @@ export type Initiative = {
   featured?: boolean | null;
   coverImage?: SanityImage | null;
   externalLink?: string | null;
+};
+
+/** Full initiative including the rich-text `body` for /initiatives/[slug]. */
+export type InitiativeDetail = Initiative & {
+  body?: PortableTextBlock[] | null;
 };
 
 export type PostSummary = {

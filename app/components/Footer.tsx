@@ -21,6 +21,8 @@ type Props = {
   legalLinks?: NavLink[];
   socialLinks?: SocialLink[];
   partners?: Partner[];
+  /** Toggle the partner marquee on/off. Defaults to true. */
+  showPartners?: boolean;
   newsletterAction?: string;
   className?: string;
 };
@@ -137,6 +139,7 @@ export default function Footer({
   legalLinks = DEFAULT_LEGAL,
   socialLinks = DEFAULT_SOCIAL,
   partners = DEFAULT_PARTNERS,
+  showPartners = true,
   newsletterAction,
   className,
 }: Props) {
@@ -265,51 +268,55 @@ export default function Footer({
             right. The marquee track contains the partner list twice
             and translates -50 % over a linear 28 s loop, so the second
             copy seamlessly replaces the first. Edges are softly faded
-            with a gradient mask so partners appear/disappear smoothly. */}
-        <div className="mt-12 md:mt-20 lg:mt-28 flex flex-row items-center justify-center gap-6 md:gap-8 lg:gap-10">
-          <span className="shrink-0 text-[11px] md:text-xs font-semibold tracking-[0.18em] text-white/40 uppercase">
-            Partners
-          </span>
-          <div
-            className="relative overflow-hidden flex-1 max-w-3xl"
-            style={{
-              maskImage:
-                "linear-gradient(to right, transparent 0, black 6%, black 94%, transparent 100%)",
-              WebkitMaskImage:
-                "linear-gradient(to right, transparent 0, black 6%, black 94%, transparent 100%)",
-            }}
-          >
+            with a gradient mask so partners appear/disappear smoothly.
+            The whole row is hidden when `showPartners` is false or no
+            partners are present. */}
+        {showPartners && partners.length > 0 ? (
+          <div className="mt-12 md:mt-20 lg:mt-28 flex flex-row items-center justify-center gap-6 md:gap-8 lg:gap-10">
+            <span className="shrink-0 text-[11px] md:text-xs font-semibold tracking-[0.18em] text-white/40 uppercase">
+              Partners
+            </span>
             <div
-              className="flex w-max items-center gap-x-6 md:gap-x-10 lg:gap-x-14 motion-reduce:animate-none"
+              className="relative overflow-hidden flex-1 max-w-3xl"
               style={{
-                animation: "partners-marquee 28s linear infinite",
+                maskImage:
+                  "linear-gradient(to right, transparent 0, black 6%, black 94%, transparent 100%)",
+                WebkitMaskImage:
+                  "linear-gradient(to right, transparent 0, black 6%, black 94%, transparent 100%)",
               }}
             >
-              {loopedPartners.map((p, idx) => {
-                // First half is the "real" pass for screen readers; the
-                // second half is the duplicate that gives the loop its
-                // seamless wrap, hidden from assistive tech.
-                const isLoopCopy = idx >= partnerSeq.length;
-                return p.href ? (
-                  <a
-                    key={`${p.name}-${idx}`}
-                    href={p.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="shrink-0 inline-flex items-center"
-                    aria-label={p.name}
-                    aria-hidden={isLoopCopy}
-                    tabIndex={isLoopCopy ? -1 : undefined}
-                  >
-                    <PartnerMark partner={p} />
-                  </a>
-                ) : (
-                  <PartnerMark key={`${p.name}-${idx}`} partner={p} />
-                );
-              })}
+              <div
+                className="flex w-max items-center gap-x-6 md:gap-x-10 lg:gap-x-14 motion-reduce:animate-none"
+                style={{
+                  animation: "partners-marquee 28s linear infinite",
+                }}
+              >
+                {loopedPartners.map((p, idx) => {
+                  // First half is the "real" pass for screen readers; the
+                  // second half is the duplicate that gives the loop its
+                  // seamless wrap, hidden from assistive tech.
+                  const isLoopCopy = idx >= partnerSeq.length;
+                  return p.href ? (
+                    <a
+                      key={`${p.name}-${idx}`}
+                      href={p.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 inline-flex items-center"
+                      aria-label={p.name}
+                      aria-hidden={isLoopCopy}
+                      tabIndex={isLoopCopy ? -1 : undefined}
+                    >
+                      <PartnerMark partner={p} />
+                    </a>
+                  ) : (
+                    <PartnerMark key={`${p.name}-${idx}`} partner={p} />
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
+        ) : null}
 
       </div>
 

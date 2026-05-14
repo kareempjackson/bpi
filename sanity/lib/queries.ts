@@ -49,6 +49,7 @@ export const SITE_SETTINGS_QUERY = defineQuery(`
       label
     },
     menuBackground${MENU_MEDIA_PROJECTION},
+    showFooterPartners,
     footerPartners[]{
       name,
       "logoUrl": logo.asset->url,
@@ -181,6 +182,42 @@ export const FEATURED_INITIATIVES_QUERY = defineQuery(`
 export const ALL_INITIATIVES_QUERY = defineQuery(`
   *[_type == "initiative" && defined(slug.current)]
     | order(featured desc, publishedAt desc){
+    _id,
+    title,
+    "slug": slug.current,
+    subtitle,
+    excerpt,
+    publishedAt,
+    featured,
+    coverImage${IMAGE_PROJECTION},
+    externalLink
+  }
+`);
+
+export const ALL_INITIATIVE_SLUGS_QUERY = defineQuery(`
+  *[_type == "initiative" && defined(slug.current)]{
+    "slug": slug.current
+  }
+`);
+
+export const INITIATIVE_BY_SLUG_QUERY = defineQuery(`
+  *[_type == "initiative" && slug.current == $slug][0]{
+    _id,
+    title,
+    "slug": slug.current,
+    subtitle,
+    excerpt,
+    publishedAt,
+    featured,
+    coverImage${IMAGE_PROJECTION},
+    externalLink,
+    body
+  }
+`);
+
+export const RELATED_INITIATIVES_QUERY = defineQuery(`
+  *[_type == "initiative" && defined(slug.current) && slug.current != $slug]
+    | order(featured desc, publishedAt desc)[0...3]{
     _id,
     title,
     "slug": slug.current,

@@ -46,6 +46,7 @@ export default async function SiteLayout({
       />
       <div className="flex-1">{children}</div>
       <Footer
+        showPartners={settings?.showFooterPartners ?? true}
         partners={
           settings?.footerPartners
             ?.filter((p) => !!p.logoUrl)

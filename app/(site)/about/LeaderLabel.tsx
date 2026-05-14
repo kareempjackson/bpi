@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 
+import type { PortableTextBlock } from "../../../sanity/lib/types";
 import LeaderProfileModal from "./LeaderProfileModal";
 
 type Props = {
   name: string;
   role: string;
-  bio?: string | null;
+  /** Plain string (legacy) or Portable Text array (rich-text). */
+  bio?: PortableTextBlock[] | string | null;
   linkedin?: string | null;
   imageSrc: string;
   imageAlt: string;
