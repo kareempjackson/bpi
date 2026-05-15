@@ -1,4 +1,3 @@
-import Link from "next/link";
 import Logo from "./Logo";
 
 type NavLink = { label: string; href: string };
@@ -185,9 +184,9 @@ export default function Footer({
         className="relative z-10 px-20 sm:px-32 lg:px-40 pt-16 md:pt-36 lg:pt-44"
       >
         <div className="flex flex-col lg:flex-row lg:items-center gap-4 md:gap-5 lg:gap-6">
-          <Link href="/" aria-label="BPI home" className="shrink-0">
+          <span aria-label="BPI" className="shrink-0">
             <Logo size={220} className="text-white w-44 md:w-52 lg:w-56 h-auto" />
-          </Link>
+          </span>
           <form
             action={newsletterAction}
             method="post"
@@ -251,12 +250,9 @@ export default function Footer({
               <ul className="mt-4 md:mt-5 border-t border-white/15">
                 {group.links.map((link) => (
                   <li key={link.href} className="border-b border-white/15">
-                    <Link
-                      href={link.href}
-                      className="block py-3 md:py-3.5 text-sm md:text-base text-white hover:text-error-300 transition-colors"
-                    >
+                    <span className="block py-3 md:py-3.5 text-sm md:text-base text-white/60 cursor-default select-none">
                       {link.label}
-                    </Link>
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -291,28 +287,11 @@ export default function Footer({
                   animation: "partners-marquee 28s linear infinite",
                 }}
               >
-                {loopedPartners.map((p, idx) => {
-                  // First half is the "real" pass for screen readers; the
-                  // second half is the duplicate that gives the loop its
-                  // seamless wrap, hidden from assistive tech.
-                  const isLoopCopy = idx >= partnerSeq.length;
-                  return p.href ? (
-                    <a
-                      key={`${p.name}-${idx}`}
-                      href={p.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="shrink-0 inline-flex items-center"
-                      aria-label={p.name}
-                      aria-hidden={isLoopCopy}
-                      tabIndex={isLoopCopy ? -1 : undefined}
-                    >
-                      <PartnerMark partner={p} />
-                    </a>
-                  ) : (
-                    <PartnerMark key={`${p.name}-${idx}`} partner={p} />
-                  );
-                })}
+                {loopedPartners.map((p, idx) => (
+                  // Partner logos render as non-clickable marks while the
+                  // site is under construction.
+                  <PartnerMark key={`${p.name}-${idx}`} partner={p} />
+                ))}
               </div>
             </div>
           </div>
@@ -331,24 +310,23 @@ export default function Footer({
             <ul className="flex flex-wrap items-center gap-6">
               {legalLinks.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="hover:text-white transition-colors">
+                  <span className="text-white/60 cursor-default select-none">
                     {link.label}
-                  </Link>
+                  </span>
                 </li>
               ))}
             </ul>
           </div>
           <div className="flex items-center gap-6 md:gap-9">
-            <ul className="flex items-center gap-5 text-white">
+            <ul className="flex items-center gap-5 text-white/60">
               {socialLinks.map((s) => (
                 <li key={s.name}>
-                  <a
-                    href={s.href}
+                  <span
                     aria-label={s.name}
-                    className="inline-flex items-center justify-center hover:opacity-70 transition-opacity"
+                    className="inline-flex items-center justify-center cursor-default select-none"
                   >
                     <SocialIcon name={s.name} />
-                  </a>
+                  </span>
                 </li>
               ))}
             </ul>

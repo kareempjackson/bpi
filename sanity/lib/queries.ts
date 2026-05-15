@@ -151,7 +151,7 @@ export const LATEST_POSTS_QUERY = defineQuery(`
 
 export const LATEST_INITIATIVES_QUERY = defineQuery(`
   *[_type == "initiative" && defined(slug.current)]
-    | order(featured desc, publishedAt desc)[0...$limit]{
+    | order(featured desc, coalesce(order, 9999) asc, publishedAt desc)[0...$limit]{
     _id,
     title,
     "slug": slug.current,
@@ -166,7 +166,7 @@ export const LATEST_INITIATIVES_QUERY = defineQuery(`
 
 export const FEATURED_INITIATIVES_QUERY = defineQuery(`
   *[_type == "initiative" && defined(slug.current) && featured == true]
-    | order(publishedAt desc){
+    | order(coalesce(order, 9999) asc, publishedAt desc){
     _id,
     title,
     "slug": slug.current,
@@ -181,7 +181,7 @@ export const FEATURED_INITIATIVES_QUERY = defineQuery(`
 
 export const ALL_INITIATIVES_QUERY = defineQuery(`
   *[_type == "initiative" && defined(slug.current)]
-    | order(featured desc, publishedAt desc){
+    | order(featured desc, coalesce(order, 9999) asc, publishedAt desc){
     _id,
     title,
     "slug": slug.current,
@@ -217,7 +217,7 @@ export const INITIATIVE_BY_SLUG_QUERY = defineQuery(`
 
 export const RELATED_INITIATIVES_QUERY = defineQuery(`
   *[_type == "initiative" && defined(slug.current) && slug.current != $slug]
-    | order(featured desc, publishedAt desc)[0...3]{
+    | order(featured desc, coalesce(order, 9999) asc, publishedAt desc)[0...3]{
     _id,
     title,
     "slug": slug.current,
@@ -264,6 +264,9 @@ export const INITIATIVES_PAGE_QUERY = defineQuery(`
     workInMotionPrimaryCta${CTA_PROJECTION},
     workInMotionSecondaryCta${CTA_PROJECTION},
 
+    // The defined() filter drops dangling weak refs (e.g. when the target
+    // initiative has been deleted). Without it, deleted refs show up as
+    // null entries and need extra handling downstream.
     "featuredInitiative": featuredInitiative->{
       _id,
       title,
@@ -275,7 +278,9 @@ export const INITIATIVES_PAGE_QUERY = defineQuery(`
       coverImage${IMAGE_PROJECTION},
       externalLink
     },
-    "featuredSupportingInitiatives": featuredSupportingInitiatives[]->{
+    "featuredSupportingInitiatives": featuredSupportingInitiatives[
+      defined(@->_id)
+    ]->{
       _id,
       title,
       "slug": slug.current,

@@ -20,9 +20,10 @@ export const missionCard = defineType({
     }),
     defineField({
       name: "href",
-      title: "Link",
+      title: "Link (optional)",
       type: "string",
-      validation: (Rule) => Rule.required(),
+      description:
+        "If set, the card links to this URL. Leave blank to render the card as a plain block (no link).",
     }),
     defineField({
       name: "eyebrow",

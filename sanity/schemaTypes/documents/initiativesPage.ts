@@ -138,8 +138,13 @@ export const initiativesPage = defineType({
       type: "reference",
       group: "featured",
       to: [{ type: "initiative" }],
+      // Weak reference — lets editors delete the target initiative without
+      // Studio blocking on this reference. The dangling pointer is dropped
+      // from queries (filtered out below) so the page just renders without
+      // that featured slot until a new one is picked.
+      weak: true,
       description:
-        "Select which initiative appears in the banner. Its title, excerpt, cover image, and link are pulled automatically.",
+        "Select which initiative appears in the banner. Its title, excerpt, cover image, and link are pulled automatically. If you delete the referenced initiative, this slot will simply be empty until a new one is selected.",
     }),
     defineField({
       name: "featuredSupportingInitiatives",
@@ -147,11 +152,14 @@ export const initiativesPage = defineType({
       type: "array",
       group: "featured",
       description:
-        "Up to three other initiatives shown as cards beneath the featured banner. Pick them from the initiative list — title, excerpt, and link are pulled automatically.",
+        "Up to three other initiatives shown as cards beneath the featured banner. Pick them from the initiative list — title, excerpt, and link are pulled automatically. Deleted initiatives are skipped automatically.",
       of: [
         defineArrayMember({
           type: "reference",
           to: [{ type: "initiative" }],
+          // Weak refs so an editor can delete an initiative without
+          // Sanity blocking on this list.
+          weak: true,
         }),
       ],
       validation: (Rule) => Rule.max(3),

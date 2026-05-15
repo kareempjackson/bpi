@@ -38,9 +38,18 @@ export const initiative = defineType({
       name: "publishedAt",
       title: "Published date",
       type: "datetime",
-      description: "Used to sort initiatives — newest first.",
+      description:
+        "Used as the sort tiebreaker when two initiatives have the same Order — newest first.",
       validation: (Rule) => Rule.required(),
       initialValue: () => new Date().toISOString(),
+    }),
+    defineField({
+      name: "order",
+      title: "Order",
+      type: "number",
+      description:
+        "Controls the display order on the home page and initiatives list. Lower numbers appear first (e.g. 1 first, 10 last). Leave blank to fall back to publish-date order.",
+      validation: (Rule) => Rule.integer().min(0),
     }),
     defineField({
       name: "featured",
@@ -72,6 +81,14 @@ export const initiative = defineType({
     }),
   ],
   orderings: [
+    {
+      title: "Manual order (low → high)",
+      name: "orderAsc",
+      by: [
+        { field: "order", direction: "asc" },
+        { field: "publishedAt", direction: "desc" },
+      ],
+    },
     {
       title: "Published date — newest first",
       name: "publishedAtDesc",

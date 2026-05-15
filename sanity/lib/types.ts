@@ -45,7 +45,7 @@ export type Pillar = {
 export type MissionCard = {
   title: string;
   description: string;
-  href: string;
+  href?: string | null;
   eyebrow?: string | null;
   image?: SanityImage | null;
   bg?: string | null;

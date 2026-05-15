@@ -4,8 +4,15 @@ import { defineLocations, presentationTool } from "sanity/presentation";
 import { structureTool } from "sanity/structure";
 
 import { apiVersion, dataset, projectId } from "./sanity/env";
+import { forceDeleteAction } from "./sanity/lib/forceDeleteAction";
 import { schemaTypes } from "./sanity/schemaTypes";
 import { structure } from "./sanity/structure";
+
+// Document types where editors should have access to a "Force delete"
+// action that bypasses Sanity's incoming-reference check. Useful for
+// content types referenced by curated slots (e.g. initiatives selected
+// in the Initiatives page).
+const FORCE_DELETABLE_TYPES = new Set<string>(["initiative"]);
 
 const SINGLETON_TYPES = new Set<string>([
   "siteSettings",
@@ -144,13 +151,19 @@ export default defineConfig({
       prev.filter(({ schemaType }) => !SINGLETON_TYPES.has(schemaType)),
   },
   document: {
-    actions: (prev, { schemaType }) =>
-      SINGLETON_TYPES.has(schemaType)
-        ? prev.filter(
-            ({ action }) =>
-              !action || !DISABLED_SINGLETON_ACTIONS.has(action),
-          )
-        : prev,
+    actions: (prev, { schemaType }) => {
+      if (SINGLETON_TYPES.has(schemaType)) {
+        return prev.filter(
+          ({ action }) => !action || !DISABLED_SINGLETON_ACTIONS.has(action),
+        );
+      }
+      if (FORCE_DELETABLE_TYPES.has(schemaType)) {
+        // Append the force-delete action so editors can remove a doc
+        // even when other documents still hold references to it.
+        return [...prev, forceDeleteAction];
+      }
+      return prev;
+    },
     newDocumentOptions: (prev, { creationContext }) =>
       creationContext.type === "global"
         ? prev.filter(({ templateId }) => !SINGLETON_TYPES.has(templateId))

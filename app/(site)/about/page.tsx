@@ -188,7 +188,10 @@ export default async function AboutPage() {
           <div data-reveal="fade">
             <MissionCarousel>
               {data.missionCards?.map((card, idx) => (
-                <MissionCardItem key={card.href + idx} card={card} />
+                <MissionCardItem
+                  key={(card.href ?? card.title) + idx}
+                  card={card}
+                />
               ))}
             </MissionCarousel>
           </div>
@@ -279,12 +282,6 @@ export default async function AboutPage() {
                   index={idx}
                 />
               ))}
-              <LeadershipContactCard
-                heading={data.leadershipContactHeading}
-                description={data.leadershipContactDescription}
-                primaryCta={data.leadershipContactPrimaryCta}
-                secondaryCta={data.leadershipContactSecondaryCta}
-              />
             </div>
           </div>
         </div>
@@ -556,13 +553,15 @@ function MissionCardItem({ card }: { card: MissionCardData }) {
             {card.description}
           </p>
         </div>
-        <CtaLink
-          href={card.href}
-          className="inline-flex items-center gap-2 text-sm md:text-base font-semibold text-primary-500 hover:opacity-70 transition-opacity"
-        >
-          Learn more
-          <ArrowRight />
-        </CtaLink>
+        {card.href ? (
+          <CtaLink
+            href={card.href}
+            className="inline-flex items-center gap-2 text-sm md:text-base font-semibold text-primary-500 hover:opacity-70 transition-opacity"
+          >
+            Learn more
+            <ArrowRight />
+          </CtaLink>
+        ) : null}
       </div>
 
       {img ? (
