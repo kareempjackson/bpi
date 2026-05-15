@@ -44,10 +44,6 @@ export const contactPage = defineType({
       title: "Hero image",
       type: "imageWithAlt",
       group: "hero",
-      initialValue: {
-        fallbackSrc: "/images/A6701484.jpg",
-        alt: "BPI partner ready to collaborate",
-      },
       validation: (Rule) => Rule.required(),
     }),
     defineField({
@@ -124,10 +120,6 @@ export const contactPage = defineType({
       title: "Form section image",
       type: "imageWithAlt",
       group: "form",
-      initialValue: {
-        fallbackSrc: "/images/DSC03039.jpg",
-        alt: "BPI team meeting with partners",
-      },
       validation: (Rule) => Rule.required(),
     }),
   ],

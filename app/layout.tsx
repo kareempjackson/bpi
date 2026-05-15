@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import BrowserCheck from "./components/BrowserCheck";
 
 const albertSans = localFont({
   variable: "--font-albert-sans",
@@ -18,8 +19,9 @@ const albertSans = localFont({
 });
 
 // Avenir Next stand-in — Metropolis is a free, geometric sans-serif
-// with very similar proportions and curves. Loaded as multiple static
-// weight files (Metropolis isn't shipped as a variable font here).
+// with very similar proportions and curves. Only the weights actually
+// used in the codebase are loaded (100, 300, 400, 500, 600, 700 + 400
+// italic). Cuts ~11 files off the font payload before LCP.
 const avenirNext = localFont({
   variable: "--font-avenir",
   display: "swap",
@@ -30,29 +32,9 @@ const avenirNext = localFont({
       style: "normal",
     },
     {
-      path: "../public/fonts/avenir-next-similar-fonts/metropolis/Metropolis-ThinItalic.otf",
-      weight: "100",
-      style: "italic",
-    },
-    {
-      path: "../public/fonts/avenir-next-similar-fonts/metropolis/Metropolis-ExtraLight.otf",
-      weight: "200",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/avenir-next-similar-fonts/metropolis/Metropolis-ExtraLightItalic.otf",
-      weight: "200",
-      style: "italic",
-    },
-    {
       path: "../public/fonts/avenir-next-similar-fonts/metropolis/Metropolis-Light.otf",
       weight: "300",
       style: "normal",
-    },
-    {
-      path: "../public/fonts/avenir-next-similar-fonts/metropolis/Metropolis-LightItalic.otf",
-      weight: "300",
-      style: "italic",
     },
     {
       path: "../public/fonts/avenir-next-similar-fonts/metropolis/Metropolis-Regular.otf",
@@ -70,49 +52,14 @@ const avenirNext = localFont({
       style: "normal",
     },
     {
-      path: "../public/fonts/avenir-next-similar-fonts/metropolis/Metropolis-MediumItalic.otf",
-      weight: "500",
-      style: "italic",
-    },
-    {
       path: "../public/fonts/avenir-next-similar-fonts/metropolis/Metropolis-SemiBold.otf",
       weight: "600",
       style: "normal",
     },
     {
-      path: "../public/fonts/avenir-next-similar-fonts/metropolis/Metropolis-SemiBoldItalic.otf",
-      weight: "600",
-      style: "italic",
-    },
-    {
       path: "../public/fonts/avenir-next-similar-fonts/metropolis/Metropolis-Bold.otf",
       weight: "700",
       style: "normal",
-    },
-    {
-      path: "../public/fonts/avenir-next-similar-fonts/metropolis/Metropolis-BoldItalic.otf",
-      weight: "700",
-      style: "italic",
-    },
-    {
-      path: "../public/fonts/avenir-next-similar-fonts/metropolis/Metropolis-ExtraBold.otf",
-      weight: "800",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/avenir-next-similar-fonts/metropolis/Metropolis-ExtraBoldItalic.otf",
-      weight: "800",
-      style: "italic",
-    },
-    {
-      path: "../public/fonts/avenir-next-similar-fonts/metropolis/Metropolis-Black.otf",
-      weight: "900",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/avenir-next-similar-fonts/metropolis/Metropolis-BlackItalic.otf",
-      weight: "900",
-      style: "italic",
     },
   ],
 });
@@ -139,7 +86,10 @@ export default function RootLayout({
       lang="en"
       className={`${albertSans.variable} ${avenirNext.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <BrowserCheck />
+        {children}
+      </body>
     </html>
   );
 }

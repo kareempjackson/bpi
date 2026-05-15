@@ -181,21 +181,24 @@ export default function Footer({
           stretches across the entire row, matching the reference. */}
       <div
         data-reveal-stagger
-        className="relative z-10 px-20 sm:px-32 lg:px-40 pt-16 md:pt-36 lg:pt-44"
+        className="relative z-10 px-5 sm:px-8 md:px-20 lg:px-32 xl:px-40 pt-12 sm:pt-16 md:pt-36 lg:pt-44"
       >
-        <div className="flex flex-col lg:flex-row lg:items-center gap-4 md:gap-5 lg:gap-6">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-5 md:gap-5 lg:gap-6">
           <span aria-label="BPI" className="shrink-0">
-            <Logo size={220} className="text-white w-44 md:w-52 lg:w-56 h-auto" />
+            <Logo
+              size={220}
+              className="text-white w-36 sm:w-44 md:w-52 lg:w-56 h-auto"
+            />
           </span>
           <form
             action={newsletterAction}
             method="post"
-            className="flex-1 flex flex-col md:flex-row md:items-center gap-3 md:gap-4 lg:ml-8"
+            className="flex-1 flex flex-col md:flex-row md:items-center gap-3 md:gap-4 lg:ml-8 w-full"
           >
-            <span className="font-display text-xl md:text-2xl lg:text-display-xs text-white shrink-0 tracking-[-0.01em]">
+            <span className="font-display text-lg sm:text-xl md:text-2xl lg:text-display-xs text-white shrink-0 tracking-[-0.01em]">
               Newsletter signup
             </span>
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2.5 md:gap-3 min-w-0">
               <label className="sr-only" htmlFor="footer-newsletter-name">Full name</label>
               <input
                 id="footer-newsletter-name"
@@ -219,7 +222,7 @@ export default function Footer({
             </div>
             <button
               type="submit"
-              className="shrink-0 rounded-round border border-dashed border-error-700/50 bg-error-500 px-5 py-3 text-sm md:px-6 md:py-3.5 md:text-base font-semibold text-primary-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-error-400 hover:border-error-700/80 hover:-translate-y-0.5 hover:shadow-[0_8px_22px_-10px_rgba(0,0,54,0.5)] active:translate-y-0 active:scale-[0.98] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-error-500/60"
+              className="shrink-0 rounded-round border border-dashed border-error-700/50 bg-error-500 px-5 py-3 text-sm md:px-6 md:py-3.5 md:text-base font-semibold text-primary-500 transition-all duration-300 ease-[var(--ease-premium)] hover:bg-error-400 hover:border-error-700/80 hover:-translate-y-0.5 hover:shadow-[0_8px_22px_-10px_rgba(0,0,54,0.5)] active:translate-y-0 active:scale-[0.98] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-error-500/60"
             >
               Sign up for newsletter
             </button>

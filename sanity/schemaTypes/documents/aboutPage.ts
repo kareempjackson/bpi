@@ -42,10 +42,6 @@ export const aboutPage = defineType({
       title: "Hero image",
       type: "imageWithAlt",
       group: "hero",
-      initialValue: {
-        fallbackSrc: "/images/A6701522.jpg",
-        alt: "Barbados Pharmaceutical Inc. team",
-      },
       validation: (Rule) => Rule.required(),
     }),
     defineField({
@@ -130,12 +126,6 @@ export const aboutPage = defineType({
           eyebrow: "Manufacture",
           description:
             "Local production of essential medicines, starting with IV fluids, scaling to ARVs, diagnostics, and NCDs.",
-          image: {
-            _type: "imageWithAlt",
-            fallbackSrc:
-              "/images/national-cancer-institute-2fyeLhUeYpg-unsplash.jpg",
-            alt: "Pharmaceutical manufacturing line",
-          },
           bg: "#ffffff",
           highlight: false,
         },
@@ -145,11 +135,6 @@ export const aboutPage = defineType({
           eyebrow: "Distribute",
           description:
             "A regional logistics\nmodel that puts medicines where they are needed, reliably and at lower cost.",
-          image: {
-            _type: "imageWithAlt",
-            fallbackSrc: "/images/DSC06909.jpg",
-            alt: "Regional pharmaceutical logistics",
-          },
           bg: "#83ffc1",
           highlight: true,
         },
@@ -159,11 +144,6 @@ export const aboutPage = defineType({
           eyebrow: "Build",
           description:
             "The regulatory, workforce, and institutional foundations that sustain a pharmaceutical sector for generations.",
-          image: {
-            _type: "imageWithAlt",
-            fallbackSrc: "/images/DSC03002.jpg",
-            alt: "Workforce training and regulatory development",
-          },
           bg: "#ffffff",
           highlight: false,
         },
@@ -266,11 +246,6 @@ export const aboutPage = defineType({
           description:
             "Opening pharmaceutical trade routes across CARICOM, Latin America, Africa, and the Global South.",
           href: "/missions/market-access",
-          image: {
-            _type: "imageWithAlt",
-            fallbackSrc: "/images/tim-winkler-mSldznp15Xg-unsplash.jpg",
-            alt: "Market access and trade development",
-          },
           bg: "#CAF1FF",
         },
         {
@@ -280,11 +255,6 @@ export const aboutPage = defineType({
           description:
             "Building the skilled workforce Caribbean pharmaceutical production depends on.",
           href: "/missions/workforce",
-          image: {
-            _type: "imageWithAlt",
-            fallbackSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-            alt: "Workforce and talent development",
-          },
           bg: "#9bffcd",
         },
         {
@@ -294,11 +264,6 @@ export const aboutPage = defineType({
           description:
             "Establishing Barbados as a credible site for pharmaceutical research and technology transfer.",
           href: "/missions/research-development",
-          image: {
-            _type: "imageWithAlt",
-            fallbackSrc: "/images/amari-shutters-_ldNP1tBteQ-unsplash.jpg",
-            alt: "Research and development",
-          },
           bg: "#CAF1FF",
         },
         {
@@ -308,11 +273,6 @@ export const aboutPage = defineType({
           description:
             "Creating the conditions for pharmaceutical innovation to take root and scale.",
           href: "/missions/innovation-technology",
-          image: {
-            _type: "imageWithAlt",
-            fallbackSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-            alt: "Innovation and technology",
-          },
           bg: "#9bffcd",
         },
         {
@@ -322,11 +282,6 @@ export const aboutPage = defineType({
           description:
             "Building the regulatory framework that gives investors and manufacturers confidence to commit.",
           href: "/missions/regulatory-policy",
-          image: {
-            _type: "imageWithAlt",
-            fallbackSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-            alt: "Regulatory development and policy",
-          },
           bg: "#CAF1FF",
         },
         {
@@ -336,11 +291,6 @@ export const aboutPage = defineType({
           description:
             "Connecting viable projects to the right capital at the right stage.",
           href: "/missions/investment-financing",
-          image: {
-            _type: "imageWithAlt",
-            fallbackSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-            alt: "Investment and financing",
-          },
           bg: "#9bffcd",
         },
       ],
@@ -409,10 +359,6 @@ export const aboutPage = defineType({
       title: "Mid-page banner image",
       type: "imageWithAlt",
       group: "banner",
-      initialValue: {
-        fallbackSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-        alt: "Barbados Pharmaceutical Inc. team",
-      },
     }),
 
     // ──────────────────────────────────────────────────────── Initiatives ──
@@ -480,11 +426,6 @@ export const aboutPage = defineType({
         _key: `leader-${i + 1}`,
         name: "Name here",
         role: "Short text here title/something",
-        image: {
-          _type: "imageWithAlt",
-          fallbackSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-          alt: "BPI leader",
-        },
       })),
     }),
     defineField({

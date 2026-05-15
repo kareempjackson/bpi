@@ -47,11 +47,17 @@ export default function LenisProvider({
     ).matches;
     if (reduced) return;
 
+    // `duration` + custom easing produces a more physically-modeled
+    // glide than the simpler `lerp` mode. easeOutExpo (`1 - 2^(-10t)`)
+    // is the curve Linear/Vercel-style sites converge on: fast take-off,
+    // long graceful settle.
     const lenis = new Lenis({
-      lerp: 0.12,
+      duration: 1.15,
+      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
-      touchMultiplier: 1.6,
-      wheelMultiplier: 1,
+      wheelMultiplier: 0.95,
+      touchMultiplier: 1.4,
+      syncTouch: false,
     });
     lenisRef.current = lenis;
 
@@ -60,10 +66,65 @@ export default function LenisProvider({
       lenis.raf(time);
       rafId = requestAnimationFrame(raf);
     };
-    rafId = requestAnimationFrame(raf);
+    const startRaf = () => {
+      if (!rafId) rafId = requestAnimationFrame(raf);
+    };
+    const stopRaf = () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = 0;
+      }
+    };
+    startRaf();
+
+    // Pause the rAF loop when the tab is hidden so background tabs don't
+    // burn CPU/battery on scroll smoothing nobody is watching. On return,
+    // resize+sync so Lenis catches up with any scroll the browser
+    // committed while we were paused.
+    const onVisibility = () => {
+      if (document.hidden) {
+        stopRaf();
+      } else {
+        lenis.resize();
+        startRaf();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    // Anchor-link smooth scroll. Intercept clicks on in-page hash links
+    // and let Lenis animate to the target with the same easing as wheel
+    // scrolls — keeps the feel consistent. Skip when the click has a
+    // modifier (cmd/ctrl/shift) so users can still open in new tabs.
+    const onAnchorClick = (event: MouseEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      )
+        return;
+      const anchor = (event.target as HTMLElement | null)?.closest?.("a");
+      if (!anchor) return;
+      const href = anchor.getAttribute("href");
+      if (!href || !href.startsWith("#") || href === "#") return;
+      const target = document.querySelector(href);
+      if (!target) return;
+      event.preventDefault();
+      lenis.scrollTo(target as HTMLElement, {
+        duration: 1.2,
+        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      });
+      // Update the URL hash without re-scrolling natively.
+      history.pushState(null, "", href);
+    };
+    document.addEventListener("click", onAnchorClick);
 
     return () => {
-      cancelAnimationFrame(rafId);
+      stopRaf();
+      document.removeEventListener("visibilitychange", onVisibility);
+      document.removeEventListener("click", onAnchorClick);
       lenis.destroy();
       lenisRef.current = null;
     };

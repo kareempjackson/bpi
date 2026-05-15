@@ -1,11 +1,13 @@
+import LazyVideo from "../LazyVideo";
+
 /**
- * Renders either an SVG `<image>` or an `<foreignObject>` containing a
- * looping muted `<video>`, both clipped to a parent `<clipPath>`. Used
- * inside the shape components so any "image" upload can be swapped for a
- * video upload without each shape having to re-implement the branching.
+ * Renders an SVG `<image>` (still) or `<foreignObject>` (video) clipped
+ * to the parent shape's silhouette. Used inside every shape component so
+ * any "image" upload can be swapped for a video upload without each
+ * shape having to re-implement the branching.
  *
- * The component returns SVG elements; mount it inside a `<defs>`-paired
- * `<svg>` that defines `clipPath` `id={clipId}`.
+ * Returns SVG elements; mount inside an `<svg>` that defines a
+ * `<clipPath id={clipId}>` matching the shape silhouette.
  */
 type Props = {
   x?: number | string;
@@ -17,6 +19,14 @@ type Props = {
   imageAlt?: string;
   videoSrc?: string;
   imagePosition?: string;
+  /**
+   * Kept for backwards compatibility — was previously used to apply a
+   * CSS `clip-path: path()` on the foreignObject contents as a Safari
+   * workaround, but that approach distorted the SVG's natural layout.
+   * The clip is now handled by the standard `<g clipPath>` wrap which
+   * preserves proportions across browsers; the prop is ignored.
+   */
+  pathD?: string;
 };
 
 export default function ShapeMedia({
@@ -31,24 +41,19 @@ export default function ShapeMedia({
   imagePosition = "xMidYMid slice",
 }: Props) {
   if (videoSrc) {
-    // Clip the wrapping `<g>` rather than the `<foreignObject>` itself —
-    // Safari and Firefox both render `clipPath` unreliably when set
-    // directly on a foreignObject. Applying it to the parent group
-    // produces the same visual clip and works everywhere.
+    // Wrap the foreignObject in a clipped `<g>` so the silhouette
+    // applies to the video content. Safari occasionally fails to fire
+    // IntersectionObserver inside foreignObject, in which case the
+    // <source> never renders and the `poster` image (passed through
+    // to LazyVideo) is what shows — still clipped by the `<g>`, so
+    // the silhouette is preserved even when the video can't load.
     return (
       <g clipPath={`url(#${clipId})`}>
         <foreignObject x={x} y={y} width={width} height={height}>
-          <video
+          <LazyVideo
             src={videoSrc}
             poster={imageSrc}
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="metadata"
-            disableRemotePlayback
-            disablePictureInPicture
-            aria-label={imageAlt || undefined}
+            ariaLabel={imageAlt || undefined}
             style={{
               width: "100%",
               height: "100%",
@@ -61,15 +66,21 @@ export default function ShapeMedia({
     );
   }
   if (!imageSrc) return null;
+  // Wrap the `<image>` in a `<g clip-path>` rather than putting
+  // `clip-path` directly on the `<image>` element. Safari silently
+  // drops the reference in some configurations when applied directly,
+  // leaving the photo showing as a plain rectangle instead of the
+  // silhouette.
   return (
-    <image
-      href={imageSrc}
-      x={x}
-      y={y}
-      width={width}
-      height={height}
-      preserveAspectRatio={imagePosition}
-      clipPath={`url(#${clipId})`}
-    />
+    <g clipPath={`url(#${clipId})`}>
+      <image
+        href={imageSrc}
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        preserveAspectRatio={imagePosition}
+      />
+    </g>
   );
 }

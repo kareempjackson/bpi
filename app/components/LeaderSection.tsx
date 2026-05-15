@@ -1,4 +1,5 @@
 import Image from "next/image";
+import LazyVideo from "./LazyVideo";
 
 type SocialKind = "Website" | "LinkedIn" | "X" | "Instagram" | "YouTube";
 type SocialLink = { kind: SocialKind; href: string; label?: string };
@@ -35,12 +36,12 @@ export default function LeaderSection({
   name = "Dr Cindi A. Lewis",
   title = "Deputy Chief Executive Officer",
   org = "Barbados Pharmaceutical Inc.",
-  quoteImageSrc = "/images/A6701488.jpg",
+  quoteImageSrc,
   quoteVideoSrc,
-  quoteImageAlt = "Leader speaking at podium",
-  portraitImageSrc = "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
+  quoteImageAlt = "",
+  portraitImageSrc,
   portraitVideoSrc,
-  portraitImageAlt = "Leader portrait",
+  portraitImageAlt = "",
   socials = DEFAULT_SOCIALS,
 }: Props) {
   return (
@@ -73,30 +74,24 @@ export default function LeaderSection({
         >
           <div className="absolute inset-0">
             {quoteVideoSrc ? (
-              <video
+              <LazyVideo
                 src={quoteVideoSrc}
                 poster={quoteImageSrc}
-                autoPlay
-                loop
-                muted
-                playsInline
-                preload="metadata"
-                disableRemotePlayback
-                disablePictureInPicture
-                aria-label={quoteImageAlt || undefined}
+                ariaLabel={quoteImageAlt || undefined}
                 className="absolute inset-0 w-full h-full object-cover"
                 style={{ objectPosition: "center top" }}
               />
-            ) : (
+            ) : quoteImageSrc ? (
               <Image
                 src={quoteImageSrc}
                 alt={quoteImageAlt}
                 fill
+                priority
                 sizes="(min-width: 1024px) 50vw, 90vw"
                 className="object-cover"
                 style={{ objectPosition: "center top" }}
               />
-            )}
+            ) : null}
           </div>
         </div>
 
@@ -150,40 +145,42 @@ export default function LeaderSection({
                   loop
                   muted
                   playsInline
-                  preload="metadata"
+                  preload="auto"
                   disableRemotePlayback
                   disablePictureInPicture
                   aria-label={portraitImageAlt || undefined}
-                  className="absolute inset-0 w-full h-full object-cover filter-[contrast(1.1)_saturate(0.88)_brightness(0.98)_sepia(0.04)] transition-[filter,transform] duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/portrait:filter-[contrast(1.12)_saturate(0.92)_brightness(1.02)_sepia(0.02)]"
+                  className="absolute inset-0 w-full h-full object-cover rounded-[36px]"
                 />
-              ) : (
+              ) : portraitImageSrc ? (
                 <Image
                   src={portraitImageSrc}
                   alt={portraitImageAlt}
                   fill
                   sizes="(min-width: 1024px) 30vw, 90vw"
-                  className="object-cover filter-[contrast(1.1)_saturate(0.88)_brightness(0.98)_sepia(0.04)] transition-[filter,transform] duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/portrait:filter-[contrast(1.12)_saturate(0.92)_brightness(1.02)_sepia(0.02)]"
+                  className="object-cover rounded-[36px]"
                 />
-              )}
+              ) : null}
             </div>
 
-            {/* Navy cool-cast — light multiply that just nudges the
-                shadows toward brand navy without crushing them. */}
+            {/* Navy cool-cast — straight alpha overlay that nudges the
+                shadows toward brand navy. `mix-blend-mode` removed
+                because Safari fails to clip mix-blend children to the
+                parent's border-radius; plain alpha overlays clip fine
+                on every browser. */}
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-0 mix-blend-multiply opacity-60"
+              className="pointer-events-none absolute inset-0 rounded-[36px] opacity-30"
               style={{
                 background:
-                  "linear-gradient(180deg, rgba(0, 0, 54, 0.1) 0%, rgba(8, 50, 90, 0.16) 100%)",
+                  "linear-gradient(180deg, rgba(0, 0, 54, 0.18) 0%, rgba(8, 50, 90, 0.28) 100%)",
               }}
             />
 
             {/* Split-tone wash — cool teal upper-left into warm amber
-                lower-right via mix-blend so the grade reads as colour
-                rather than a flat overlay. */}
+                lower-right. */}
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-0 mix-blend-soft-light opacity-70"
+              className="pointer-events-none absolute inset-0 rounded-[36px] opacity-45"
               style={{
                 background:
                   "linear-gradient(135deg, rgba(8, 112, 173, 0.55) 0%, rgba(0, 0, 54, 0) 45%, rgba(221, 232, 133, 0.45) 100%)",
@@ -194,7 +191,7 @@ export default function LeaderSection({
                 reads as window light catching the subject. */}
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-0"
+              className="pointer-events-none absolute inset-0 rounded-[36px]"
               style={{
                 background:
                   "radial-gradient(ellipse 70% 60% at 22% 12%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 60%)",
@@ -205,7 +202,7 @@ export default function LeaderSection({
                 the eye centre without making the corners feel heavy. */}
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-0"
+              className="pointer-events-none absolute inset-0 rounded-[36px]"
               style={{
                 background:
                   "radial-gradient(ellipse 90% 90% at 50% 50%, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 30, 0.28) 100%)",
@@ -216,20 +213,7 @@ export default function LeaderSection({
                 and gives the face air. */}
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-linear-to-t from-black/55 via-black/15 to-transparent"
-            />
-
-            {/* Film grain — fine static SVG noise dialled low, breaks
-                up the smooth gradients so the surface reads like
-                emulsion rather than CGI. */}
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 mix-blend-overlay opacity-15"
-              style={{
-                backgroundImage:
-                  "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
-                backgroundSize: "160px 160px",
-              }}
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 rounded-b-[36px] bg-linear-to-t from-black/55 via-black/15 to-transparent"
             />
 
             {/* Inner edge — barely-there ring that defines the frame

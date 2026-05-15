@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 
+// ISR — re-render at most every 60s; Sanity Live propagates publishes
+// faster than that in preview mode anyway.
+export const revalidate = 60;
+
 import ArchitectureOfCareSection from "../components/ArchitectureOfCareSection";
 import BlogSection, { type BlogSectionPost } from "../components/BlogSection";
 import BuildingSection from "../components/BuildingSection";
@@ -189,9 +193,7 @@ export default async function Home() {
     // no still (browser will hold the first video frame).
     const poster = isVideo ? media?.videoPoster ?? null : media?.image ?? null;
     const stillImg = resolveImage(poster, { width: 600 });
-    const videoSrc = isVideo
-      ? media?.videoUrl || media?.videoFallbackSrc || undefined
-      : undefined;
+    const videoSrc = isVideo ? media?.videoUrl ?? undefined : undefined;
     if (!isVideo && !stillImg) return [];
     if (isVideo && !videoSrc) return [];
     return [
@@ -218,10 +220,18 @@ export default async function Home() {
     // the section falls back to the panel-level default image so the
     // card list never goes dark on a freshly-featured initiative.
     const m = resolveMedia(it.coverImage, { width: 800 });
+    // Link resolution: externalLink wins. Otherwise, if the editor
+    // toggled off "Has detail page", the row is display-only (no href).
+    // Treat absent `hasDetailPage` as true so legacy data still links.
+    const href = it.externalLink
+      ? it.externalLink
+      : it.hasDetailPage === false
+        ? undefined
+        : `/initiatives/${it.slug}`;
     return {
       title: it.title,
       description: it.excerpt,
-      href: it.externalLink || `/initiatives/${it.slug}`,
+      href,
       featured: it.featured ?? false,
       imageSrc: mediaImageSrc(m),
       videoSrc: mediaVideoSrc(m),
@@ -238,9 +248,7 @@ export default async function Home() {
             ? resolveImage(bg.image, { width: 2200 })
             : null;
         const heroVideoSrc =
-          bg?.kind === "video"
-            ? bg.videoUrl || bg.videoFallbackSrc || undefined
-            : undefined;
+          bg?.kind === "video" ? bg.videoUrl ?? undefined : undefined;
         return (
           <HeroSection
             headline={data.heroHeadline}

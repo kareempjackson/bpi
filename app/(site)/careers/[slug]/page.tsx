@@ -125,7 +125,7 @@ export default async function JobDetailPage({ params }: RouteProps) {
               className="group/back inline-flex items-center gap-2 text-sm lg:text-base text-primary-500 transition-opacity duration-200 hover:opacity-80"
             >
               <BackArrow />
-              <span className="transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/back:translate-x-0.5 motion-reduce:transform-none">
+              <span className="transition-transform duration-300 ease-[var(--ease-premium)] group-hover/back:translate-x-0.5 motion-reduce:transform-none">
                 Back to search result
               </span>
             </Link>
@@ -223,7 +223,7 @@ function SubmitResumeButton({
       href={href}
       target={external ? "_blank" : undefined}
       rel={external ? "noopener noreferrer" : undefined}
-      className="rounded-round border border-dashed border-primary-500/45 bg-error-500 px-5 lg:px-6 py-2.5 text-sm lg:text-base font-semibold text-primary-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-error-400 hover:border-primary-500/70 active:scale-[0.98] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-error-500/60"
+      className="rounded-round border border-dashed border-primary-500/45 bg-error-500 px-5 lg:px-6 py-2.5 text-sm lg:text-base font-semibold text-primary-500 transition-all duration-300 ease-[var(--ease-premium)] hover:bg-error-400 hover:border-primary-500/70 active:scale-[0.98] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-error-500/60"
     >
       Submit Resume
     </a>
@@ -234,7 +234,7 @@ function OtherJobsButton() {
   return (
     <Link
       href="/careers"
-      className="rounded-round border border-dashed border-primary-500/60 bg-transparent px-5 lg:px-6 py-2.5 text-sm lg:text-base font-semibold text-primary-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-primary-500/5 hover:border-primary-500/90 active:scale-[0.98] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500/40"
+      className="rounded-round border border-dashed border-primary-500/60 bg-transparent px-5 lg:px-6 py-2.5 text-sm lg:text-base font-semibold text-primary-500 transition-all duration-300 ease-[var(--ease-premium)] hover:bg-primary-500/5 hover:border-primary-500/90 active:scale-[0.98] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500/40"
     >
       Other Jobs
     </Link>
@@ -243,7 +243,7 @@ function OtherJobsButton() {
 
 function BackArrow() {
   return (
-    <span className="inline-flex items-center justify-center transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/back:-translate-x-0.5 motion-reduce:transform-none">
+    <span className="inline-flex items-center justify-center transition-transform duration-300 ease-[var(--ease-premium)] group-hover/back:-translate-x-0.5 motion-reduce:transform-none">
       <svg
         viewBox="0 0 32 32"
         fill="none"

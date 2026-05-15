@@ -58,6 +58,14 @@ export const initiative = defineType({
       initialValue: false,
     }),
     defineField({
+      name: "hasDetailPage",
+      title: "Has detail page",
+      type: "boolean",
+      description:
+        "When ON, the row links to /initiatives/{slug} (or the External link if set). When OFF, the initiative shows in lists but isn't clickable — use for display-only cards that don't have a longer write-up yet.",
+      initialValue: true,
+    }),
+    defineField({
       name: "coverImage",
       title: "Cover image (shown on hover in the section list)",
       type: "imageWithAlt",
@@ -67,7 +75,7 @@ export const initiative = defineType({
       title: "External link (optional)",
       type: "url",
       description:
-        "If set, the row links here instead of /initiatives/{slug}.",
+        "If set, the row links here instead of /initiatives/{slug}. Takes precedence over the Has detail page toggle.",
     }),
     defineField({
       name: "body",
@@ -77,7 +85,8 @@ export const initiative = defineType({
         { type: "block" },
         { type: "image", options: { hotspot: true } },
       ],
-      description: "Full detail content (for the future /initiatives/{slug} page).",
+      description:
+        "Full detail content shown on the /initiatives/{slug} page. Only used when Has detail page is ON.",
     }),
   ],
   orderings: [

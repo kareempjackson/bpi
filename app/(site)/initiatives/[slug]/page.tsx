@@ -13,12 +13,8 @@ import { resolveImage } from "../../../../sanity/lib/image";
 import {
   ALL_INITIATIVE_SLUGS_QUERY,
   INITIATIVE_BY_SLUG_QUERY,
-  RELATED_INITIATIVES_QUERY,
 } from "../../../../sanity/lib/queries";
-import type {
-  Initiative,
-  InitiativeDetail,
-} from "../../../../sanity/lib/types";
+import type { InitiativeDetail } from "../../../../sanity/lib/types";
 
 type RouteProps = {
   params: Promise<{ slug: string }>;
@@ -39,14 +35,6 @@ async function getInitiative(slug: string): Promise<InitiativeDetail | null> {
   });
 }
 
-async function getRelated(slug: string): Promise<Initiative[]> {
-  const data = await client.fetch<Initiative[] | null>(
-    RELATED_INITIATIVES_QUERY,
-    { slug },
-  );
-  return data ?? [];
-}
-
 export async function generateMetadata({
   params,
 }: RouteProps): Promise<Metadata> {
@@ -60,40 +48,40 @@ export async function generateMetadata({
 }
 
 /**
- * Render rules for the initiative body's Portable Text content. Maps to
- * clean Tailwind styles that match the brand voice across the site.
+ * Portable Text render rules — tuned for editorial reading: longer line
+ * heights, generous gaps between blocks, refined heading hierarchy.
  */
 const bodyComponents: PortableTextComponents = {
   block: {
     normal: ({ children }) => (
-      <p className="text-base lg:text-lg text-primary-500/85 leading-[1.7]">
+      <p className="text-base lg:text-lg text-primary-500/85 leading-[1.75]">
         {children}
       </p>
     ),
     h2: ({ children }) => (
-      <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-primary-500 leading-tight tracking-[-0.01em] mt-4">
+      <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-semibold text-primary-500 leading-[1.15] tracking-[-0.02em] mt-8 lg:mt-12 mb-1 balance-text">
         {children}
       </h2>
     ),
     h3: ({ children }) => (
-      <h3 className="font-display text-xl md:text-2xl font-bold text-primary-500 leading-snug tracking-[-0.01em] mt-3">
+      <h3 className="font-display text-xl md:text-2xl font-semibold text-primary-500 leading-snug tracking-[-0.015em] mt-6 lg:mt-8 mb-0.5 balance-text">
         {children}
       </h3>
     ),
     blockquote: ({ children }) => (
-      <blockquote className="border-l-4 border-primary-500/40 pl-6 italic text-primary-500/90 text-lg lg:text-xl leading-[1.55]">
+      <blockquote className="my-4 lg:my-6 border-l-2 border-primary-500/30 pl-6 lg:pl-8 font-display text-xl md:text-2xl lg:text-3xl text-primary-500 leading-[1.35] italic tracking-[-0.01em] balance-text">
         {children}
       </blockquote>
     ),
   },
   list: {
     bullet: ({ children }) => (
-      <ul className="flex flex-col gap-2 list-disc list-outside pl-6 marker:text-primary-500 text-base lg:text-lg text-primary-500/85 leading-[1.7]">
+      <ul className="flex flex-col gap-2.5 list-disc list-outside pl-6 marker:text-primary-500/50 text-base lg:text-lg text-primary-500/85 leading-[1.75]">
         {children}
       </ul>
     ),
     number: ({ children }) => (
-      <ol className="flex flex-col gap-2 list-decimal list-outside pl-6 marker:text-primary-500 marker:font-semibold text-base lg:text-lg text-primary-500/85 leading-[1.7]">
+      <ol className="flex flex-col gap-2.5 list-decimal list-outside pl-6 marker:text-primary-500/50 marker:font-semibold text-base lg:text-lg text-primary-500/85 leading-[1.75]">
         {children}
       </ol>
     ),
@@ -115,7 +103,7 @@ const bodyComponents: PortableTextComponents = {
           href={href}
           target={external ? "_blank" : undefined}
           rel={external ? "noopener noreferrer" : undefined}
-          className="underline decoration-primary-500/30 underline-offset-4 hover:decoration-primary-500 text-primary-500"
+          className="hov-underline text-primary-500 decoration-primary-500/30 underline underline-offset-[6px]"
         >
           {children}
         </a>
@@ -128,16 +116,15 @@ const bodyComponents: PortableTextComponents = {
         | { asset?: { _ref?: string }; alt?: string }
         | undefined;
       if (!v) return null;
-      // Portable Text image refs render via resolveImage's same helper.
       const img = resolveImage(
         { asset: v.asset, alt: v.alt ?? "" } as Parameters<
           typeof resolveImage
         >[0],
-        { width: 1400 },
+        { width: 1600 },
       );
       if (!img) return null;
       return (
-        <figure className="my-4 lg:my-6">
+        <figure className="my-8 lg:my-12">
           <div className="relative aspect-16/9 rounded-2xl lg:rounded-3xl overflow-hidden">
             <Image
               src={img.src}
@@ -147,6 +134,11 @@ const bodyComponents: PortableTextComponents = {
               className="object-cover"
             />
           </div>
+          {img.alt ? (
+            <figcaption className="mt-3 text-xs lg:text-sm text-primary-500/60 leading-relaxed">
+              {img.alt}
+            </figcaption>
+          ) : null}
         </figure>
       );
     },
@@ -157,9 +149,13 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
   const { slug } = await params;
   const initiative = await getInitiative(slug);
   if (!initiative) notFound();
+  // Display-only initiatives don't have a detail page. The
+  // `generateStaticParams` GROQ already filters these out, but a direct
+  // URL hit still lands here — 404 cleanly. (Treat absent `hasDetailPage`
+  // as true so legacy data still renders.)
+  if (initiative.hasDetailPage === false) notFound();
 
-  const related = await getRelated(slug);
-  const cover = resolveImage(initiative.coverImage, { width: 1800 });
+  const cover = resolveImage(initiative.coverImage, { width: 2000 });
   const publishedDate = initiative.publishedAt
     ? new Date(initiative.publishedAt).toLocaleDateString("en-US", {
         year: "numeric",
@@ -167,173 +163,151 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
         day: "numeric",
       })
     : null;
+  const hasBody = !!initiative.body && initiative.body.length > 0;
 
   return (
     <main className="bg-error-25">
-      {/* Hero */}
-      <section className="px-5 md:px-20 lg:px-32 pt-20 md:pt-28 lg:pt-32 pb-10 md:pb-14 lg:pb-16">
+      {/* Top utility row — sits just under the global sticky nav, anchored
+          to the page max-width grid so it aligns with everything below. */}
+      <div className="px-5 md:px-20 lg:px-32 pt-16 md:pt-24 lg:pt-28">
         <div className="mx-auto max-w-page">
-          {/* Back link */}
           <Link
             href="/initiatives"
-            className="group/back inline-flex items-center gap-3 text-sm lg:text-base text-primary-500 transition-opacity duration-300 hover:opacity-80"
+            className="group/back inline-flex items-center gap-3 text-sm lg:text-base text-primary-500/80 hover:text-primary-500 transition-colors duration-300"
           >
             <ArrowCircle
-              size={40}
+              size={36}
               direction="prev"
-              className="text-primary-500 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/back:-translate-x-1 motion-reduce:transform-none"
+              className="text-primary-500 transition-transform duration-300 ease-[var(--ease-premium)] group-hover/back:-translate-x-1 motion-reduce:transform-none"
             />
             <span>All initiatives</span>
           </Link>
+        </div>
+      </div>
 
-          {/* Title block */}
-          <div className="mt-8 lg:mt-10 max-w-4xl">
-            <div className="flex flex-wrap items-center gap-3 text-xs lg:text-sm font-medium tracking-[0.04em] text-primary-500/65 uppercase">
-              <span>Initiative</span>
-              {publishedDate ? (
-                <>
-                  <span aria-hidden className="text-primary-500/35">
-                    ·
-                  </span>
-                  <span>{publishedDate}</span>
-                </>
-              ) : null}
-              {initiative.featured ? (
-                <>
-                  <span aria-hidden className="text-primary-500/35">
-                    ·
-                  </span>
-                  <span className="text-primary-500">Featured</span>
-                </>
-              ) : null}
-            </div>
-            <h1 className="mt-4 lg:mt-5 font-display text-display-md md:text-display-lg lg:text-display-xl font-semibold text-primary-500 leading-[1.05] tracking-[-0.02em]">
-              {initiative.title}
-            </h1>
-            {initiative.subtitle ? (
-              <p className="mt-4 lg:mt-5 font-display text-xl md:text-2xl font-medium text-primary-500/70 leading-snug">
-                {initiative.subtitle}
-              </p>
+      {/* Editorial hero — a single column at the page max-width, with an
+          eyebrow stack on top, a display title balanced across two lines,
+          subtitle/lede as a quieter follow-up, and metadata pushed to a
+          slim row underneath. No card wrap, no panels — the page reads
+          like a long-form article. */}
+      <section className="px-5 md:px-20 lg:px-32 pt-10 md:pt-14 lg:pt-16 pb-12 md:pb-16 lg:pb-20">
+        <div
+          data-reveal-stagger
+          className="mx-auto max-w-page flex flex-col gap-6 lg:gap-8"
+        >
+          {/* Eyebrow + featured chip */}
+          <div className="flex items-center gap-3 text-xs lg:text-sm font-medium uppercase tracking-[0.18em] text-primary-500/65">
+            <span>Initiative</span>
+            {initiative.featured ? (
+              <>
+                <span aria-hidden className="text-primary-500/25">
+                  /
+                </span>
+                <span className="text-primary-500">Featured</span>
+              </>
             ) : null}
-            <p className="mt-6 lg:mt-7 text-base lg:text-lg text-primary-500/80 leading-[1.7] max-w-3xl">
-              {initiative.excerpt}
-            </p>
           </div>
+
+          {/* Title — display-xl is the headliner; balances onto two lines
+              cleanly via the new .balance-text utility (text-wrap: balance). */}
+          <h1 className="font-display text-display-md md:text-display-lg lg:text-display-xl font-semibold text-primary-500 leading-[1.02] tracking-[-0.03em] max-w-5xl balance-text">
+            {initiative.title}
+          </h1>
+
+          {/* Subtitle — a quieter restatement, only when set */}
+          {initiative.subtitle ? (
+            <p className="font-display text-xl md:text-2xl lg:text-[28px] text-primary-500/65 leading-[1.3] tracking-[-0.01em] max-w-3xl balance-text">
+              {initiative.subtitle}
+            </p>
+          ) : null}
+
+          {/* Lede — sits as the first body paragraph would, slightly larger
+              than the rest of the body type and at a generous reading width */}
+          <p className="text-lg lg:text-xl text-primary-500/85 leading-[1.6] max-w-3xl">
+            {initiative.excerpt}
+          </p>
+
+          {/* Slim meta row — hairline-bordered, sits just above the cover */}
+          {publishedDate ? (
+            <div className="mt-2 lg:mt-4 flex items-center gap-3 pt-4 border-t border-primary-500/12">
+              <span className="text-xs lg:text-sm uppercase tracking-[0.14em] text-primary-500/55">
+                Published
+              </span>
+              <span className="text-xs lg:text-sm text-primary-500/80">
+                {publishedDate}
+              </span>
+            </div>
+          ) : null}
         </div>
       </section>
 
-      {/* Cover image */}
+      {/* Cover — full-bleed within the page max-width, taller aspect so it
+          carries weight. Uses preload so it acts as the LCP candidate. */}
       {cover ? (
-        <section className="px-5 md:px-20 lg:px-32 pb-10 md:pb-14 lg:pb-16">
+        <section className="px-5 md:px-20 lg:px-32 pb-14 md:pb-20 lg:pb-24">
           <div
             data-reveal="scale"
-            className="mx-auto max-w-page relative aspect-16/9 lg:aspect-2/1 rounded-2xl lg:rounded-3xl overflow-hidden"
+            className="mx-auto max-w-page relative aspect-4/3 md:aspect-16/9 lg:aspect-21/9 rounded-2xl lg:rounded-3xl overflow-hidden bg-primary-500/5"
           >
             <Image
               src={cover.src}
               alt={cover.alt}
               fill
-              sizes="(min-width: 1024px) 1200px, 100vw"
+              sizes="(min-width: 1280px) 1200px, 100vw"
               className="object-cover"
-              priority
+              preload
+              quality={90}
+            />
+            {/* Whisper gradient at the bottom so any caption / scroll cue
+                placed over the image stays legible across content variation */}
+            <div
+              aria-hidden
+              className="absolute inset-x-0 bottom-0 h-1/3 pointer-events-none bg-gradient-to-t from-black/15 to-transparent"
             />
           </div>
         </section>
       ) : null}
 
-      {/* Body */}
-      {initiative.body && initiative.body.length > 0 ? (
-        <section className="px-5 md:px-20 lg:px-32 pb-14 md:pb-20 lg:pb-24">
-          <div
+      {/* Body — narrow column for reading comfort. Centered, generous
+          vertical rhythm. Each Portable Text block gets its own pacing
+          via bodyComponents. */}
+      {hasBody ? (
+        <section className="px-5 md:px-20 lg:px-32 pb-20 md:pb-28 lg:pb-36">
+          <article
             data-reveal-stagger
-            className="mx-auto max-w-3xl flex flex-col gap-5 lg:gap-6"
+            className="mx-auto max-w-2xl flex flex-col gap-5 lg:gap-6"
           >
             <PortableText
-              value={initiative.body}
+              value={initiative.body!}
               components={bodyComponents}
             />
-          </div>
+          </article>
         </section>
       ) : null}
 
-      {/* Related initiatives */}
-      {related.length > 0 ? (
-        <section className="px-5 md:px-20 lg:px-32 pb-20 md:pb-28 lg:pb-32">
-          <div className="mx-auto max-w-page">
-            <div
-              data-reveal-stagger
-              className="flex items-end justify-between gap-4 mb-6 lg:mb-8"
-            >
-              <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-primary-500 leading-tight tracking-[-0.01em]">
-                More initiatives
-              </h2>
-              <Link
-                href="/initiatives"
-                className="group/all inline-flex items-center gap-3 text-sm lg:text-base font-medium text-primary-500 hover:opacity-80 transition-opacity"
-              >
-                <span className="hidden md:inline transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/all:-translate-x-0.5 motion-reduce:transform-none">
-                  View all
-                </span>
-                <ArrowCircle
-                  size={44}
-                  className="text-primary-500 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/all:translate-x-1 group-hover/all:rotate-[8deg] motion-reduce:transform-none"
-                />
-              </Link>
-            </div>
-
-            <ul
-              data-reveal-stagger
-              className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6"
-            >
-              {related.map((item) => (
-                <RelatedCard key={item._id} initiative={item} />
-              ))}
-            </ul>
-          </div>
-        </section>
-      ) : null}
-    </main>
-  );
-}
-
-function RelatedCard({ initiative }: { initiative: Initiative }) {
-  const img = resolveImage(initiative.coverImage, { width: 700 });
-  const href =
-    initiative.externalLink ?? `/initiatives/${initiative.slug}`;
-  const external = !!initiative.externalLink;
-  return (
-    <li>
-      <a
-        href={href}
-        target={external ? "_blank" : undefined}
-        rel={external ? "noopener noreferrer" : undefined}
-        className="group flex flex-col rounded-2xl lg:rounded-3xl bg-white overflow-hidden transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30"
-      >
-        <div className="relative aspect-4/3 bg-warning-100">
-          {img ? (
-            <Image
-              src={img.src}
-              alt={img.alt}
-              fill
-              sizes="(min-width: 1024px) 30vw, (min-width: 768px) 33vw, 100vw"
-              className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] motion-reduce:transform-none"
+      {/* Footer pull — a single understated CTA back to the list, with
+          enough room above it to act as a breath at the bottom of the
+          article. No "More initiatives" grid; the page closes quietly. */}
+      <section className="px-5 md:px-20 lg:px-32 pb-24 md:pb-32 lg:pb-40">
+        <div
+          data-reveal
+          className="mx-auto max-w-page flex justify-center"
+        >
+          <Link
+            href="/initiatives"
+            className="group/all inline-flex items-center gap-4 text-base lg:text-lg text-primary-500 transition-opacity duration-300 hover:opacity-80"
+          >
+            <ArrowCircle
+              size={44}
+              direction="prev"
+              className="text-primary-500 transition-transform duration-300 ease-[var(--ease-premium)] group-hover/all:-translate-x-1 motion-reduce:transform-none"
             />
-          ) : null}
+            <span className="font-display tracking-[-0.01em]">
+              Browse all initiatives
+            </span>
+          </Link>
         </div>
-        <div className="flex flex-col gap-2 p-5 lg:p-6">
-          {initiative.featured ? (
-            <div className="text-[11px] font-bold tracking-[0.12em] text-primary-500 uppercase">
-              Featured
-            </div>
-          ) : null}
-          <h3 className="font-display text-base lg:text-lg font-bold text-primary-500 leading-snug tracking-[-0.01em]">
-            {initiative.title}
-          </h3>
-          <p className="text-sm text-primary-500/70 leading-relaxed line-clamp-3">
-            {initiative.excerpt}
-          </p>
-        </div>
-      </a>
-    </li>
+      </section>
+    </main>
   );
 }

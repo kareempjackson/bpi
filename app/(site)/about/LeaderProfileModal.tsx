@@ -8,6 +8,7 @@ import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import SocialsIcon from "../../components/icons/Socials";
 import Logo from "../../components/Logo";
 import type { PortableTextBlock } from "../../../sanity/lib/types";
 
@@ -114,7 +115,7 @@ const bioPortableTextComponents: PortableTextComponents = {
 
 const PILL_MINT = "#cdffe6"; // matches the `error-25` mint used elsewhere
 
-// LinkedIn glyph bounds inside `/icons/socials.svg` (viewBox 150 × 78):
+// LinkedIn glyph bounds inside the SocialsIcon SVG (viewBox 150 × 78):
 //   translate(106.785, 21.0222), width 18, height 19.5
 // Expanded slightly so the click target reads at touch-friendly sizes.
 const LINKEDIN_HIT = {
@@ -181,7 +182,7 @@ export default function LeaderProfileModal({
   return createPortal(
     <div
       aria-hidden={!open}
-      className={`fixed inset-0 z-60 flex items-center justify-center p-3 md:p-6 lg:p-8 transition-opacity duration-300 ease-out ${
+      className={`fixed inset-0 z-60 flex items-center justify-center p-2 sm:p-3 md:p-6 lg:p-8 transition-opacity duration-300 ease-out ${
         open
           ? "opacity-100 pointer-events-auto"
           : "opacity-0 pointer-events-none"
@@ -199,7 +200,7 @@ export default function LeaderProfileModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="leader-profile-name"
-        className={`relative w-full max-w-7xl max-h-[94vh] overflow-y-auto rounded-3xl px-4 pt-16 pb-5 md:px-8 md:pt-20 md:pb-8 lg:px-14 lg:pt-20 lg:pb-14 transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        className={`relative w-full max-w-7xl h-[96vh] md:h-auto md:max-h-[94vh] overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] rounded-2xl md:rounded-3xl px-3 pt-14 pb-5 sm:px-4 sm:pt-16 md:px-8 md:pt-20 md:pb-8 lg:px-14 lg:pt-20 lg:pb-14 transition-all duration-400 ease-(--ease-premium) ${
           open ? "scale-100 translate-y-0" : "scale-[0.97] translate-y-2"
         }`}
         style={{ backgroundColor: "#CAF1FF" }}
@@ -249,7 +250,7 @@ export default function LeaderProfileModal({
               stroke="currentColor"
               strokeWidth="1.6"
               strokeLinecap="round"
-              className="relative w-3.5 h-3.5 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/close:rotate-90"
+              className="relative w-3.5 h-3.5 transition-transform duration-300 ease-[var(--ease-premium)] group-hover/close:rotate-90"
               aria-hidden
             >
               <path d="M3 3l10 10M13 3 3 13" />
@@ -258,14 +259,16 @@ export default function LeaderProfileModal({
         </button>
 
         <div
-          className="relative rounded-2xl p-4 md:p-8 lg:p-10 grid grid-cols-1 md:grid-cols-[30%_1fr] lg:grid-cols-[28%_1fr] gap-6 lg:gap-12 items-start"
+          className="relative rounded-2xl p-3 sm:p-4 md:p-8 lg:p-10 grid grid-cols-1 md:grid-cols-[30%_1fr] lg:grid-cols-[28%_1fr] gap-4 sm:gap-6 lg:gap-12 items-start"
           style={{ backgroundColor: PILL_MINT }}
         >
-          {/* Image column — sticky on md+ so it stays in view while the
-              bio scrolls past it on long profiles. Narrower (~28-30%) so
-              the bio gets a comfortable reading width. */}
+          {/* Image column — on mobile, capped by max-height so it never
+              dominates the viewport (otherwise users land on the photo
+              with no visible cue that there's bio content below). On
+              md+ it returns to the 3:4 portrait crop and sticks to the
+              top of the dialog while the bio scrolls past it. */}
           <div className="md:sticky md:top-4">
-            <div className="relative aspect-3/4 rounded-xl overflow-hidden bg-gray-100">
+            <div className="relative aspect-4/3 sm:aspect-3/2 md:aspect-3/4 max-h-[42vh] md:max-h-none rounded-xl overflow-hidden bg-gray-100">
               <Image
                 src={imageSrc}
                 alt={imageAlt || name}
@@ -278,19 +281,19 @@ export default function LeaderProfileModal({
             </div>
           </div>
 
-          <div className="flex flex-col py-2 md:py-2 lg:py-4">
+          <div className="flex flex-col py-1 md:py-2 lg:py-4">
             <h2
               id="leader-profile-name"
               className="font-display text-2xl md:text-3xl lg:text-display-md font-bold text-primary-500 leading-tight tracking-tight"
             >
               {name}
             </h2>
-            <p className="mt-2 lg:mt-3 text-sm md:text-base lg:text-lg font-semibold text-primary-500">
+            <p className="mt-1.5 md:mt-2 lg:mt-3 text-sm md:text-base lg:text-lg font-semibold text-primary-500">
               {role}
             </p>
 
             {hasBio ? (
-              <div className="mt-5 md:mt-6 lg:mt-8 flex flex-col gap-6 lg:gap-8 text-base md:text-[17px] lg:text-lg text-primary-500/85 leading-[1.7]">
+              <div className="mt-4 md:mt-6 lg:mt-8 flex flex-col gap-4 md:gap-6 lg:gap-8 text-sm sm:text-base md:text-[17px] lg:text-lg text-primary-500/85 leading-[1.65] md:leading-[1.7]">
                 {isRichBio ? (
                   <PortableText
                     value={bio as PortableTextBlock[]}
@@ -310,20 +313,17 @@ export default function LeaderProfileModal({
 }
 
 /**
- * Mint "Follow me" pill rendered from `public/icons/socials.svg`. The SVG
- * already bakes in the shape, "Follow me" text, and all four social glyphs
- * (LinkedIn, X, Instagram, Facebook). We overlay an invisible link
- * positioned over the LinkedIn glyph so it acts as the click target.
- * Additional socials can be wired up by adding more overlay anchors with
- * the matching glyph bounds.
+ * Mint "Follow me" pill — the SVG bakes in the shape, "Follow me" text,
+ * and the LinkedIn glyph. We overlay an invisible link positioned over
+ * the LinkedIn glyph so it acts as the click target. Additional socials
+ * can be wired up by adding more overlay anchors with the matching glyph
+ * bounds.
  */
 function FollowMePill({ linkedin, name }: { linkedin: string; name: string }) {
   return (
     <div className="absolute left-3 sm:left-4 bottom-3 sm:bottom-4 w-[52%] max-w-52">
       <div className="relative aspect-150/78">
-        <img
-          src="/icons/socials.svg"
-          alt=""
+        <SocialsIcon
           aria-hidden
           className="absolute inset-0 w-full h-full select-none pointer-events-none"
         />

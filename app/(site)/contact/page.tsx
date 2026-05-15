@@ -11,6 +11,9 @@ import type {
   ContactRow as ContactRowData,
 } from "../../../sanity/lib/types";
 
+// ISR — re-render at most every 60s; matches other (site) routes.
+export const revalidate = 60;
+
 async function getContactPage(): Promise<ContactPage | null> {
   const { data } = await sanityFetch({ query: CONTACT_PAGE_QUERY });
   return data as ContactPage | null;

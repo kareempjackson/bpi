@@ -61,75 +61,30 @@ export const siteSettings = defineType({
           _key: "ml-about",
           label: "About BPI",
           href: "/about",
-          media: {
-            _type: "menuMedia",
-            kind: "image",
-            image: {
-              _type: "imageWithAlt",
-              fallbackSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-              alt: "BPI team",
-            },
-          },
         },
         {
           _type: "menuLink",
           _key: "ml-initiatives",
           label: "Initiatives",
           href: "/initiatives",
-          media: {
-            _type: "menuMedia",
-            kind: "image",
-            image: {
-              _type: "imageWithAlt",
-              fallbackSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-              alt: "BPI initiatives",
-            },
-          },
         },
         {
           _type: "menuLink",
           _key: "ml-news",
           label: "News & Media",
           href: "/news",
-          media: {
-            _type: "menuMedia",
-            kind: "image",
-            image: {
-              _type: "imageWithAlt",
-              fallbackSrc: "/images/DSC03249.jpg",
-              alt: "BPI news and media",
-            },
-          },
         },
         {
           _type: "menuLink",
           _key: "ml-careers",
           label: "Careers",
           href: "/careers",
-          media: {
-            _type: "menuMedia",
-            kind: "image",
-            image: {
-              _type: "imageWithAlt",
-              fallbackSrc: "/images/olawale-munna-_ObjhzjnMmc-unsplash.jpg",
-              alt: "Join the BPI team",
-            },
-          },
         },
         {
           _type: "menuLink",
           _key: "ml-contact",
           label: "Contact",
           href: "/contact",
-          media: {
-            _type: "menuMedia",
-            kind: "image",
-            image: {
-              _type: "imageWithAlt",
-              fallbackSrc: "/images/A6701225.jpg",
-              alt: "Contact BPI",
-            },
-          },
         },
       ],
       validation: (Rule) => Rule.min(1),
@@ -191,11 +146,6 @@ export const siteSettings = defineType({
       description:
         "Default media for the right-hand video/image panel of the menu. Hovering a link with its own media overrides this.",
       type: "menuMedia",
-      initialValue: {
-        kind: "video",
-        videoFallbackSrc:
-          "/videos/Procur%20%20Motion%20animation%20V3%20SD.mp4",
-      },
     }),
 
     // ──────────────────────────────────────────────────────────── Footer ──

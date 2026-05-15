@@ -14,9 +14,9 @@ type Props = {
 };
 
 export default function BuildingSection({
-  imageSrc = "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
+  imageSrc,
   videoSrc,
-  imageAlt = "Barbados Pharmaceutical team",
+  imageAlt = "",
   headlineLine1 = "The gateway is open.",
   headlineLine2 = "Ready to build with us?",
   primaryLabel = "Get in touch",

@@ -28,13 +28,6 @@ import type {
 
 export const revalidate = 60;
 
-const FALLBACK_HERO_IMAGE = "/images/A6701225.jpg";
-const FALLBACK_HERO_ALT = "Researcher working in a pharmaceutical laboratory";
-const SPOTLIGHT_FALLBACK_IMAGE = "/images/cdc-_N7I1JyPYJw-unsplash.jpg";
-const FALLBACK_WORKS_IMAGE =
-  "/images/national-cancer-institute-2fyeLhUeYpg-unsplash.jpg";
-const FALLBACK_STORY_IMAGE = "/images/cdc-_N7I1JyPYJw-unsplash.jpg";
-
 async function getInitiativesPage(): Promise<InitiativesPage | null> {
   return client.fetch<InitiativesPage | null>(INITIATIVES_PAGE_QUERY);
 }
@@ -79,8 +72,8 @@ export default async function InitiativesPage() {
 
 function HeroHeader({ page }: { page: InitiativesPage | null }) {
   const heroImage = resolveImage(page?.heroImage, { width: 1600 });
-  const imageSrc = heroImage?.src ?? FALLBACK_HERO_IMAGE;
-  const imageAlt = heroImage?.alt ?? FALLBACK_HERO_ALT;
+  const imageSrc = heroImage?.src;
+  const imageAlt = heroImage?.alt ?? "";
   const headline = page?.heroHeadline ?? "Pushing from investment to impact.";
   const body =
     page?.heroBody ??
@@ -221,10 +214,18 @@ function FeaturedSpotlight({
   if (!featured && supporting.length === 0) return null;
 
   const coverImage = resolveImage(featured?.coverImage, { width: 1600 });
-  const imageSrc = coverImage?.src ?? SPOTLIGHT_FALLBACK_IMAGE;
+  const imageSrc = coverImage?.src;
   const imageAlt = coverImage?.alt ?? featured?.title ?? "";
+  // Featured initiative gets a CTA only when there's somewhere to send the
+  // user: externalLink wins; otherwise an internal detail page when the
+  // editor hasn't turned the toggle off. Treat absent `hasDetailPage` as
+  // true (legacy data).
   const detailHref = featured
-    ? featured.externalLink ?? `/initiatives/${featured.slug}`
+    ? featured.externalLink
+      ? featured.externalLink
+      : featured.hasDetailPage === false
+        ? undefined
+        : `/initiatives/${featured.slug}`
     : undefined;
 
   return (
@@ -263,18 +264,20 @@ function FeaturedSpotlight({
               </div>
             </div>
 
-            <div
-              data-reveal="scale"
-              className="relative aspect-video md:aspect-2/1 lg:aspect-16/7 rounded-2xl lg:rounded-3xl overflow-hidden bg-primary-500"
-            >
-              <Image
-                src={imageSrc}
-                alt={imageAlt}
-                fill
-                sizes="(min-width: 1280px) 1200px, 100vw"
-                className="object-cover"
-              />
-            </div>
+            {imageSrc ? (
+              <div
+                data-reveal="scale"
+                className="relative aspect-video md:aspect-2/1 lg:aspect-16/7 rounded-2xl lg:rounded-3xl overflow-hidden bg-primary-500"
+              >
+                <Image
+                  src={imageSrc}
+                  alt={imageAlt}
+                  fill
+                  sizes="(min-width: 1280px) 1200px, 100vw"
+                  className="object-cover"
+                />
+              </div>
+            ) : null}
           </>
         ) : null}
 
@@ -312,14 +315,22 @@ function SupportingInitiativeCard({
   bg: string;
   watermark: boolean;
 }) {
-  const href = initiative.externalLink ?? `/initiatives/${initiative.slug}`;
+  // Same href rules as the home page: externalLink wins; otherwise an
+  // internal slug page when the detail toggle hasn't been turned off.
+  const href = initiative.externalLink
+    ? initiative.externalLink
+    : initiative.hasDetailPage === false
+      ? undefined
+      : `/initiatives/${initiative.slug}`;
   const eyebrow = initiative.subtitle ?? "Initiative";
-  return (
-    <CtaLink
-      href={href}
-      className="relative overflow-hidden flex flex-col justify-between rounded-2xl lg:rounded-3xl px-5 md:px-6 lg:px-7 py-6 md:py-7 lg:py-8 min-h-65 md:min-h-75 lg:min-h-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30"
-      style={{ backgroundColor: bg }}
-    >
+  const className =
+    "relative overflow-hidden flex flex-col justify-between rounded-2xl lg:rounded-3xl px-5 md:px-6 lg:px-7 py-6 md:py-7 lg:py-8 min-h-65 md:min-h-75 lg:min-h-85";
+  const interactiveClassName = href
+    ? " focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30"
+    : "";
+
+  const inner = (
+    <>
       {watermark ? (
         <Logo
           iconOnly
@@ -342,6 +353,27 @@ function SupportingInitiativeCard({
           {initiative.excerpt}
         </p>
       ) : null}
+    </>
+  );
+
+  if (!href) {
+    return (
+      <div
+        className={className + interactiveClassName}
+        style={{ backgroundColor: bg }}
+      >
+        {inner}
+      </div>
+    );
+  }
+
+  return (
+    <CtaLink
+      href={href}
+      className={className + interactiveClassName}
+      style={{ backgroundColor: bg }}
+    >
+      {inner}
     </CtaLink>
   );
 }
@@ -378,12 +410,12 @@ function MotionStoriesSection({
               href={viewAllHref}
               className="group/viewall inline-flex items-center gap-2 md:gap-3 text-sm md:text-base font-medium text-primary-500 focus-visible:outline-none focus-visible:opacity-100"
             >
-              <span className="transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/viewall:-translate-x-0.5 motion-reduce:transform-none">
+              <span className="transition-transform duration-300 ease-[var(--ease-premium)] group-hover/viewall:-translate-x-0.5 motion-reduce:transform-none">
                 View all
               </span>
               <ArrowCircle
                 size={44}
-                className="text-primary-500 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/viewall:translate-x-1 group-hover/viewall:rotate-[8deg] motion-reduce:transform-none"
+                className="text-primary-500 transition-transform duration-300 ease-[var(--ease-premium)] group-hover/viewall:translate-x-1 group-hover/viewall:rotate-[8deg] motion-reduce:transform-none"
               />
             </CtaLink>
           ) : null}
@@ -421,7 +453,7 @@ function postEyebrow(post: InitiativePost): string {
 function postImage(post: InitiativePost, width: number) {
   const img = resolveImage(post.coverImage, { width });
   return {
-    src: img?.src ?? FALLBACK_STORY_IMAGE,
+    src: img?.src ?? null,
     alt: img?.alt ?? post.title,
   };
 }
@@ -433,13 +465,15 @@ function LargeStoryTile({ post }: { post: InitiativePost }) {
       href={postHref(post)}
       className="group/tile relative md:col-span-2 rounded-2xl lg:rounded-3xl overflow-hidden aspect-4/3 md:aspect-2/1 lg:aspect-4/3 bg-primary-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30"
     >
-      <Image
-        src={img.src}
-        alt={img.alt}
-        fill
-        sizes="(min-width: 1024px) 50vw, 100vw"
-        className="object-cover"
-      />
+      {img.src ? (
+        <Image
+          src={img.src}
+          alt={img.alt}
+          fill
+          sizes="(min-width: 1024px) 50vw, 100vw"
+          className="object-cover"
+        />
+      ) : null}
       <div
         aria-hidden
         className="absolute inset-x-0 bottom-0 h-[55%] bg-linear-to-t from-black/80 via-black/40 to-transparent"
@@ -479,13 +513,15 @@ function CompactStoryTile({ post }: { post: InitiativePost }) {
       </div>
 
       <div className="relative mt-auto aspect-4/3 rounded-xl lg:rounded-2xl overflow-hidden">
-        <Image
-          src={img.src}
-          alt={img.alt}
-          fill
-          sizes="(min-width: 1024px) 24vw, (min-width: 768px) 48vw, 100vw"
-          className="object-cover"
-        />
+        {img.src ? (
+          <Image
+            src={img.src}
+            alt={img.alt}
+            fill
+            sizes="(min-width: 1024px) 24vw, (min-width: 768px) 48vw, 100vw"
+            className="object-cover"
+          />
+        ) : null}
         <ArrowCircle
           size={40}
           className="absolute bottom-3 right-3 text-white"
@@ -529,15 +565,9 @@ function OtherWorksSection({ page }: { page: InitiativesPage | null }) {
     width: 1200,
   });
 
-  const topRightSrcs =
-    topRight.length > 0
-      ? topRight
-      : [
-          { src: FALLBACK_WORKS_IMAGE, alt: "BPI researchers at work" },
-          { src: SPOTLIGHT_FALLBACK_IMAGE, alt: "BPI researchers at work" },
-        ];
-  const bottomLeftSrc = bottomLeft?.src ?? FALLBACK_WORKS_IMAGE;
-  const bottomLeftAlt = bottomLeft?.alt ?? "BPI researcher working in the lab";
+  const topRightSrcs = topRight;
+  const bottomLeftSrc = bottomLeft?.src;
+  const bottomLeftAlt = bottomLeft?.alt ?? "";
 
   return (
     <section className="px-5 md:px-20 lg:px-32 pb-14 md:pb-20 lg:pb-24">
@@ -611,13 +641,15 @@ function OtherWorksSection({ page }: { page: InitiativesPage | null }) {
 
           <div className="absolute bottom-0 left-0 w-[59.4%] h-[48.4%] p-2 md:p-3 lg:p-4">
             <div className="relative w-full h-full rounded-lg lg:rounded-xl overflow-hidden">
-              <Image
-                src={bottomLeftSrc}
-                alt={bottomLeftAlt}
-                fill
-                sizes="(min-width: 768px) 60vw, 100vw"
-                className="object-cover"
-              />
+              {bottomLeftSrc ? (
+                <Image
+                  src={bottomLeftSrc}
+                  alt={bottomLeftAlt}
+                  fill
+                  sizes="(min-width: 768px) 60vw, 100vw"
+                  className="object-cover"
+                />
+              ) : null}
             </div>
           </div>
 

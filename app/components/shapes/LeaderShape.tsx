@@ -1,6 +1,8 @@
 import type { SVGAttributes } from "react";
 import { useId } from "react";
 
+import LazyVideo from "../LazyVideo";
+
 type Variant = "br" | "tl";
 
 type Props = Omit<
@@ -82,17 +84,10 @@ export default function LeaderShape({
         <g clipPath={`url(#${clipId})`}>
           {videoSrc ? (
             <foreignObject x="0" y="0" width={W} height={H}>
-              <video
+              <LazyVideo
                 src={videoSrc}
                 poster={imageSrc}
-                autoPlay
-                loop
-                muted
-                playsInline
-                preload="metadata"
-                disableRemotePlayback
-                disablePictureInPicture
-                aria-label={imageAlt || undefined}
+                ariaLabel={imageAlt || undefined}
                 className={imageClassName}
                 style={{
                   width: "100%",

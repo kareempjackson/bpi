@@ -37,116 +37,10 @@ type Props = {
 const VIEWBOX_W = 1190;
 const VIEWBOX_H = 702;
 
-const DEFAULT_IMG = "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg";
-
-// Node coordinates are taken directly from the LogoShape path so the image
-// circles sit exactly on top of the molecule's nodes.
-// Label coords reflect the layout shown in the design mockup, mapped onto
-// a 3:2 (1.5:1) wrapper so each label sits in the margin near its node.
-// Flow reversed: activation now starts at the top-left node and travels
-// clockwise around the molecule to the top. Each sector keeps its
-// physical position, image, and label coordinates — only the number and
-// the sequence order change.
-const DEFAULT_NODES: Node[] = [
-  {
-    id: "investment-financing",
-    num: "01",
-    title: "Investment & Financing",
-    description:
-      "Connecting viable projects to the right capital at the right stage.",
-    cx: 141.509,
-    cy: 141.54,
-    r: 140.685,
-    imageSrc: DEFAULT_IMG,
-    imageAlt: "Investment and financing partners",
-    labelLeftPct: -4,
-    labelTopPct: 42,
-  },
-  {
-    id: "regulatory-policy",
-    num: "02",
-    title: "Regulatory Development & Policy",
-    description:
-      "Building the regulatory framework that gives investors and manufacturers confidence to commit.",
-    cx: 362.982,
-    cy: 610.674,
-    r: 89.823,
-    imageSrc: DEFAULT_IMG,
-    imageAlt: "Regulatory framework and policy",
-    labelLeftPct: 40,
-    labelTopPct: 80,
-  },
-  {
-    id: "innovation-technology",
-    num: "03",
-    title: "Innovation & Technology",
-    description:
-      "Creating the conditions for pharmaceutical innovation to take root and scale.",
-    cx: 618.931,
-    cy: 419.507,
-    r: 84.336,
-    imageSrc: DEFAULT_IMG,
-    imageAlt: "Innovation and technology",
-    labelLeftPct: 28,
-    labelTopPct: 45,
-  },
-  {
-    id: "research-development",
-    num: "04",
-    title: "Research & Development",
-    description:
-      "Establishing Barbados as a credible site for pharmaceutical research and technology transfer.",
-    cx: 886.678,
-    cy: 608.904,
-    r: 88.642,
-    imageSrc:
-      "/images/6 sectors/national-cancer-institute-wTrKloP4UKw-unsplash.jpg",
-    imageAlt: "Pharmaceutical research and development",
-    // Bottom-right of this node — drops below the lower edge on the
-    // right side of the molecule.
-    labelLeftPct: 85,
-    labelTopPct: 84,
-  },
-  {
-    id: "workforce",
-    num: "05",
-    title: "Workforce & Talent Development",
-    description:
-      "Building the skilled workforce Caribbean pharmaceutical production depends on.",
-    cx: 1043.13,
-    cy: 219.292,
-    r: 145.927,
-    imageSrc:
-      "/images/6 sectors/christina-wocintechchat-com-m-rg1y72eKw6o-unsplash.jpg",
-    imageAlt: "Workforce training and development",
-    // Bottom-right of the workforce node — tucked under the lower
-    // edge of the node circle, nudged further right so it clears the
-    // node and hugs the right edge of the diagram.
-    labelLeftPct: 86,
-    labelTopPct: 55,
-  },
-  {
-    id: "market-access",
-    num: "06",
-    title: "Market Access & Trade Development",
-    description:
-      "Opening pharmaceutical trade routes across CARICOM, Latin America, Africa, and the Global South.",
-    cx: 618.8,
-    cy: 149.734,
-    r: 84.336,
-    imageSrc: "/images/6 sectors/daniel-miksha-4ZornyPnGlA-unsplash.jpg",
-    imageAlt: "Trade and supply chain",
-    // Right corner of the top node — sits between this node and the
-    // workforce node, lifted toward the top of the diagram.
-    labelLeftPct: 60,
-    labelTopPct: 5,
-  },
-];
-
 export default function SectorsSection({
   heading = "Shifting Trade Prowess in Favour of the Global South",
   body = "BPI is building across six sectors, each one a structural component of the Caribbean's pharmaceutical future.",
-  nodes = DEFAULT_NODES,
+  nodes = [],
 }: Props) {
   const sectionRef = useRef<HTMLElement>(null);
   const headingRef = useRef<HTMLDivElement>(null);
@@ -202,7 +96,7 @@ export default function SectorsSection({
       setExitP(0);
       return;
     }
-    // `easeOutExpo` — matches the cubic-bezier(0.16, 1, 0.3, 1) used
+    // `easeOutExpo` — matches the var(--ease-premium) used
     // elsewhere on the site. Fast take-off, long graceful settle.
     const easeOutExpo = (t: number): number =>
       t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);
@@ -265,8 +159,16 @@ export default function SectorsSection({
     // never stutter on individual scroll events.
     let raf = 0;
     let settledFor = 0;
+    let inView = false;
+    let isHidden = typeof document !== "undefined" && document.hidden;
     const target = { introP: 0, activationP: 0 };
     const displayed = { introP: 0, activationP: 0 };
+    // Last setState'd values — we only call setState when the displayed
+    // value crosses a perceptual threshold, so re-renders happen ~5-10x
+    // per scroll traversal instead of 60Hz.
+    let lastSetIntro = -Infinity;
+    let lastSetAct = -Infinity;
+    let lastSetStep = -1;
 
     const readTargets = () => {
       const el = stickyRangeRef.current;
@@ -287,6 +189,11 @@ export default function SectorsSection({
                        // responsive, low enough that fast scrolls
                        // float into place instead of slamming.
     const SETTLE_EPSILON = 0.0006;
+    // Re-render only when the lerped value has moved by ~0.5% of full
+    // travel since the last commit. Keeps the visible motion buttery
+    // (the rAF still runs every frame) without recomputing the 1141-
+    // line tree on every tick.
+    const RENDER_EPSILON = 0.005;
 
     const tick = () => {
       readTargets();
@@ -301,11 +208,24 @@ export default function SectorsSection({
       displayed.introP = nextIntro;
       displayed.activationP = nextAct;
 
-      setIntroP(nextIntro);
-      setActivationP(nextAct);
-      setStep(
-        Math.min(nodes.length, Math.floor(nextAct * (nodes.length + 1)))
+      // Coalesced re-renders. Always commit on settle so the final
+      // frame lands exactly on target.
+      if (settled || Math.abs(nextIntro - lastSetIntro) > RENDER_EPSILON) {
+        setIntroP(nextIntro);
+        lastSetIntro = nextIntro;
+      }
+      if (settled || Math.abs(nextAct - lastSetAct) > RENDER_EPSILON) {
+        setActivationP(nextAct);
+        lastSetAct = nextAct;
+      }
+      const nextStep = Math.min(
+        nodes.length,
+        Math.floor(nextAct * (nodes.length + 1)),
       );
+      if (nextStep !== lastSetStep) {
+        setStep(nextStep);
+        lastSetStep = nextStep;
+      }
 
       // Keep the RAF alive briefly past settle so the next scroll
       // event picks up smoothly without spin-up latency.
@@ -322,11 +242,43 @@ export default function SectorsSection({
     };
 
     const ensureRunning = () => {
-      if (!raf) {
+      if (!raf && inView && !isHidden) {
         settledFor = 0;
         raf = requestAnimationFrame(tick);
       }
     };
+
+    // IntersectionObserver gates the rAF — when the section is fully
+    // off-screen, scripting cost drops to zero. Section root has its
+    // own ref already.
+    const observed = sectionRef.current;
+    const io = observed
+      ? new IntersectionObserver(
+          ([entry]) => {
+            inView = !!entry?.isIntersecting;
+            if (inView) {
+              ensureRunning();
+            } else if (raf) {
+              cancelAnimationFrame(raf);
+              raf = 0;
+            }
+          },
+          { rootMargin: "20% 0px" },
+        )
+      : null;
+    if (io && observed) io.observe(observed);
+
+    // Visibility pause — also bail when the tab is hidden.
+    const onVisibility = () => {
+      isHidden = document.hidden;
+      if (isHidden && raf) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      } else {
+        ensureRunning();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
 
     // Prime the loop and snap to initial scroll position so we don't
     // animate from zero on first paint.
@@ -335,19 +287,30 @@ export default function SectorsSection({
     displayed.activationP = target.activationP;
     setIntroP(target.introP);
     setActivationP(target.activationP);
-    setStep(
-      Math.min(
-        nodes.length,
-        Math.floor(target.activationP * (nodes.length + 1)),
-      ),
+    lastSetIntro = target.introP;
+    lastSetAct = target.activationP;
+    const initialStep = Math.min(
+      nodes.length,
+      Math.floor(target.activationP * (nodes.length + 1)),
     );
-    raf = requestAnimationFrame(tick);
+    setStep(initialStep);
+    lastSetStep = initialStep;
+    // Decide whether to kick off the rAF immediately (section visible)
+    // or wait for the IO callback.
+    if (observed) {
+      const rect = observed.getBoundingClientRect();
+      inView = rect.bottom > 0 && rect.top < window.innerHeight;
+    }
+    if (inView && !isHidden) raf = requestAnimationFrame(tick);
+
     window.addEventListener("scroll", ensureRunning, { passive: true });
     window.addEventListener("resize", ensureRunning, { passive: true });
     return () => {
       window.removeEventListener("scroll", ensureRunning);
       window.removeEventListener("resize", ensureRunning);
-      cancelAnimationFrame(raf);
+      document.removeEventListener("visibilitychange", onVisibility);
+      io?.disconnect();
+      if (raf) cancelAnimationFrame(raf);
     };
   }, [nodes.length, pinned]);
 
@@ -484,7 +447,7 @@ export default function SectorsSection({
     ? "rgba(255, 255, 255, 0.9)"
     : "rgba(0, 0, 54, 0.9)";
   const colorEase =
-    "color 700ms cubic-bezier(0.16, 1, 0.3, 1)";
+    "color 700ms var(--ease-premium)";
 
   return (
     <section
@@ -501,7 +464,7 @@ export default function SectorsSection({
           a visible "edge" between the section and the page above or below. */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div
-          className="sticky top-0 h-screen w-full overflow-hidden transition-opacity duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
+          className="sticky top-0 h-screen w-full overflow-hidden transition-opacity duration-500 ease-[var(--ease-premium)]"
           style={{
             backgroundColor: "#042D2B",
             opacity: darkness,
@@ -673,7 +636,7 @@ export default function SectorsSection({
                       strokeDashoffset={length * (1 - cp)}
                       style={{
                         transition:
-                          "stroke-dashoffset 280ms cubic-bezier(0.16, 1, 0.3, 1)",
+                          "stroke-dashoffset 280ms var(--ease-premium)",
                       }}
                     />
                   );
@@ -705,7 +668,7 @@ export default function SectorsSection({
                       opacity={fillP * (1 - photoP)}
                       style={{
                         transition:
-                          "opacity 280ms cubic-bezier(0.16, 1, 0.3, 1)",
+                          "opacity 280ms var(--ease-premium)",
                       }}
                     />
                   );
@@ -722,7 +685,11 @@ export default function SectorsSection({
             >
               <defs>
                 {nodes.map((n) => (
-                  <clipPath key={n.id} id={`care-clip-${n.id}`}>
+                  <clipPath
+                    key={n.id}
+                    id={`care-clip-${n.id}`}
+                    clipPathUnits="userSpaceOnUse"
+                  >
                     <circle cx={n.cx} cy={n.cy} r={n.r} />
                   </clipPath>
                 ))}
@@ -779,18 +746,20 @@ export default function SectorsSection({
                     }
                     onClick={onClickNode}
                     style={{
+                      // No `transform` on this wrapper — Safari iOS /
+                      // desktop drops the descendants' SVG `<clipPath>`
+                      // reference whenever an ancestor `<g>` has a CSS
+                      // transform applied. The reveal is now opacity-
+                      // only, with the static `r` doing all the sizing.
                       opacity: pp * (dimSiblings ? 0.7 : 1),
-                      transform: `scale(${0.92 + 0.08 * pp})`,
-                      transformBox: "fill-box",
-                      transformOrigin: "center",
                       cursor: activated ? "none" : "default",
                       pointerEvents: activated ? "auto" : "none",
                       filter: dimSiblings
                         ? "saturate(0.35) brightness(0.85)"
                         : "saturate(1) brightness(1)",
                       transition:
-                        "opacity 320ms cubic-bezier(0.16, 1, 0.3, 1), transform 320ms cubic-bezier(0.16, 1, 0.3, 1), filter 700ms cubic-bezier(0.16, 1, 0.3, 1)",
-                      willChange: "opacity, transform",
+                        "opacity 320ms var(--ease-premium), filter 700ms var(--ease-premium)",
+                      willChange: "opacity",
                     }}
                   >
                     {/* Clip is applied to this <g> (not the image)
@@ -804,17 +773,17 @@ export default function SectorsSection({
                           y={n.cy - n.r}
                           width={n.r * 2}
                           height={n.r * 2}
-                          style={{
-                            transformBox: "fill-box",
-                            transformOrigin: "center",
-                            animation: isHovered
-                              ? "care-node-drift 5s ease-in-out infinite"
-                              : "none",
-                            transform: isHovered ? undefined : "scale(1)",
-                            transition: isHovered
-                              ? undefined
-                              : "transform 700ms cubic-bezier(0.16, 1, 0.3, 1)",
-                          }}
+                          clipPath={`url(#care-clip-${n.id})`}
+                          style={
+                            isHovered
+                              ? {
+                                  transformBox: "fill-box",
+                                  transformOrigin: "center",
+                                  animation:
+                                    "care-node-drift 5s ease-in-out infinite",
+                                }
+                              : undefined
+                          }
                         >
                           <video
                             src={n.videoSrc}
@@ -832,28 +801,36 @@ export default function SectorsSection({
                               height: "100%",
                               objectFit: "cover",
                               display: "block",
+                              // Safari iOS often paints `<video>` into a
+                              // native compositing layer that escapes the
+                              // surrounding SVG `<clipPath>`. Setting a 50%
+                              // border-radius on the square video element
+                              // itself makes it visually circular,
+                              // independent of the SVG clip.
+                              borderRadius: "50%",
                             }}
                           />
                         </foreignObject>
                       ) : (
                         <image
                           href={n.imageSrc}
+                          xlinkHref={n.imageSrc}
                           x={n.cx - n.r}
                           y={n.cy - n.r}
                           width={n.r * 2}
                           height={n.r * 2}
                           preserveAspectRatio="xMidYMid slice"
-                          style={{
-                            transformBox: "fill-box",
-                            transformOrigin: "center",
-                            animation: isHovered
-                              ? "care-node-drift 5s ease-in-out infinite"
-                              : "none",
-                            transform: isHovered ? undefined : "scale(1)",
-                            transition: isHovered
-                              ? undefined
-                              : "transform 700ms cubic-bezier(0.16, 1, 0.3, 1)",
-                          }}
+                          clipPath={`url(#care-clip-${n.id})`}
+                          style={
+                            isHovered
+                              ? {
+                                  transformBox: "fill-box",
+                                  transformOrigin: "center",
+                                  animation:
+                                    "care-node-drift 5s ease-in-out infinite",
+                                }
+                              : undefined
+                          }
                         />
                       )}
                     </g>
@@ -944,7 +921,7 @@ export default function SectorsSection({
                   // they're no longer active) needs a CSS transition.
                   // The reveal itself is scroll-coupled via `lp`.
                   transition:
-                    "opacity 700ms cubic-bezier(0.16, 1, 0.3, 1)",
+                    "opacity 700ms var(--ease-premium)",
                 }}
               >
                 <h3
@@ -984,7 +961,7 @@ export default function SectorsSection({
             className="absolute inset-0 bg-primary-500"
             style={{
               animation:
-                "care-portal-veil 700ms cubic-bezier(0.16, 1, 0.3, 1) forwards",
+                "care-portal-veil 700ms var(--ease-premium) forwards",
             }}
           />
           <PortalBloom
@@ -1018,7 +995,7 @@ export default function SectorsSection({
           opacity: hoveredIndex !== null ? 1 : 0,
           transform: "translate3d(-200px, -200px, 0)",
           transition:
-            "opacity 220ms cubic-bezier(0.16, 1, 0.3, 1)",
+            "opacity 220ms var(--ease-premium)",
           mixBlendMode: "difference",
         }}
       >

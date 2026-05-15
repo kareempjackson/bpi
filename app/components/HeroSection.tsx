@@ -10,7 +10,6 @@ import Logo from "./Logo";
 import type { MenuConfig } from "./Menu";
 import MenuLauncher from "./MenuLauncher";
 
-const DEFAULT_VIDEO_SRC = "/videos/Procur%20%20Motion%20animation%20V3%20SD.mp4";
 const DEFAULT_HEADLINE = "Building the Caribbean's pharmaceutical gateway.";
 const DEFAULT_BODY =
   "97% of Caribbean medicines are imported. BPI is building the manufacturing capacity, supply chain, and regulatory infrastructure to change that.";
@@ -93,20 +92,34 @@ function buildHeroPath(W: number, H: number, geo: HeroGeo): string {
   const maxNotchW = Math.max(minNotchW, W - R - nr);
   const notchW = Math.min(Math.max(geo.notchW, minNotchW), maxNotchW);
   const x1 = W - notchW;
+  // Approximate each 90° arc with a cubic Bézier. SVG `A` commands work
+  // in SVG `<path>` and in Chrome's CSS `clip-path: path()`, but Safari
+  // mis-interprets the sweep-flag and renders the notch as a warped /
+  // bulbous shape. Bézier control points are mathematically equivalent
+  // and parse identically on every browser.
+  const K = 0.5522847498; // (4/3) * tan(π/8) — the magic constant.
+  const kr = K * R;
+  const kn = K * nr;
   return [
     `M${R} 0`,
     `H${x1}`,
-    `A${nr} ${nr} 0 0 1 ${x1 + nr} ${nr}`,
+    // Top of card → inside-top of notch (concave-down corner).
+    `C${x1 + kn} 0 ${x1 + nr} ${nr - kn} ${x1 + nr} ${nr}`,
     `V${nh - nr}`,
-    `A${nr} ${nr} 0 0 0 ${x1 + 2 * nr} ${nh}`,
+    // Inside-bottom of notch → notch shelf (concave-up corner).
+    `C${x1 + nr} ${nh - nr + kn} ${x1 + 2 * nr - kn} ${nh} ${x1 + 2 * nr} ${nh}`,
     `H${W - nr}`,
-    `A${nr} ${nr} 0 0 1 ${W} ${nh + nr}`,
+    // Notch shelf → card right edge.
+    `C${W - nr + kn} ${nh} ${W} ${nh + nr - kn} ${W} ${nh + nr}`,
     `V${H - R}`,
-    `A${R} ${R} 0 0 1 ${W - R} ${H}`,
+    // Bottom-right outer corner.
+    `C${W} ${H - R + kr} ${W - R + kr} ${H} ${W - R} ${H}`,
     `H${R}`,
-    `A${R} ${R} 0 0 1 0 ${H - R}`,
+    // Bottom-left outer corner.
+    `C${R - kr} ${H} 0 ${H - R + kr} 0 ${H - R}`,
     `V${R}`,
-    `A${R} ${R} 0 0 1 ${R} 0`,
+    // Top-left outer corner.
+    `C0 ${R - kr} ${R - kr} 0 ${R} 0`,
     "Z",
   ].join(" ");
 }
@@ -121,7 +134,7 @@ export default function HeroSection({
   headline = DEFAULT_HEADLINE,
   body = DEFAULT_BODY,
   backgroundKind = "video",
-  videoSrc = DEFAULT_VIDEO_SRC,
+  videoSrc,
   imageSrc,
   imageAlt = "",
   ctaHref,
@@ -294,24 +307,15 @@ export default function HeroSection({
 
   const pinned = isDesktop && !reducedMotion;
 
+  // CSS `clip-path: path("...")` with the raw path data directly. Using
+  // `url(#hero-clip-bbox)` referencing a hidden 0×0 SVG renders correctly
+  // on Chrome but Safari mis-computes the path bounds in that case,
+  // showing the notch as a warped/bulbous shape instead of the clean
+  // rectangular indent. Inline `path()` works identically on both.
+  const heroClipPath = `path("${heroPath}")`;
+
   return (
     <>
-      {/* Hidden SVG defining the notched clip shape. The path is rebuilt in
-          pixels whenever the card resizes, and clipped with `userSpaceOnUse`
-          so curves don't get stretched by the card's aspect ratio. */}
-      <svg
-        width="0"
-        height="0"
-        aria-hidden
-        style={{ position: "absolute", pointerEvents: "none" }}
-      >
-        <defs>
-          <clipPath id="hero-clip-bbox" clipPathUnits="userSpaceOnUse">
-            <path d={heroPath} />
-          </clipPath>
-        </defs>
-      </svg>
-
       <section
         ref={sectionRef}
         data-page-hero
@@ -335,8 +339,8 @@ export default function HeroSection({
               className="absolute inset-0 hero-anim-fade"
               style={
                 {
-                  clipPath: "url(#hero-clip-bbox)",
-                  WebkitClipPath: "url(#hero-clip-bbox)",
+                  clipPath: heroClipPath,
+                  WebkitClipPath: heroClipPath,
                   transformOrigin: "center",
                   backgroundColor: "#000036",
                   "--anim-delay": "0s",
@@ -353,11 +357,12 @@ export default function HeroSection({
                     src={imageSrc!}
                     alt={imageAlt}
                     fill
-                    priority
+                    preload
                     sizes="100vw"
+                    quality={90}
                     className="hero-video object-cover"
                   />
-                ) : (
+                ) : videoSrc ? (
                   <video
                     autoPlay
                     loop
@@ -371,7 +376,7 @@ export default function HeroSection({
                   >
                     <source src={videoSrc} />
                   </video>
-                )}
+                ) : null}
               </div>
 
               {/* Brand tint — opacity bumps as we scroll deeper */}

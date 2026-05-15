@@ -56,6 +56,7 @@ export default function MissionShape({
         </defs>
         <ShapeMedia
           clipId={clipId}
+          pathD={PATH_D}
           width={W}
           height={H}
           imageSrc={imageSrc}
@@ -69,19 +70,24 @@ export default function MissionShape({
 
   if (!children) {
     return (
-      <svg
-        width={size}
-        height={size * ASPECT}
-        viewBox={VIEWBOX}
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className={className}
+      <div
+        className={`relative ${className ?? ""}`}
+        style={{ aspectRatio: `${W} / ${H}` }}
         role={hasMedia ? "img" : undefined}
         aria-label={hasMedia ? imageAlt || undefined : undefined}
-        {...rest}
       >
-        {renderFill()}
-      </svg>
+        <svg
+          width="100%"
+          height="100%"
+          viewBox={VIEWBOX}
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="absolute inset-0"
+          {...rest}
+        >
+          {renderFill()}
+        </svg>
+      </div>
     );
   }
 

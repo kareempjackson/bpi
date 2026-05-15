@@ -4,8 +4,6 @@ const IMAGE_PROJECTION = `{
   kind,
   asset,
   "videoUrl": video.asset->url,
-  videoFallbackSrc,
-  fallbackSrc,
   alt
 }`;
 
@@ -17,8 +15,7 @@ const CTA_PROJECTION = `{
 const MENU_MEDIA_PROJECTION = `{
   kind,
   image${IMAGE_PROJECTION},
-  "videoUrl": video.asset->url,
-  videoFallbackSrc
+  "videoUrl": video.asset->url
 }`;
 
 export const SITE_SETTINGS_QUERY = defineQuery(`
@@ -69,7 +66,6 @@ export const HOME_PAGE_QUERY = defineQuery(`
     heroBackground{
       kind,
       "videoUrl": video.asset->url,
-      videoFallbackSrc,
       image${IMAGE_PROJECTION}
     },
 
@@ -107,7 +103,6 @@ export const HOME_PAGE_QUERY = defineQuery(`
         kind,
         image${IMAGE_PROJECTION},
         "videoUrl": video.asset->url,
-        videoFallbackSrc,
         videoPoster${IMAGE_PROJECTION}
       },
       href
@@ -159,6 +154,7 @@ export const LATEST_INITIATIVES_QUERY = defineQuery(`
     excerpt,
     publishedAt,
     featured,
+    hasDetailPage,
     coverImage${IMAGE_PROJECTION},
     externalLink
   }
@@ -174,6 +170,7 @@ export const FEATURED_INITIATIVES_QUERY = defineQuery(`
     excerpt,
     publishedAt,
     featured,
+    hasDetailPage,
     coverImage${IMAGE_PROJECTION},
     externalLink
   }
@@ -189,13 +186,17 @@ export const ALL_INITIATIVES_QUERY = defineQuery(`
     excerpt,
     publishedAt,
     featured,
+    hasDetailPage,
     coverImage${IMAGE_PROJECTION},
     externalLink
   }
 `);
 
+// Only initiatives with a detail page get static-generated routes. If
+// hasDetailPage is unset (legacy data), it defaults to true so existing
+// content keeps its page.
 export const ALL_INITIATIVE_SLUGS_QUERY = defineQuery(`
-  *[_type == "initiative" && defined(slug.current)]{
+  *[_type == "initiative" && defined(slug.current) && hasDetailPage != false]{
     "slug": slug.current
   }
 `);
@@ -209,24 +210,10 @@ export const INITIATIVE_BY_SLUG_QUERY = defineQuery(`
     excerpt,
     publishedAt,
     featured,
+    hasDetailPage,
     coverImage${IMAGE_PROJECTION},
     externalLink,
     body
-  }
-`);
-
-export const RELATED_INITIATIVES_QUERY = defineQuery(`
-  *[_type == "initiative" && defined(slug.current) && slug.current != $slug]
-    | order(featured desc, coalesce(order, 9999) asc, publishedAt desc)[0...3]{
-    _id,
-    title,
-    "slug": slug.current,
-    subtitle,
-    excerpt,
-    publishedAt,
-    featured,
-    coverImage${IMAGE_PROJECTION},
-    externalLink
   }
 `);
 

@@ -3,6 +3,7 @@
 import type { CSSProperties } from "react";
 import { useRef } from "react";
 import Image from "next/image";
+import LazyVideo from "./LazyVideo";
 import ArrowCircle from "./ArrowCircle";
 import CtaLink from "./CtaLink";
 
@@ -23,48 +24,10 @@ type Props = {
   items?: Item[];
 };
 
-const DEFAULT_ITEMS: Item[] = [
-  {
-    title: "Attract & Facilitate Investment",
-    description:
-      "Giving global capital a clear pathway into the Caribbean pharmaceutical market.",
-    href: "/priorities/investment",
-    imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-    imageAlt: "Attract and facilitate investment",
-    color: "#CAF1FF",
-  },
-  {
-    title: "Build & Incubate Capacity",
-    description: "Moving strategic projects from concept to execution.",
-    href: "/priorities/capacity",
-    imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-    imageAlt: "Build and incubate capacity",
-    color: "#dde885",
-  },
-  {
-    title: "Strengthen Regional Supply Chains",
-    description:
-      "Building the trade corridors and distribution infrastructure the Caribbean depends on.",
-    href: "/priorities/supply-chains",
-    imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-    imageAlt: "Strengthen regional supply chains",
-    color: "#38fe9c",
-  },
-  {
-    title: "Build the Ecosystem Foundations",
-    description:
-      "Developing the regulatory, workforce, and research foundations for a permanent sector.",
-    href: "/priorities/ecosystem",
-    imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-    imageAlt: "Build the ecosystem foundations",
-    color: "#b5d4e6",
-  },
-];
-
 export default function ArchitectureOfCareSection({
   heading = "Four Strategic Priorities",
   description = "Each one a deliberate step toward a Caribbean that manufactures, distributes, and regulates its own medicines.",
-  items = DEFAULT_ITEMS,
+  items = [],
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -140,7 +103,7 @@ function CarouselButton({
       type="button"
       onClick={onClick}
       aria-label={direction === "prev" ? "Previous" : "Next"}
-      className={`group/arrow inline-flex text-primary-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-90 active:scale-95 motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500/40 rounded-full ${
+      className={`group/arrow inline-flex text-primary-500 transition-all duration-300 ease-[var(--ease-premium)] hover:opacity-90 active:scale-95 motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500/40 rounded-full ${
         direction === "prev"
           ? "hover:-translate-x-0.5"
           : "hover:translate-x-0.5"
@@ -168,17 +131,10 @@ function PriorityCard({ item }: { item: Item }) {
       <div className="mt-auto pt-6 flex items-end justify-between gap-4">
         <div className="relative w-[42%] aspect-square rounded-2xl overflow-hidden">
           {item.videoSrc ? (
-            <video
+            <LazyVideo
               src={item.videoSrc}
               poster={item.imageSrc}
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="metadata"
-              disableRemotePlayback
-              disablePictureInPicture
-              aria-label={item.imageAlt || undefined}
+              ariaLabel={item.imageAlt || undefined}
               className="absolute inset-0 w-full h-full object-cover"
             />
           ) : (

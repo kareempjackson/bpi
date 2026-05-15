@@ -40,57 +40,6 @@ type Props = MenuConfig & {
 const MENU_SHAPE_PATH =
   "M227.301 0C234.434 2.70128e-07 241.275 2.50032 246.318 6.9502C251.327 11.3691 254.155 17.351 254.194 23.5967V39.9258C254.194 57.5989 268.521 71.9258 286.194 71.9258H423.105L423.773 71.9326C430.665 72.0834 437.238 74.5651 442.124 78.876C447.168 83.3258 450.001 89.3614 450.001 95.6543V868.497C450.001 895.007 428.511 916.497 402.001 916.497H0V0H227.301Z";
 
-const DEFAULT_VIDEO_SRC = "/videos/Procur%20%20Motion%20animation%20V3%20SD.mp4";
-
-const DEFAULT_LINKS: MenuLink[] = [
-  { label: "Home", href: "/" },
-  {
-    label: "About BPI",
-    href: "/about",
-    media: {
-      type: "image",
-      src: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-      alt: "BPI team",
-    },
-  },
-  {
-    label: "Initiatives",
-    href: "/initiatives",
-    media: {
-      type: "image",
-      src: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-      alt: "BPI initiatives",
-    },
-  },
-  {
-    label: "News & Media",
-    href: "/news",
-    media: {
-      type: "image",
-      src: "/images/DSC03249.jpg",
-      alt: "BPI news and media",
-    },
-  },
-  {
-    label: "Careers",
-    href: "/careers",
-    media: {
-      type: "image",
-      src: "/images/olawale-munna-_ObjhzjnMmc-unsplash.jpg",
-      alt: "Join the BPI team",
-    },
-  },
-  {
-    label: "Contact",
-    href: "/contact",
-    media: {
-      type: "image",
-      src: "/images/A6701225.jpg",
-      alt: "Contact BPI",
-    },
-  },
-];
-
 const DEFAULT_LEGAL = [
   { label: "Terms of Use", href: "/terms" },
   { label: "Media Assets", href: "/media-assets" },
@@ -145,7 +94,7 @@ function SocialIcon({ name }: { name: SocialLink["name"] }) {
 export default function Menu({
   isOpen,
   onClose,
-  links = DEFAULT_LINKS,
+  links = [],
   legalLinks = DEFAULT_LEGAL,
   socialLinks = DEFAULT_SOCIAL,
   defaultMedia,
@@ -191,12 +140,8 @@ export default function Menu({
   const showSub = subItems.length > 0;
   const hoveredSubItem =
     hoveredSubIndex !== null ? subItems[hoveredSubIndex] : null;
-  const fallbackMedia: MenuMedia = defaultMedia ?? {
-    type: "video",
-    src: DEFAULT_VIDEO_SRC,
-  };
-  const activeMedia: MenuMedia =
-    hoveredSubItem?.media ?? effectiveItem?.media ?? fallbackMedia;
+  const activeMedia: MenuMedia | null =
+    hoveredSubItem?.media ?? effectiveItem?.media ?? defaultMedia ?? null;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -364,29 +309,31 @@ export default function Menu({
               </clipPath>
             </defs>
             <path d={MENU_SHAPE_PATH} fill="#000036" />
-            {activeMedia.type === "video" ? (
-              <foreignObject
-                key={activeMedia.src}
-                x="0"
-                y="0"
-                width="450"
-                height="917"
-                clipPath="url(#menu-shape-clip)"
-              >
-                <video
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  preload="auto"
-                  className="w-full h-full object-cover"
+            {activeMedia ? (
+              activeMedia.type === "video" ? (
+                <foreignObject
+                  key={activeMedia.src}
+                  x="0"
+                  y="0"
+                  width="450"
+                  height="917"
+                  clipPath="url(#menu-shape-clip)"
                 >
-                  <source src={activeMedia.src} type="video/mp4" />
-                </video>
-              </foreignObject>
-            ) : (
-              <MenuImage media={activeMedia} />
-            )}
+                  <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="metadata"
+                    className="w-full h-full object-cover"
+                  >
+                    <source src={activeMedia.src} type="video/mp4" />
+                  </video>
+                </foreignObject>
+              ) : (
+                <MenuImage media={activeMedia} />
+              )
+            ) : null}
             <path d={MENU_SHAPE_PATH} fill="#000000" fillOpacity="0.25" />
           </svg>
         </div>
@@ -398,16 +345,16 @@ export default function Menu({
           type="button"
           onClick={onClose}
           aria-label="Close menu"
-          className="absolute top-4 right-7 lg:top-5 lg:right-10 z-10 group inline-flex items-center gap-3.5 lg:gap-4 text-base font-semibold text-white lg:text-primary-500 transition-opacity duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-90 focus-visible:outline-none"
+          className="absolute top-4 right-7 lg:top-5 lg:right-10 z-10 group inline-flex items-center gap-3.5 lg:gap-4 text-base font-semibold text-white lg:text-primary-500 transition-opacity duration-300 ease-[var(--ease-premium)] hover:opacity-90 focus-visible:outline-none"
         >
-          <span className="transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-x-0.5 motion-reduce:transform-none">
+          <span className="transition-transform duration-300 ease-[var(--ease-premium)] group-hover:-translate-x-0.5 motion-reduce:transform-none">
             Close Menu
           </span>
           <span className="relative inline-flex size-10 lg:size-11 items-center justify-center">
             <svg
               viewBox="0 0 36 36"
               fill="none"
-              className="absolute inset-0 w-full h-full text-white lg:text-primary-500 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:rotate-90 motion-reduce:transform-none"
+              className="absolute inset-0 w-full h-full text-white lg:text-primary-500 transition-transform duration-700 ease-[var(--ease-premium)] group-hover:rotate-90 motion-reduce:transform-none"
               aria-hidden
             >
               <circle
@@ -425,7 +372,7 @@ export default function Menu({
               stroke="currentColor"
               strokeWidth="1.5"
               strokeLinecap="round"
-              className="relative w-4 h-4 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:rotate-90 group-active:scale-90 motion-reduce:transform-none"
+              className="relative w-4 h-4 transition-transform duration-300 ease-[var(--ease-premium)] group-hover:rotate-90 group-active:scale-90 motion-reduce:transform-none"
               aria-hidden
             >
               <path d="M5 5l14 14M19 5L5 19" />
@@ -471,7 +418,7 @@ function MenuImage({ media }: { media: ImageMedia }) {
   }, [media.src]);
 
   const layerClass = (visible: boolean) =>
-    `absolute inset-0 w-full h-full object-cover transition-all duration-[1100ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+    `absolute inset-0 w-full h-full object-cover transition-all duration-[1100ms] ease-[var(--ease-premium)] ${
       visible ? "opacity-100 scale-100" : "opacity-0 scale-[1.06]"
     }`;
 

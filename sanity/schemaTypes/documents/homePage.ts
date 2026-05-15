@@ -68,7 +68,7 @@ export const homePage = defineType({
       type: "object",
       group: "hero",
       description:
-        "Choose video for the animated hero or image for a still. Uploads go to Sanity assets; the fallback path is used when no upload is set.",
+        "Choose video for the animated hero or image for a still. All assets live on Sanity.",
       fields: [
         defineField({
           name: "kind",
@@ -82,7 +82,6 @@ export const homePage = defineType({
             layout: "radio",
           },
           initialValue: "video",
-          // Optional — defaults to "video" for hero when missing.
         }),
         defineField({
           name: "video",
@@ -92,46 +91,26 @@ export const homePage = defineType({
           hidden: ({ parent }) => parent?.kind !== "video",
         }),
         defineField({
-          name: "videoFallbackSrc",
-          title: "Video fallback URL",
-          type: "string",
-          description:
-            "Public URL or /public path used when no upload is provided.",
-          hidden: ({ parent }) => parent?.kind !== "video",
-        }),
-        defineField({
           name: "image",
           title: "Image",
           type: "imageWithAlt",
           hidden: ({ parent }) => parent?.kind !== "image",
         }),
       ],
-      initialValue: {
-        kind: "video",
-        videoFallbackSrc:
-          "/videos/Procur%20%20Motion%20animation%20V3%20SD.mp4",
-      },
       validation: (Rule) =>
         Rule.custom((value: unknown) => {
           const bg = value as
             | {
                 kind?: string;
                 video?: { asset?: unknown };
-                videoFallbackSrc?: string;
-                image?: { asset?: unknown; fallbackSrc?: string };
+                image?: { asset?: unknown };
               }
             | undefined;
-          // Missing kind is treated as "video" (the hero default) so
-          // legacy data created before this field existed stays valid.
           const kind = bg?.kind ?? "video";
           if (kind === "video") {
-            if (!bg?.video?.asset && !bg?.videoFallbackSrc) {
-              return "Upload a video or provide a fallback URL.";
-            }
+            if (!bg?.video?.asset) return "Upload a video.";
           } else if (kind === "image") {
-            if (!bg?.image?.asset && !bg?.image?.fallbackSrc) {
-              return "Upload an image or provide a fallback path.";
-            }
+            if (!bg?.image?.asset) return "Upload an image.";
           }
           return true;
         }),
@@ -187,10 +166,6 @@ export const homePage = defineType({
       title: "Primary image (left)",
       type: "imageWithAlt",
       group: "leader",
-      initialValue: {
-        fallbackSrc: "/images/A6701488.jpg",
-        alt: "Leader speaking at podium",
-      },
       validation: (Rule) => Rule.required(),
     }),
     defineField({
@@ -198,10 +173,6 @@ export const homePage = defineType({
       title: "Portrait (right)",
       type: "imageWithAlt",
       group: "leader",
-      initialValue: {
-        fallbackSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-        alt: "Leader portrait",
-      },
       validation: (Rule) => Rule.required(),
     }),
     defineField({
@@ -251,11 +222,6 @@ export const homePage = defineType({
           description:
             "Giving global capital a clear pathway into the Caribbean pharmaceutical market.",
           href: "/priorities/investment",
-          image: {
-            _type: "imageWithAlt",
-            fallbackSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-            alt: "Attract and facilitate investment",
-          },
           color: "#CAF1FF",
         },
         {
@@ -264,11 +230,6 @@ export const homePage = defineType({
           title: "Build & Incubate Capacity",
           description: "Moving strategic projects from concept to execution.",
           href: "/priorities/capacity",
-          image: {
-            _type: "imageWithAlt",
-            fallbackSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-            alt: "Build and incubate capacity",
-          },
           color: "#dde885",
         },
         {
@@ -278,11 +239,6 @@ export const homePage = defineType({
           description:
             "Building the trade corridors and distribution infrastructure the Caribbean depends on.",
           href: "/priorities/supply-chains",
-          image: {
-            _type: "imageWithAlt",
-            fallbackSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-            alt: "Strengthen regional supply chains",
-          },
           color: "#38fe9c",
         },
         {
@@ -292,11 +248,6 @@ export const homePage = defineType({
           description:
             "Developing the regulatory, workforce, and research foundations for a permanent sector.",
           href: "/priorities/ecosystem",
-          image: {
-            _type: "imageWithAlt",
-            fallbackSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-            alt: "Build the ecosystem foundations",
-          },
           color: "#b5d4e6",
         },
       ],
@@ -338,15 +289,6 @@ export const homePage = defineType({
           title: "Market Access & Trade Development",
           description:
             "Opening pharmaceutical trade routes across CARICOM, Latin America, Africa, and the Global South.",
-          media: {
-            kind: "image",
-            image: {
-              _type: "imageWithAlt",
-              fallbackSrc:
-                "/images/6 sectors/daniel-miksha-4ZornyPnGlA-unsplash.jpg",
-              alt: "Trade and supply chain",
-            },
-          },
         },
         {
           _type: "sectorNode",
@@ -356,15 +298,6 @@ export const homePage = defineType({
           title: "Workforce & Talent Development",
           description:
             "Building the skilled workforce Caribbean pharmaceutical production depends on.",
-          media: {
-            kind: "image",
-            image: {
-              _type: "imageWithAlt",
-              fallbackSrc:
-                "/images/6 sectors/christina-wocintechchat-com-m-rg1y72eKw6o-unsplash.jpg",
-              alt: "Workforce training and development",
-            },
-          },
         },
         {
           _type: "sectorNode",
@@ -374,15 +307,6 @@ export const homePage = defineType({
           title: "Research & Development",
           description:
             "Establishing Barbados as a credible site for pharmaceutical research and technology transfer.",
-          media: {
-            kind: "image",
-            image: {
-              _type: "imageWithAlt",
-              fallbackSrc:
-                "/images/6 sectors/national-cancer-institute-wTrKloP4UKw-unsplash.jpg",
-              alt: "Pharmaceutical research and development",
-            },
-          },
         },
         {
           _type: "sectorNode",
@@ -392,14 +316,6 @@ export const homePage = defineType({
           title: "Innovation & Technology",
           description:
             "Creating the conditions for pharmaceutical innovation to take root and scale.",
-          media: {
-            kind: "image",
-            image: {
-              _type: "imageWithAlt",
-              fallbackSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-              alt: "Innovation and technology",
-            },
-          },
         },
         {
           _type: "sectorNode",
@@ -409,14 +325,6 @@ export const homePage = defineType({
           title: "Regulatory Development & Policy",
           description:
             "Building the regulatory framework that gives investors and manufacturers confidence to commit.",
-          media: {
-            kind: "image",
-            image: {
-              _type: "imageWithAlt",
-              fallbackSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-              alt: "Regulatory framework and policy",
-            },
-          },
         },
         {
           _type: "sectorNode",
@@ -426,14 +334,6 @@ export const homePage = defineType({
           title: "Investment & Financing",
           description:
             "Connecting viable projects to the right capital at the right stage.",
-          media: {
-            kind: "image",
-            image: {
-              _type: "imageWithAlt",
-              fallbackSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-              alt: "Investment and financing partners",
-            },
-          },
         },
       ],
       validation: (Rule) => Rule.max(6),
@@ -480,10 +380,6 @@ export const homePage = defineType({
       title: "Image",
       type: "imageWithAlt",
       group: "why",
-      initialValue: {
-        fallbackSrc: "/images/cdc-_N7I1JyPYJw-unsplash.jpg",
-        alt: "BPI team meeting in Barbados",
-      },
       validation: (Rule) => Rule.required(),
     }),
 
@@ -516,10 +412,6 @@ export const homePage = defineType({
       title: "Default image (when no row hovered)",
       type: "imageWithAlt",
       group: "initiatives",
-      initialValue: {
-        fallbackSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-        alt: "Pharmaceutical research at BPI",
-      },
       validation: (Rule) => Rule.required(),
     }),
     defineField({
@@ -573,10 +465,6 @@ export const homePage = defineType({
       title: "Background image",
       type: "imageWithAlt",
       group: "building",
-      initialValue: {
-        fallbackSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-        alt: "Barbados Pharmaceutical team",
-      },
       validation: (Rule) => Rule.required(),
     }),
     defineField({

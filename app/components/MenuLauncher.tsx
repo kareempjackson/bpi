@@ -1,9 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import HamburgerMenu from "./HamburgerMenu";
-import Menu, { type MenuConfig } from "./Menu";
+import type { MenuConfig } from "./Menu";
+
+// Defer the menu bundle until the launcher is first clicked. The menu
+// is a ~500-line modal with its own video stage; without this it ships
+// in the initial HeroSection client chunk even though it's invisible
+// until the user opens it.
+const Menu = dynamic(() => import("./Menu"), { ssr: false });
+
+export type { MenuConfig };
 
 type Props = {
   size?: number;
@@ -48,11 +57,15 @@ export default function MenuLauncher({ size = 120, menuConfig }: Props) {
           onClick={() => setIsOpen(true)}
         />
       ) : null}
-      <Menu
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        {...menuConfig}
-      />
+      {/* Only mount the menu after the first open — defers ~500 lines of
+          client code + its video stage until the user actually opens it. */}
+      {isOpen ? (
+        <Menu
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          {...menuConfig}
+        />
+      ) : null}
     </>
   );
 }

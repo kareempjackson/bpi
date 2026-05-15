@@ -56,10 +56,6 @@ export const careersPage = defineType({
       title: "Hero image (clipped to CareerShape)",
       type: "imageWithAlt",
       group: "hero",
-      initialValue: {
-        fallbackSrc: "/images/A6701522.jpg",
-        alt: "The BPI team",
-      },
       validation: (Rule) => Rule.required(),
     }),
 
@@ -87,10 +83,6 @@ export const careersPage = defineType({
       title: "Portrait image",
       type: "imageWithAlt",
       group: "why",
-      initialValue: {
-        fallbackSrc: "/images/A6701488.jpg",
-        alt: "A BPI team member",
-      },
       validation: (Rule) => Rule.required(),
     }),
     defineField({

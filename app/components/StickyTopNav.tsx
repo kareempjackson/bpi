@@ -363,7 +363,7 @@ export default function StickyTopNav({
       aria-hidden={!visible}
       className={`${hasHero ? "fixed" : "sticky"} top-0 inset-x-0 z-40 ${
         ready
-          ? "transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
+          ? "transition-transform duration-500 ease-[var(--ease-premium)]"
           : ""
       } ${visible ? "translate-y-0" : "-translate-y-full"}`}
     >
@@ -427,7 +427,7 @@ export default function StickyTopNav({
             <button
               type="button"
               aria-label="Search"
-              className="group/search hidden md:inline-flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-70 hover:scale-110 active:scale-95 motion-reduce:transform-none focus-visible:outline-none focus-visible:opacity-100"
+              className="group/search hidden md:inline-flex items-center justify-center transition-all duration-300 ease-[var(--ease-premium)] hover:opacity-70 hover:scale-110 active:scale-95 motion-reduce:transform-none focus-visible:outline-none focus-visible:opacity-100"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -495,7 +495,7 @@ function LanguageToggle() {
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label="Change language"
-        className="group inline-flex items-center gap-1.5 py-1 px-0.5 transition-opacity duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-70 focus-visible:outline-none focus-visible:opacity-100"
+        className="group inline-flex items-center gap-1.5 py-1 px-0.5 transition-opacity duration-200 ease-[var(--ease-premium)] hover:opacity-70 focus-visible:outline-none focus-visible:opacity-100"
       >
         <span>{lang}</span>
         <svg
@@ -505,7 +505,7 @@ function LanguageToggle() {
           strokeWidth="1.4"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className={`w-3 h-3 transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          className={`w-3 h-3 transition-transform duration-200 ease-[var(--ease-premium)] ${
             open ? "rotate-180" : "rotate-0"
           }`}
           aria-hidden
@@ -515,7 +515,7 @@ function LanguageToggle() {
       </button>
 
       <div
-        className={`absolute right-0 mt-3 min-w-44 origin-top-right transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${
+        className={`absolute right-0 mt-3 min-w-44 origin-top-right transition-all duration-400 ease-[var(--ease-premium)] motion-reduce:transition-none ${
           open
             ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
             : "opacity-0 scale-[0.98] -translate-y-1 pointer-events-none"

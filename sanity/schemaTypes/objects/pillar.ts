@@ -18,11 +18,15 @@ export const pillar = defineType({
       rows: 3,
       validation: (Rule) => Rule.required(),
     }),
+    /**
+     * `imageWithAlt` accepts either an image or a video (toggled by its
+     * own "Type" radio). When set to Video, the image upload becomes
+     * the poster shown while the video buffers.
+     */
     defineField({
       name: "image",
-      title: "Image",
+      title: "Media (image or video)",
       type: "imageWithAlt",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "bg",

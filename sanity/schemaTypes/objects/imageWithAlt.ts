@@ -1,10 +1,12 @@
 import { defineField, defineType } from "sanity";
 
 /**
- * Universal media field — image OR video, with a /public fallback. The
- * upload field is named `asset` (Sanity image type, so an uploaded image
- * exposes a nested asset ref at `asset.asset._ref`). When `kind === "video"`,
- * the image upload doubles as the video poster.
+ * Universal media object — interchangeable between still image and
+ * looping video. Editors flip the "Type" radio to choose. The `asset`
+ * (image) field stays visible in both modes: when type=image it's the
+ * rendered media; when type=video it becomes the poster shown while the
+ * video buffers. All site fields that use `imageWithAlt` automatically
+ * support video this way without further schema changes.
  */
 export const imageWithAlt = defineType({
   name: "imageWithAlt",
@@ -23,17 +25,14 @@ export const imageWithAlt = defineType({
         layout: "radio",
       },
       initialValue: "image",
-      // Optional — when missing on legacy data, the renderer treats it as
-      // "image" automatically. Forcing it to be required here trips
-      // documents created before this field existed.
     }),
     defineField({
       name: "asset",
-      title: "Image upload",
-      description:
-        "When type is Video, this image (if provided) is used as the video poster.",
+      title: "Image / poster upload",
       type: "image",
       options: { hotspot: true },
+      description:
+        "Used as the rendered media when Type is Image, or as the poster while the video buffers when Type is Video.",
     }),
     defineField({
       name: "video",
@@ -41,21 +40,6 @@ export const imageWithAlt = defineType({
       type: "file",
       options: { accept: "video/mp4,video/webm" },
       hidden: ({ parent }) => parent?.kind !== "video",
-    }),
-    defineField({
-      name: "videoFallbackSrc",
-      title: "Video fallback URL",
-      type: "string",
-      description:
-        "Public URL or /public path used when no video upload is provided.",
-      hidden: ({ parent }) => parent?.kind !== "video",
-    }),
-    defineField({
-      name: "fallbackSrc",
-      title: "Image fallback /public path",
-      type: "string",
-      description:
-        "Path under /public (e.g. /images/A6701522.jpg). Used when no image upload is provided. Also serves as the video poster fallback.",
     }),
     defineField({
       name: "alt",
@@ -69,13 +53,13 @@ export const imageWithAlt = defineType({
     select: {
       media: "asset",
       title: "alt",
-      subtitle: "fallbackSrc",
       kind: "kind",
     },
-    prepare: ({ media, title, subtitle, kind }) => ({
+    prepare: ({ media, title, kind }) => ({
       media,
-      title,
-      subtitle: kind === "video" ? `🎬 video · ${subtitle ?? ""}` : subtitle,
+      title:
+        (title || "(no alt text)") +
+        (kind === "video" ? " · 🎬 video" : ""),
     }),
   },
 });

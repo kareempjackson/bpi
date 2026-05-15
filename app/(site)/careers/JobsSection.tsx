@@ -129,7 +129,7 @@ export default function JobsSection({
           {findButtonLabel ? (
             <button
               type="button"
-              className="shrink-0 rounded-round border border-dashed border-primary-500/45 bg-error-500 px-5 py-2 text-sm lg:text-base font-semibold text-primary-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-error-400 hover:border-primary-500/70 active:scale-[0.98] motion-reduce:transform-none"
+              className="shrink-0 rounded-round border border-dashed border-primary-500/45 bg-error-500 px-5 py-2 text-sm lg:text-base font-semibold text-primary-500 transition-all duration-300 ease-[var(--ease-premium)] hover:bg-error-400 hover:border-primary-500/70 active:scale-[0.98] motion-reduce:transform-none"
             >
               {findButtonLabel}
             </button>
@@ -171,7 +171,7 @@ function JobRow({ job }: { job: JobsSectionJob }) {
         className="group/apply shrink-0 inline-flex items-center gap-2 text-base lg:text-lg font-semibold text-primary-500 transition-opacity duration-200 hover:opacity-80"
         aria-label={`Apply for ${job.title}`}
       >
-        <span className="transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/apply:-translate-x-0.5 motion-reduce:transform-none">
+        <span className="transition-transform duration-300 ease-[var(--ease-premium)] group-hover/apply:-translate-x-0.5 motion-reduce:transform-none">
           Apply
         </span>
         <ApplyArrow />
@@ -227,7 +227,7 @@ function ClockIcon() {
 
 function ApplyArrow() {
   return (
-    <span className="inline-flex items-center justify-center transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/apply:translate-x-0.5 group-hover/apply:-translate-y-0.5 motion-reduce:transform-none">
+    <span className="inline-flex items-center justify-center transition-transform duration-300 ease-[var(--ease-premium)] group-hover/apply:translate-x-0.5 group-hover/apply:-translate-y-0.5 motion-reduce:transform-none">
       <svg
         viewBox="0 0 32 32"
         fill="none"

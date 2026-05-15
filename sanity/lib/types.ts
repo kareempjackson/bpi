@@ -1,11 +1,9 @@
 /**
- * Universal media field — image or video with a /public fallback.
- *
- * The Studio's `imageWithAlt` schema names the image upload field `asset`
- * (Sanity image type), so the actual asset reference is at
- * `asset.asset._ref` after upload. When `kind === "video"`, `videoUrl`
- * holds the uploaded asset URL (resolved via GROQ `video.asset->url`) and
- * the image asset (if present) is treated as the video poster.
+ * Universal media field — `imageWithAlt` accepts either an image or a
+ * video. `kind` discriminates; `asset` is the image (rendered when
+ * kind=image, or used as the poster when kind=video); `videoUrl` is
+ * the resolved CDN URL of the uploaded MP4 (projected in GROQ via
+ * `"videoUrl": video.asset->url`).
  */
 export type SanityImage = {
   kind?: "image" | "video" | null;
@@ -20,8 +18,6 @@ export type SanityImage = {
       }
     | null;
   videoUrl?: string | null;
-  videoFallbackSrc?: string | null;
-  fallbackSrc?: string | null;
   alt: string;
 };
 
@@ -37,7 +33,9 @@ export type Cta = {
 export type Pillar = {
   eyebrow: string;
   description: string;
-  image: SanityImage;
+  /** `imageWithAlt` — accepts image OR video (its own `kind` field
+      discriminates; `videoUrl` is on the nested object when set). */
+  image?: SanityImage | null;
   bg?: string | null;
   highlight?: boolean | null;
 };
@@ -75,7 +73,6 @@ export type ContactRow = {
 export type HeroBackground = {
   kind: "video" | "image";
   videoUrl?: string | null;
-  videoFallbackSrc?: string | null;
   image?: SanityImage | null;
 };
 
@@ -89,7 +86,6 @@ export type MenuMedia = {
   kind: "image" | "video";
   image?: SanityImage | null;
   videoUrl?: string | null;
-  videoFallbackSrc?: string | null;
 };
 
 export type MenuSubLink = {
@@ -139,7 +135,6 @@ export type SectorMedia = {
   kind: "image" | "video";
   image?: SanityImage | null;
   videoUrl?: string | null;
-  videoFallbackSrc?: string | null;
   videoPoster?: SanityImage | null;
 };
 
@@ -166,6 +161,12 @@ export type Initiative = {
   excerpt: string;
   publishedAt: string;
   featured?: boolean | null;
+  /**
+   * When false, the initiative is display-only — show in lists but don't
+   * link to a detail page. `externalLink` (if set) overrides this.
+   * Treat absent as `true` for backwards compatibility.
+   */
+  hasDetailPage?: boolean | null;
   coverImage?: SanityImage | null;
   externalLink?: string | null;
 };

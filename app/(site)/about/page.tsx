@@ -6,6 +6,7 @@ import ArrowRight from "../../components/ArrowRight";
 import Button from "../../components/Button";
 import CtaLink from "../../components/CtaLink";
 import Logo from "../../components/Logo";
+import LazyVideo from "../../components/LazyVideo";
 import MediaImage from "../../components/MediaImage";
 import AboutShape from "../../components/shapes/AboutShape";
 import LeaderShape from "../../components/shapes/LeaderShape";
@@ -428,8 +429,8 @@ function LeaderCard({
           videoSrc={videoSrc}
           imageAlt={media.alt}
           darkBottom
-          className="absolute inset-0 w-full h-full filter-[contrast(1.06)_saturate(0.92)_brightness(0.96)] transition-[filter] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:filter-[contrast(1.08)_saturate(0.95)_brightness(1)]"
-          imageClassName="transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] motion-reduce:transform-none"
+          className="absolute inset-0 w-full h-full filter-[contrast(1.06)_saturate(0.92)_brightness(0.96)] transition-[filter] duration-700 ease-[var(--ease-premium)] group-hover:filter-[contrast(1.08)_saturate(0.95)_brightness(1)]"
+          imageClassName="transition-transform duration-1000 ease-[var(--ease-premium)] group-hover:scale-[1.04] motion-reduce:transform-none"
         />
         <LeaderLabel
           name={leader.name}
@@ -456,18 +457,11 @@ function LeaderCard({
         }}
       >
         {videoSrc ? (
-          <video
+          <LazyVideo
             src={videoSrc}
             poster={posterSrc}
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="metadata"
-            disableRemotePlayback
-            disablePictureInPicture
-            aria-label={media.alt || undefined}
-            className="absolute inset-0 w-full h-full object-cover filter-[contrast(1.06)_saturate(0.92)_brightness(0.96)] transition-[transform,filter] duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] group-hover:filter-[contrast(1.08)_saturate(0.95)_brightness(1)] motion-reduce:transform-none"
+            ariaLabel={media.alt || undefined}
+            className="absolute inset-0 w-full h-full object-cover filter-[contrast(1.06)_saturate(0.92)_brightness(0.96)] transition-[transform,filter] duration-1000 ease-[var(--ease-premium)] group-hover:scale-[1.04] group-hover:filter-[contrast(1.08)_saturate(0.95)_brightness(1)] motion-reduce:transform-none"
           />
         ) : (
           <Image
@@ -475,11 +469,11 @@ function LeaderCard({
             alt={media.alt}
             fill
             sizes="(min-width: 768px) 30vw, 45vw"
-            className="object-cover filter-[contrast(1.06)_saturate(0.92)_brightness(0.96)] transition-[transform,filter] duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] group-hover:filter-[contrast(1.08)_saturate(0.95)_brightness(1)] motion-reduce:transform-none"
+            className="object-cover filter-[contrast(1.06)_saturate(0.92)_brightness(0.96)] transition-[transform,filter] duration-1000 ease-[var(--ease-premium)] group-hover:scale-[1.04] group-hover:filter-[contrast(1.08)_saturate(0.95)_brightness(1)] motion-reduce:transform-none"
           />
         )}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 bg-linear-to-t from-black/95 via-black/65 to-transparent" />
-        <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]" />
+        <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-[var(--ease-premium)]" />
         <LeaderLabel
           name={leader.name}
           role={leader.role}
@@ -597,11 +591,13 @@ function StatCard({ stat }: { stat: StatData }) {
 }
 
 function PillarCard({ pillar }: { pillar: PillarData }) {
+  // Card renders even when no image is uploaded — text-only is a valid
+  // state. Only the media block is conditional, never the whole card.
   const media = resolveMedia(pillar.image, { width: 800 });
-  if (!media) return null;
   const posterSrc =
-    media.kind === "image" ? media.src : media.poster ?? "";
-  const videoSrc = media.kind === "video" ? media.src : undefined;
+    media?.kind === "image" ? media.src : media?.poster ?? "";
+  const videoSrc = media?.kind === "video" ? media.src : undefined;
+  const hasMedia = !!media;
 
   if (pillar.highlight) {
     return (
@@ -609,16 +605,24 @@ function PillarCard({ pillar }: { pillar: PillarData }) {
         className="rounded-2xl overflow-hidden flex flex-col min-h-120 md:min-h-140 lg:min-h-160"
         style={{ backgroundColor: pillar.bg ?? "#ffffff" }}
       >
-        <div data-reveal="scale" className="p-5 md:p-6 lg:p-7">
-          <VisionShape
-            size={320}
-            imageSrc={posterSrc}
-            videoSrc={videoSrc}
-            imageAlt={media.alt}
-            className="w-full h-auto"
-          />
-        </div>
-        <div className="-mt-8 md:-mt-12 lg:-mt-16 pl-8 md:pl-10 lg:pl-12 pr-5 md:pr-6 lg:pr-7 pb-6 md:pb-7 lg:pb-8 flex flex-col gap-3 md:gap-4 max-w-[62%]">
+        {hasMedia ? (
+          <div data-reveal="scale" className="p-5 md:p-6 lg:p-7">
+            <VisionShape
+              size={320}
+              imageSrc={posterSrc}
+              videoSrc={videoSrc}
+              imageAlt={media!.alt}
+              className="w-full h-auto"
+            />
+          </div>
+        ) : null}
+        <div
+          className={`${
+            hasMedia
+              ? "-mt-8 md:-mt-12 lg:-mt-16 pl-8 md:pl-10 lg:pl-12 pr-5 md:pr-6 lg:pr-7 pb-6 md:pb-7 lg:pb-8 max-w-[62%]"
+              : "px-5 md:px-6 lg:px-7 py-6 md:py-7 lg:py-8 mt-auto mb-auto"
+          } flex flex-col gap-3 md:gap-4`}
+        >
           <span className="text-[11px] md:text-xs lg:text-sm font-bold tracking-[0.14em] text-primary-500 uppercase leading-tight">
             {pillar.eyebrow}
           </span>
@@ -643,36 +647,31 @@ function PillarCard({ pillar }: { pillar: PillarData }) {
           {pillar.description}
         </p>
       </div>
-      <div className="px-5 md:px-6 lg:px-7 pt-4 md:pt-5 lg:pt-6 pb-5 md:pb-6 lg:pb-7 mt-auto">
-        <div
-          data-reveal="scale"
-          className="relative aspect-5/4 rounded-lg overflow-hidden"
-        >
-          {videoSrc ? (
-            <video
-              src={videoSrc}
-              poster={posterSrc}
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="metadata"
-              disableRemotePlayback
-              disablePictureInPicture
-              aria-label={media.alt || undefined}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          ) : (
-            <Image
-              src={posterSrc}
-              alt={media.alt}
-              fill
-              sizes="(min-width: 768px) 30vw, 90vw"
-              className="object-cover"
-            />
-          )}
+      {hasMedia ? (
+        <div className="px-5 md:px-6 lg:px-7 pt-4 md:pt-5 lg:pt-6 pb-5 md:pb-6 lg:pb-7 mt-auto">
+          <div
+            data-reveal="scale"
+            className="relative aspect-5/4 rounded-lg overflow-hidden"
+          >
+            {videoSrc ? (
+              <LazyVideo
+                src={videoSrc}
+                poster={posterSrc}
+                ariaLabel={media!.alt || undefined}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            ) : (
+              <Image
+                src={posterSrc}
+                alt={media!.alt}
+                fill
+                sizes="(min-width: 768px) 30vw, 90vw"
+                className="object-cover"
+              />
+            )}
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }

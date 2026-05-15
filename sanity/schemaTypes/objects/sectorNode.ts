@@ -79,13 +79,6 @@ export const sectorNode = defineType({
           hidden: ({ parent }) => parent?.kind !== "video",
         }),
         defineField({
-          name: "videoFallbackSrc",
-          title: "Video fallback URL",
-          type: "string",
-          description: "Public URL or /public path used when no upload is provided.",
-          hidden: ({ parent }) => parent?.kind !== "video",
-        }),
-        defineField({
           name: "videoPoster",
           title: "Poster image (shown before video plays / on slow connections)",
           type: "imageWithAlt",
@@ -97,22 +90,15 @@ export const sectorNode = defineType({
           const m = value as
             | {
                 kind?: string;
-                image?: { asset?: unknown; fallbackSrc?: string };
+                image?: { asset?: unknown };
                 video?: { asset?: unknown };
-                videoFallbackSrc?: string;
               }
             | undefined;
-          // Missing kind is treated as "image" — legacy data created before
-          // the kind selector was added stays valid without manual touch-up.
           const kind = m?.kind ?? "image";
           if (kind === "image") {
-            if (!m?.image?.asset && !m?.image?.fallbackSrc) {
-              return "Upload an image or provide a fallback path.";
-            }
+            if (!m?.image?.asset) return "Upload an image.";
           } else if (kind === "video") {
-            if (!m?.video?.asset && !m?.videoFallbackSrc) {
-              return "Upload a video or provide a fallback URL.";
-            }
+            if (!m?.video?.asset) return "Upload a video.";
           }
           return true;
         }),

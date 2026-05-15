@@ -53,15 +53,19 @@ export default function InitiativesShape({
   const useCinematic = hasMedia && cinematic;
 
   return (
+    <div
+      className={`relative ${className ?? ""}`}
+      style={{ aspectRatio: `${W} / ${H}` }}
+      role={hasMedia ? "img" : undefined}
+      aria-label={hasMedia ? imageAlt || undefined : undefined}
+    >
     <svg
-      width={size}
-      height={size * ASPECT}
+      width="100%"
+      height="100%"
       viewBox={VIEWBOX}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      role={hasMedia ? "img" : undefined}
-      aria-label={hasMedia ? imageAlt || undefined : undefined}
+      className="absolute inset-0"
       {...rest}
     >
       <defs>
@@ -140,6 +144,7 @@ export default function InitiativesShape({
               <g filter={`url(#${filterId})`}>
                 <ShapeMedia
                   clipId={clipId}
+          pathD={PATH_D}
                   width={W}
                   height={H}
                   imageSrc={imageSrc}
@@ -179,6 +184,7 @@ export default function InitiativesShape({
         ) : (
           <ShapeMedia
             clipId={clipId}
+          pathD={PATH_D}
             width={W}
             height={H}
             imageSrc={imageSrc}
@@ -190,5 +196,6 @@ export default function InitiativesShape({
         <path d={PATH_D} fill={fill} />
       )}
     </svg>
+    </div>
   );
 }

@@ -13,7 +13,7 @@ function resolveMenuMedia(
 ): ResolvedMenuMedia | undefined {
   if (!m) return undefined;
   if (m.kind === "video") {
-    const src = m.videoUrl || m.videoFallbackSrc || undefined;
+    const src = m.videoUrl || undefined;
     if (!src) return undefined;
     return { type: "video", src };
   }

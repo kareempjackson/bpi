@@ -25,9 +25,9 @@ export default function WhyBpiSection({
   body = DEFAULT_BODY,
   ctaLabel = "Why BPI?",
   ctaHref = "/why-bpi",
-  imageSrc = "/images/cdc-_N7I1JyPYJw-unsplash.jpg",
+  imageSrc,
   videoSrc,
-  imageAlt = "BPI team meeting in Barbados",
+  imageAlt = "",
 }: Props) {
   return (
     <section data-nav-theme="light" className="bg-error-25 px-5 md:px-20 lg:px-32 py-8 md:py-12 lg:py-16">
@@ -47,7 +47,10 @@ export default function WhyBpiSection({
                 {body}
               </p>
             </div>
-            <CtaLink href={ctaHref} className="inline-flex">
+            {/* Desktop CTA — inline in the text column. On mobile this
+                hides and the button re-appears as an overlay in the
+                shape's top-left notch (see below). */}
+            <CtaLink href={ctaHref} className="hidden md:inline-flex">
               <Button variant="tertiary" size="sm">
                 {ctaLabel}
                 <ArrowRight />
@@ -55,15 +58,33 @@ export default function WhyBpiSection({
             </CtaLink>
           </div>
 
-          <div data-reveal="scale" className="md:col-span-5 flex justify-end">
+          <div
+            data-reveal="scale"
+            className="md:col-span-5 relative md:flex md:justify-end"
+          >
             <WhyShape
               size={480}
               imageSrc={imageSrc}
               videoSrc={videoSrc}
               imageAlt={imageAlt}
               imagePosition="xMidYMin slice"
-              className="w-full h-auto max-w-sm md:max-w-none"
+              className="w-full h-auto md:max-w-none"
             />
+            {/* Mobile-only CTA — centered inside the notch carved out
+                of the WhyShape's top-left corner. The notch geometry
+                from the SVG path is ~30.5% wide × ~20% tall, so anchor
+                the button at (15.25%, 10%) of the container and offset
+                back by half its size to sit in the dead-centre of that
+                empty area. */}
+            <CtaLink
+              href={ctaHref}
+              className="md:hidden absolute top-[10%] left-[15.25%] -translate-x-1/2 -translate-y-1/2 inline-flex"
+            >
+              <Button variant="tertiary" size="sm">
+                {ctaLabel}
+                <ArrowRight />
+              </Button>
+            </CtaLink>
           </div>
         </div>
       </div>

@@ -61,13 +61,13 @@ export default function UnderConstructionCatchAll() {
           <div className="mt-8 lg:mt-10 flex flex-wrap items-center justify-center gap-2.5 md:gap-3">
             <Link
               href="/"
-              className="rounded-round border border-dashed border-primary-500/45 bg-error-500 px-6 lg:px-7 py-2.5 lg:py-3 text-sm lg:text-base font-semibold text-primary-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-error-400 hover:border-primary-500/70 active:scale-[0.98] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-error-500/60"
+              className="rounded-round border border-dashed border-primary-500/45 bg-error-500 px-6 lg:px-7 py-2.5 lg:py-3 text-sm lg:text-base font-semibold text-primary-500 transition-all duration-300 ease-[var(--ease-premium)] hover:bg-error-400 hover:border-primary-500/70 active:scale-[0.98] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-error-500/60"
             >
               Back to home
             </Link>
             <Link
               href="/contact"
-              className="rounded-round border border-dashed border-primary-500/60 bg-transparent px-6 lg:px-7 py-2.5 lg:py-3 text-sm lg:text-base font-semibold text-primary-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-primary-500/5 hover:border-primary-500/90 active:scale-[0.98] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500/40"
+              className="rounded-round border border-dashed border-primary-500/60 bg-transparent px-6 lg:px-7 py-2.5 lg:py-3 text-sm lg:text-base font-semibold text-primary-500 transition-all duration-300 ease-[var(--ease-premium)] hover:bg-primary-500/5 hover:border-primary-500/90 active:scale-[0.98] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500/40"
             >
               Contact us
             </Link>

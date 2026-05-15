@@ -8,7 +8,8 @@ import InitiativesShape from "./shapes/InitiativesShape";
 type Initiative = {
   title: string;
   description: string;
-  href: string;
+  /** When omitted, the row renders as a non-clickable display-only card. */
+  href?: string;
   featured?: boolean;
   imageSrc?: string;
   videoSrc?: string;
@@ -25,48 +26,14 @@ type Props = {
   imageAlt?: string;
 };
 
-const DEFAULT_INITIATIVES: Initiative[] = [
-  {
-    title: "AMA IV Fluids Manufacturing — Grantley Adams Industrial Estate",
-    description:
-      "The first Africa–Caribbean pharmaceutical trade corridor. 12 million units annually. A corridor, not a pilot.",
-    href: "/initiatives/ama-iv-fluids",
-    featured: true,
-    imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-    imageAlt: "AMA IV Fluids manufacturing facility",
-  },
-  {
-    title: "PAHO Regional Supply Hub",
-    description:
-      "Serving 40+ countries across the Caribbean and Latin America.",
-    href: "/initiatives/paho-supply-hub",
-    imageSrc: "/images/top.png",
-    imageAlt: "PAHO Regional Supply Hub",
-  },
-  {
-    title: "EU PharmaNext",
-    description: "€3M transatlantic pharmaceutical investment bridge.",
-    href: "/initiatives/eu-pharmanext",
-    imageSrc: "/images/top2.png",
-    imageAlt: "EU PharmaNext partnership",
-  },
-  {
-    title: "BMPRA Regulatory Development",
-    description: "Barbados's own standard-holder, built with WHO and PAHO.",
-    href: "/initiatives/bmpra",
-    imageSrc: "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
-    imageAlt: "BMPRA regulatory development",
-  },
-];
-
 export default function InitiativesSection({
   eyebrow = "WHAT WE'RE BUILDING",
   heading = "Initiatives",
   viewAllHref = "/initiatives",
-  initiatives = DEFAULT_INITIATIVES,
-  imageSrc = "/images/katherine-hanlon-pNxzedQ5qyU-unsplash.jpg",
+  initiatives = [],
+  imageSrc,
   videoSrc,
-  imageAlt = "Pharmaceutical research at BPI",
+  imageAlt = "",
 }: Props) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   // Default to the FIRST initiative's media when nothing is hovered, so
@@ -102,14 +69,14 @@ export default function InitiativesSection({
           </div>
           <CtaLink
             href={viewAllHref}
-            className="group/viewall flex items-center gap-3 text-primary-500 transition-opacity duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-80 focus-visible:outline-none focus-visible:opacity-100"
+            className="group/viewall flex items-center gap-3 text-primary-500 transition-opacity duration-300 ease-[var(--ease-premium)] hover:opacity-80 focus-visible:outline-none focus-visible:opacity-100"
           >
-            <span className="hidden md:inline font-display text-base lg:text-[18.71px] font-normal leading-none tracking-normal transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/viewall:-translate-x-0.5 motion-reduce:transform-none">
+            <span className="hidden md:inline font-display text-base lg:text-[18.71px] font-normal leading-none tracking-normal transition-transform duration-300 ease-[var(--ease-premium)] group-hover/viewall:-translate-x-0.5 motion-reduce:transform-none">
               View all
             </span>
             <ArrowCircle
               size={36}
-              className="text-primary-500 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/viewall:translate-x-1 group-hover/viewall:rotate-[8deg] motion-reduce:transform-none"
+              className="text-primary-500 transition-transform duration-300 ease-[var(--ease-premium)] group-hover/viewall:translate-x-1 group-hover/viewall:rotate-[8deg] motion-reduce:transform-none"
             />
           </CtaLink>
         </div>
@@ -145,7 +112,7 @@ export default function InitiativesSection({
           >
             {initiatives.map((initiative, idx) => (
               <InitiativeRow
-                key={initiative.href}
+                key={initiative.href ?? `${initiative.title}-${idx}`}
                 index={idx + 1}
                 initiative={initiative}
                 isActive={activeIndex === idx}
@@ -170,24 +137,23 @@ function InitiativeRow({
   isActive: boolean;
   onHover: () => void;
 }) {
-  return (
-    <CtaLink
-      href={initiative.href}
-      onMouseEnter={onHover}
-      onFocus={onHover}
-      className={`group flex items-center gap-3 md:gap-4 lg:gap-6 rounded-lg pl-4 md:pl-6 lg:pl-8 pr-3 md:pr-4 lg:pr-6 py-4 md:py-5 lg:py-6 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 ${
-        isActive
-          ? "bg-gray-50 shadow-[0_6px_22px_-14px_rgba(0,0,54,0.25)]"
-          : "bg-white hover:bg-gray-50 hover:shadow-[0_6px_22px_-14px_rgba(0,0,54,0.25)]"
-      }`}
-    >
-      <div
-        className={`shrink-0 w-14 md:w-20 lg:w-24 font-display text-5xl md:text-7xl lg:text-[102.07px] font-thin leading-none tracking-normal uppercase transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          isActive ? "text-primary-500/60" : "text-gray-300 group-hover:text-primary-500/60"
-        }`}
-      >
-        {index}
-      </div>
+  const clickable = !!initiative.href;
+  const numberClassName = `shrink-0 w-14 md:w-20 lg:w-24 font-display text-5xl md:text-7xl lg:text-[102.07px] font-thin leading-none tracking-normal uppercase transition-colors duration-300 ease-[var(--ease-premium)] ${
+    isActive ? "text-primary-500/60" : "text-gray-300 group-hover:text-primary-500/60"
+  }`;
+  const rowClassName = `group flex items-center gap-3 md:gap-4 lg:gap-6 rounded-lg pl-4 md:pl-6 lg:pl-8 pr-3 md:pr-4 lg:pr-6 py-4 md:py-5 lg:py-6 transition-all duration-300 ease-[var(--ease-premium)] ${
+    clickable
+      ? "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 cursor-pointer"
+      : "cursor-default"
+  } ${
+    isActive
+      ? "bg-gray-50 shadow-[0_6px_22px_-14px_rgba(0,0,54,0.25)]"
+      : "bg-white hover:bg-gray-50 hover:shadow-[0_6px_22px_-14px_rgba(0,0,54,0.25)]"
+  }`;
+
+  const inner = (
+    <>
+      <div className={numberClassName}>{index}</div>
 
       <div className="flex-1 min-w-0">
         {initiative.featured ? (
@@ -195,7 +161,7 @@ function InitiativeRow({
             Featured
           </div>
         ) : null}
-        <h3 className="text-base lg:text-[22px] font-light text-primary-500 leading-[1.2] tracking-normal line-clamp-1 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-0.5 motion-reduce:transform-none">
+        <h3 className="text-base lg:text-[22px] font-light text-primary-500 leading-[1.2] tracking-normal line-clamp-1 transition-transform duration-300 ease-[var(--ease-premium)] group-hover:translate-x-0.5 motion-reduce:transform-none">
           {initiative.title}
         </h3>
       </div>
@@ -204,14 +170,42 @@ function InitiativeRow({
         {initiative.description}
       </p>
 
-      <ArrowCircle
-        size={36}
-        className={`shrink-0 text-primary-500 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transform-none ${
-          isActive
-            ? "translate-x-1 rotate-[8deg]"
-            : "group-hover:translate-x-1 group-hover:rotate-[8deg]"
-        }`}
-      />
+      {clickable ? (
+        <ArrowCircle
+          size={36}
+          className={`shrink-0 text-primary-500 transition-transform duration-300 ease-[var(--ease-premium)] motion-reduce:transform-none ${
+            isActive
+              ? "translate-x-1 rotate-[8deg]"
+              : "group-hover:translate-x-1 group-hover:rotate-[8deg]"
+          }`}
+        />
+      ) : null}
+    </>
+  );
+
+  // Display-only initiatives (no href) render as a div — still hover-
+  // reactive (the media panel reads the active index) but not clickable
+  // and not focusable. Skips the arrow chevron too so the row reads as
+  // a card rather than a CTA.
+  if (!clickable) {
+    return (
+      <div
+        onMouseEnter={onHover}
+        className={rowClassName}
+      >
+        {inner}
+      </div>
+    );
+  }
+
+  return (
+    <CtaLink
+      href={initiative.href!}
+      onMouseEnter={onHover}
+      onFocus={onHover}
+      className={rowClassName}
+    >
+      {inner}
     </CtaLink>
   );
 }

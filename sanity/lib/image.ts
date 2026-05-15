@@ -34,60 +34,41 @@ function resolveImageUrl(
 
 /**
  * Image-only resolver used by callers that can't render video. When the
- * media is a video, returns the poster image (if uploaded) or the
- * `fallbackSrc` (treated as the poster fallback) so the consumer can
- * still render *something*.
+ * media is a video, returns the uploaded poster image (if any) so the
+ * consumer can still render *something*.
  */
 export function resolveImage(
   image: SanityImage | null | undefined,
   options?: { width?: number },
 ): ResolvedImage | null {
   if (!image) return null;
-  const alt = image.alt ?? "";
-
   const url = resolveImageUrl(image, options?.width);
-  if (url) return { src: url, alt };
-  if (image.fallbackSrc) return { src: image.fallbackSrc, alt };
-  return null;
+  if (!url) return null;
+  return { src: url, alt: image.alt ?? "" };
 }
 
 /**
  * Full media resolver — returns a discriminated union so consumers can
- * render `<video>` for video media and `<image>` / `<Image>` for image
- * media. Returns `null` when neither an upload nor a fallback is set.
+ * render `<Image>` for image media or `<video>` for video media.
+ * `imageWithAlt` now supports both: when `kind === "video"` and a video
+ * upload exists, returns a `video` result with the uploaded asset's
+ * CDN URL as `src` and the (optional) image upload as `poster`.
+ * Falls back to image rendering when no video is set.
  */
 export function resolveMedia(
   image: SanityImage | null | undefined,
-  options?: { width?: number; posterWidth?: number },
+  options?: { width?: number },
 ): ResolvedMedia | null {
   if (!image) return null;
-  const alt = image.alt ?? "";
-
-  if (image.kind === "video") {
-    const src = image.videoUrl || image.videoFallbackSrc || undefined;
-    if (!src) {
-      // No video, fall through to the image branch — editor may have picked
-      // video but not yet uploaded anything; show a poster image if any.
-      const url = resolveImageUrl(image, options?.width);
-      const imgSrc = url ?? image.fallbackSrc ?? null;
-      if (!imgSrc) return null;
-      return { kind: "image", src: imgSrc, alt };
-    }
-    const posterUrl =
-      resolveImageUrl(image, options?.posterWidth ?? options?.width) ??
-      image.fallbackSrc ??
-      undefined;
+  const posterUrl = resolveImageUrl(image, options?.width);
+  if (image.kind === "video" && image.videoUrl) {
     return {
       kind: "video",
-      src,
-      ...(posterUrl ? { poster: posterUrl } : {}),
-      alt,
+      src: image.videoUrl,
+      poster: posterUrl ?? undefined,
+      alt: image.alt ?? "",
     };
   }
-
-  // Default: image kind (or unset)
-  const url = resolveImageUrl(image, options?.width);
-  if (url) return { kind: "image", src: url, alt };
-  if (image.fallbackSrc) return { kind: "image", src: image.fallbackSrc, alt };
-  return null;
+  if (!posterUrl) return null;
+  return { kind: "image", src: posterUrl, alt: image.alt ?? "" };
 }
