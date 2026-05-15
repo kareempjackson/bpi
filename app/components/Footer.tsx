@@ -1,4 +1,5 @@
 import Logo from "./Logo";
+import NewsletterForm from "./NewsletterForm";
 
 type NavLink = { label: string; href: string };
 type SocialName = "LinkedIn" | "X" | "Instagram" | "YouTube";
@@ -22,7 +23,6 @@ type Props = {
   partners?: Partner[];
   /** Toggle the partner marquee on/off. Defaults to true. */
   showPartners?: boolean;
-  newsletterAction?: string;
   className?: string;
 };
 
@@ -139,12 +139,9 @@ export default function Footer({
   socialLinks = DEFAULT_SOCIAL,
   partners = DEFAULT_PARTNERS,
   showPartners = true,
-  newsletterAction,
   className,
 }: Props) {
   const year = new Date().getFullYear();
-  const pillField =
-    "w-full rounded-round border border-dashed border-white/50 bg-white px-6 py-3.5 text-base text-primary-500 placeholder:text-gray-400 outline-none focus:border-white focus:ring-2 focus:ring-error-500/30";
 
   // The marquee duplicates the list to make the loop seamless. If the
   // editor only uploaded one or two logos, that 2× duplicate looks like
@@ -190,43 +187,7 @@ export default function Footer({
               className="text-white w-36 sm:w-44 md:w-52 lg:w-56 h-auto"
             />
           </span>
-          <form
-            action={newsletterAction}
-            method="post"
-            className="flex-1 flex flex-col md:flex-row md:items-center gap-3 md:gap-4 lg:ml-8 w-full"
-          >
-            <span className="font-display text-lg sm:text-xl md:text-2xl lg:text-display-xs text-white shrink-0 tracking-[-0.01em]">
-              Newsletter signup
-            </span>
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2.5 md:gap-3 min-w-0">
-              <label className="sr-only" htmlFor="footer-newsletter-name">Full name</label>
-              <input
-                id="footer-newsletter-name"
-                name="fullName"
-                type="text"
-                placeholder="Full Name"
-                autoComplete="name"
-                required
-                className={pillField}
-              />
-              <label className="sr-only" htmlFor="footer-newsletter-email">Email</label>
-              <input
-                id="footer-newsletter-email"
-                name="email"
-                type="email"
-                placeholder="Email"
-                autoComplete="email"
-                required
-                className={pillField}
-              />
-            </div>
-            <button
-              type="submit"
-              className="shrink-0 rounded-round border border-dashed border-error-700/50 bg-error-500 px-5 py-3 text-sm md:px-6 md:py-3.5 md:text-base font-semibold text-primary-500 transition-all duration-300 ease-[var(--ease-premium)] hover:bg-error-400 hover:border-error-700/80 hover:-translate-y-0.5 hover:shadow-[0_8px_22px_-10px_rgba(0,0,54,0.5)] active:translate-y-0 active:scale-[0.98] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-error-500/60"
-            >
-              Sign up for newsletter
-            </button>
-          </form>
+          <NewsletterForm />
         </div>
       </div>
 

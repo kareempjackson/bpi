@@ -8,6 +8,7 @@ import { homePage } from "./documents/homePage";
 import { initiative } from "./documents/initiative";
 import { initiativesPage } from "./documents/initiativesPage";
 import { job } from "./documents/job";
+import { newsletterSubscription } from "./documents/newsletterSubscription";
 import { post } from "./documents/post";
 import { siteSettings } from "./documents/siteSettings";
 import { contactRow } from "./objects/contactRow";
@@ -56,4 +57,5 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   post,
   job,
   contactSubmission,
+  newsletterSubscription,
 ];

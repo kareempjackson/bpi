@@ -86,39 +86,58 @@ function computeLogoSize(cardW: number): number {
   return 138;
 }
 
-function buildHeroPath(W: number, H: number, geo: HeroGeo): string {
+// Default path builder — uses SVG `A` (arc) commands. Compact and works
+// in every browser EXCEPT desktop Safari's CSS `clip-path: path()`,
+// which mis-interprets the sweep-flag and renders a warped/bulbous
+// shape. Used on mobile and non-Safari desktop.
+function buildHeroPathArcs(W: number, H: number, geo: HeroGeo): string {
   const { R, nr, nh } = geo;
   const minNotchW = 3 * nr;
   const maxNotchW = Math.max(minNotchW, W - R - nr);
   const notchW = Math.min(Math.max(geo.notchW, minNotchW), maxNotchW);
   const x1 = W - notchW;
-  // Approximate each 90° arc with a cubic Bézier. SVG `A` commands work
-  // in SVG `<path>` and in Chrome's CSS `clip-path: path()`, but Safari
-  // mis-interprets the sweep-flag and renders the notch as a warped /
-  // bulbous shape. Bézier control points are mathematically equivalent
-  // and parse identically on every browser.
-  const K = 0.5522847498; // (4/3) * tan(π/8) — the magic constant.
+  return [
+    `M${R} 0`,
+    `H${x1}`,
+    `A${nr} ${nr} 0 0 1 ${x1 + nr} ${nr}`,
+    `V${nh - nr}`,
+    `A${nr} ${nr} 0 0 0 ${x1 + 2 * nr} ${nh}`,
+    `H${W - nr}`,
+    `A${nr} ${nr} 0 0 1 ${W} ${nh + nr}`,
+    `V${H - R}`,
+    `A${R} ${R} 0 0 1 ${W - R} ${H}`,
+    `H${R}`,
+    `A${R} ${R} 0 0 1 0 ${H - R}`,
+    `V${R}`,
+    `A${R} ${R} 0 0 1 ${R} 0`,
+    "Z",
+  ].join(" ");
+}
+
+// Bézier-only variant for desktop Safari — every 90° arc replaced with
+// a cubic Bézier (visually identical, parsed correctly).
+function buildHeroPathBeziers(W: number, H: number, geo: HeroGeo): string {
+  const { R, nr, nh } = geo;
+  const minNotchW = 3 * nr;
+  const maxNotchW = Math.max(minNotchW, W - R - nr);
+  const notchW = Math.min(Math.max(geo.notchW, minNotchW), maxNotchW);
+  const x1 = W - notchW;
+  const K = 0.5522847498; // (4/3) * tan(π/8) — the cubic-bezier circle constant.
   const kr = K * R;
   const kn = K * nr;
   return [
     `M${R} 0`,
     `H${x1}`,
-    // Top of card → inside-top of notch (concave-down corner).
     `C${x1 + kn} 0 ${x1 + nr} ${nr - kn} ${x1 + nr} ${nr}`,
     `V${nh - nr}`,
-    // Inside-bottom of notch → notch shelf (concave-up corner).
     `C${x1 + nr} ${nh - nr + kn} ${x1 + 2 * nr - kn} ${nh} ${x1 + 2 * nr} ${nh}`,
     `H${W - nr}`,
-    // Notch shelf → card right edge.
     `C${W - nr + kn} ${nh} ${W} ${nh + nr - kn} ${W} ${nh + nr}`,
     `V${H - R}`,
-    // Bottom-right outer corner.
     `C${W} ${H - R + kr} ${W - R + kr} ${H} ${W - R} ${H}`,
     `H${R}`,
-    // Bottom-left outer corner.
     `C${R - kr} ${H} 0 ${H - R + kr} 0 ${H - R}`,
     `V${R}`,
-    // Top-left outer corner.
     `C0 ${R - kr} ${R - kr} 0 ${R} 0`,
     "Z",
   ].join(" ");
@@ -157,6 +176,12 @@ export default function HeroSection({
   const [cardSize, setCardSize] = useState<{ w: number; h: number }>(
     DEFAULT_CARD_SIZE,
   );
+  // Browser check is gated on desktop. On mobile we always render the
+  // default arc-based path (mobile Safari handles it fine; mobile Chrome
+  // is unaffected). On desktop we sniff Safari and swap to the cubic
+  // Bézier path because desktop Safari's CSS `clip-path: path()`
+  // mis-renders the arc commands.
+  const [isDesktopSafari, setIsDesktopSafari] = useState(false);
 
   useEffect(() => {
     const mqDesktop = window.matchMedia("(min-width: 768px)");
@@ -172,6 +197,22 @@ export default function HeroSection({
       mqReduce.removeEventListener("change", onReduce);
     };
   }, []);
+
+  useEffect(() => {
+    // Only run the Safari detection on desktop — mobile keeps the
+    // default code path without any UA sniffing.
+    if (!isDesktop) {
+      setIsDesktopSafari(false);
+      return;
+    }
+    if (typeof navigator === "undefined") return;
+    const ua = navigator.userAgent;
+    // Safari but not Chrome / Edge / Firefox / Android (Chrome's UA
+    // includes the literal word "Safari", so we exclude those engines).
+    const isSafari =
+      /^((?!chrome|crios|fxios|edg|android|opr).)*safari/i.test(ua);
+    setIsDesktopSafari(isSafari);
+  }, [isDesktop]);
 
   // Track the card's measured pixel size so the clip-path stays sleek.
   // `offsetWidth` / `offsetHeight` ignore the scroll-driven scale transform
@@ -198,7 +239,13 @@ export default function HeroSection({
   }, []);
 
   const heroGeo = computeHeroGeo(cardSize.w);
-  const heroPath = buildHeroPath(cardSize.w, cardSize.h, heroGeo);
+  // Desktop Safari needs the Bézier-only path; every other browser
+  // (mobile Safari, mobile Chrome, desktop Chrome / Firefox / Edge)
+  // uses the more compact arc-based path. The detection itself is
+  // skipped on mobile — `isDesktopSafari` stays false there.
+  const heroPath = isDesktopSafari
+    ? buildHeroPathBeziers(cardSize.w, cardSize.h, heroGeo)
+    : buildHeroPathArcs(cardSize.w, cardSize.h, heroGeo);
   const logoSize = computeLogoSize(cardSize.w);
   const heroVars = {
     "--hero-logo-left": `${cardSize.w < 640 ? 16 : heroGeo.R}px`,

@@ -58,6 +58,9 @@ export const structure: StructureResolver = (S) =>
       S.documentTypeListItem("post").title("Posts"),
       S.divider(),
       S.documentTypeListItem("contactSubmission").title("Contact submissions"),
+      S.documentTypeListItem("newsletterSubscription").title(
+        "Newsletter subscriptions",
+      ),
       S.divider(),
       ...S.documentTypeListItems().filter((item) => {
         const id = item.getId() ?? "";
@@ -66,7 +69,8 @@ export const structure: StructureResolver = (S) =>
           id !== "post" &&
           id !== "initiative" &&
           id !== "job" &&
-          id !== "contactSubmission"
+          id !== "contactSubmission" &&
+          id !== "newsletterSubscription"
         );
       }),
     ]);
