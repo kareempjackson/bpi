@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 
-import Button from "../../components/Button";
 import ContactShape from "../../components/shapes/ContactShape";
 import WhyShape from "../../components/shapes/WhyShape";
 import { resolveMedia } from "../../../sanity/lib/image";
@@ -10,6 +9,7 @@ import type {
   ContactPage,
   ContactRow as ContactRowData,
 } from "../../../sanity/lib/types";
+import ContactForm from "./ContactForm";
 
 // ISR — re-render at most every 60s; matches other (site) routes.
 export const revalidate = 60;
@@ -33,11 +33,6 @@ export async function generateMetadata(): Promise<Metadata> {
       "Ready to partner with Barbados Pharmaceutical Inc.? Get in touch.",
   };
 }
-
-const INPUT_CLASS =
-  "peer w-full rounded-round border border-transparent bg-white px-5 py-3 text-sm text-primary-500 placeholder-transparent outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10";
-const FLOATING_LABEL_CLASS =
-  "pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-sm text-primary-500 transition-opacity peer-focus:opacity-0 peer-[:not(:placeholder-shown)]:opacity-0";
 
 export default async function ContactPage() {
   const data = await getContactPage();
@@ -100,67 +95,7 @@ export default async function ContactPage() {
               {data.formDescription}
             </p>
 
-            <form
-              method="post"
-              action="/api/contact"
-              className="mt-6 lg:mt-8 flex flex-col gap-3 max-w-xl"
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="relative">
-                  <input
-                    name="fullName"
-                    placeholder="Full Name"
-                    autoComplete="name"
-                    required
-                    aria-label="Full Name"
-                    className={INPUT_CLASS}
-                  />
-                  <label className={FLOATING_LABEL_CLASS}>
-                    Full Name <span className="text-[#ff5a5a]">*</span>
-                  </label>
-                </div>
-                <div className="relative">
-                  <input
-                    name="businessName"
-                    placeholder="Business Name"
-                    autoComplete="organization"
-                    aria-label="Business Name"
-                    className={INPUT_CLASS}
-                  />
-                  <label className={FLOATING_LABEL_CLASS}>Business Name</label>
-                </div>
-                <div className="relative">
-                  <input
-                    name="phone"
-                    type="tel"
-                    placeholder="Phone Number"
-                    autoComplete="tel"
-                    aria-label="Phone Number"
-                    className={INPUT_CLASS}
-                  />
-                  <label className={FLOATING_LABEL_CLASS}>Phone Number</label>
-                </div>
-                <div className="relative">
-                  <input
-                    name="email"
-                    type="email"
-                    placeholder="Email"
-                    autoComplete="email"
-                    required
-                    aria-label="Email"
-                    className={INPUT_CLASS}
-                  />
-                  <label className={FLOATING_LABEL_CLASS}>
-                    Email <span className="text-[#ff5a5a]">*</span>
-                  </label>
-                </div>
-              </div>
-              <div className="mt-2">
-                <Button variant="primary" type="submit">
-                  {data.formSubmitLabel}
-                </Button>
-              </div>
-            </form>
+            <ContactForm submitLabel={data.formSubmitLabel} />
           </div>
 
           {formMedia ? (

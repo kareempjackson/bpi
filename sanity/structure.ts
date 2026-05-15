@@ -57,13 +57,16 @@ export const structure: StructureResolver = (S) =>
       S.documentTypeListItem("job").title("Jobs"),
       S.documentTypeListItem("post").title("Posts"),
       S.divider(),
+      S.documentTypeListItem("contactSubmission").title("Contact submissions"),
+      S.divider(),
       ...S.documentTypeListItems().filter((item) => {
         const id = item.getId() ?? "";
         return (
           !SINGLETON_IDS.has(id) &&
           id !== "post" &&
           id !== "initiative" &&
-          id !== "job"
+          id !== "job" &&
+          id !== "contactSubmission"
         );
       }),
     ]);

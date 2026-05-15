@@ -3,6 +3,7 @@ import type { SchemaTypeDefinition } from "sanity";
 import { aboutPage } from "./documents/aboutPage";
 import { careersPage } from "./documents/careersPage";
 import { contactPage } from "./documents/contactPage";
+import { contactSubmission } from "./documents/contactSubmission";
 import { homePage } from "./documents/homePage";
 import { initiative } from "./documents/initiative";
 import { initiativesPage } from "./documents/initiativesPage";
@@ -54,4 +55,5 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   initiative,
   post,
   job,
+  contactSubmission,
 ];

@@ -16,6 +16,11 @@ export const projectId = assertValue(
 // without it.
 export const readToken = process.env.SANITY_API_READ_TOKEN;
 
+// Server-only — required for writing documents (e.g. contact form
+// submissions). Create a token with "Editor" or "Write" permissions in
+// sanity.io/manage and set it in .env.local.
+export const writeToken = process.env.SANITY_API_WRITE_TOKEN;
+
 function assertValue<T>(v: T | undefined, errorMessage: string): T {
   if (v === undefined || v === "") {
     throw new Error(errorMessage);
