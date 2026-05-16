@@ -101,9 +101,11 @@ function HeroHeader({ page }: { page: InitiativesPage | null }) {
           </div>
 
           {/* Content card docked into the IncentivesShape notch at
-              every breakpoint. Type, padding, and CTA sizing scale
-              down aggressively at narrow widths so the copy fits the
-              notch geometry instead of overflowing it. */}
+              every breakpoint. On mobile the card anchors to the TOP
+              of the notch (just below the image edge) instead of
+              vertically centering, so the headline never overlaps the
+              photo above. Any overflow is allowed to extend below the
+              SVG into the section's bottom padding. */}
           <div
             className="absolute"
             style={{
@@ -115,7 +117,7 @@ function HeroHeader({ page }: { page: InitiativesPage | null }) {
           >
             <div
               data-reveal="fade"
-              className="h-full flex flex-col justify-center pl-3 sm:pl-5 md:pl-7 lg:pl-10 xl:pl-12 pr-2 sm:pr-3 md:pr-4 lg:pr-6 py-2 sm:py-3 md:py-5 lg:py-7"
+              className="h-full flex flex-col justify-start md:justify-center pt-3 sm:pt-4 md:pt-0 pl-3 sm:pl-5 md:pl-7 lg:pl-10 xl:pl-12 pr-2 sm:pr-3 md:pr-4 lg:pr-6 pb-0 md:py-5 lg:py-7"
             >
               <h1
                 className="hero-anim font-display text-[11px] sm:text-sm md:text-2xl lg:text-display-sm xl:text-display-md font-bold text-primary-500 leading-[1.08] tracking-[-0.015em]"
@@ -132,7 +134,7 @@ function HeroHeader({ page }: { page: InitiativesPage | null }) {
                 </p>
               ) : null}
               <div
-                className="hero-anim mt-1.5 sm:mt-2 md:mt-4 lg:mt-6 flex flex-wrap items-center gap-1.5 sm:gap-2 md:gap-2.5 lg:gap-3"
+                className="hero-anim mt-3 sm:mt-3.5 md:mt-4 lg:mt-6 flex flex-wrap items-center gap-1.5 sm:gap-2 md:gap-2.5 lg:gap-3"
                 style={{ "--anim-delay": "0.24s" } as CSSProperties}
               >
                 <CtaPrimary cta={primary} />
