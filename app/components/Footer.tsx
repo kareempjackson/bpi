@@ -63,11 +63,11 @@ const DEFAULT_LEGAL: NavLink[] = [
   { label: "Media Assets Terms of Use", href: "/media-assets-terms" },
 ];
 
+// Mirrors the modal menu — only LinkedIn and Instagram are live for BPI
+// right now. Sanity siteSettings.menuSocialLinks overrides these defaults.
 const DEFAULT_SOCIAL: SocialLink[] = [
   { name: "LinkedIn", href: "#" },
-  { name: "X", href: "#" },
-  { name: "Instagram", href: "#" },
-  { name: "YouTube", href: "#" },
+  { name: "Instagram", href: "https://www.instagram.com/barbadospharmainc" },
 ];
 
 const DEFAULT_PARTNERS: Partner[] = [
@@ -283,16 +283,36 @@ export default function Footer({
           </div>
           <div className="flex items-center gap-6 md:gap-9">
             <ul className="flex items-center gap-5 text-white/60">
-              {socialLinks.map((s) => (
-                <li key={s.name}>
-                  <span
-                    aria-label={s.name}
-                    className="inline-flex items-center justify-center cursor-default select-none"
-                  >
-                    <SocialIcon name={s.name} />
-                  </span>
-                </li>
-              ))}
+              {socialLinks.map((s) => {
+                // Skip empty / placeholder hrefs — nothing to click.
+                const hasHref = !!s.href && s.href !== "#";
+                const external = hasHref && /^https?:/i.test(s.href);
+                if (!hasHref) {
+                  return (
+                    <li key={s.name}>
+                      <span
+                        aria-label={s.name}
+                        className="inline-flex items-center justify-center cursor-default select-none"
+                      >
+                        <SocialIcon name={s.name} />
+                      </span>
+                    </li>
+                  );
+                }
+                return (
+                  <li key={s.name}>
+                    <a
+                      href={s.href}
+                      aria-label={s.name}
+                      target={external ? "_blank" : undefined}
+                      rel={external ? "noopener noreferrer" : undefined}
+                      className="inline-flex items-center justify-center transition-colors hover:text-white focus-visible:outline-none focus-visible:text-white"
+                    >
+                      <SocialIcon name={s.name} />
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         </div>

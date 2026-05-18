@@ -134,7 +134,7 @@ export const siteSettings = defineType({
           _type: "socialLink",
           _key: "sm-instagram",
           kind: "Instagram",
-          href: "#",
+          href: "https://www.instagram.com/barbadospharmainc",
         },
         { _type: "socialLink", _key: "sm-youtube", kind: "YouTube", href: "#" },
       ],

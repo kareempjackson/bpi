@@ -35,6 +35,14 @@ export default async function SiteLayout({
   }));
   const menuConfig = resolveMenuConfig(settings);
 
+  // Footer socials mirror the modal menu's social list, narrowed to the
+  // two platforms BPI is actually active on. Same Sanity field powers
+  // both surfaces, so editing the menu socials updates the footer too.
+  const footerSocialLinks = (settings?.menuSocialLinks ?? [])
+    .filter((s) => s.kind === "LinkedIn" || s.kind === "Instagram")
+    .filter((s) => !!s.href)
+    .map((s) => ({ name: s.kind as "LinkedIn" | "Instagram", href: s.href }));
+
   return (
     <LenisProvider>
       <BfcacheReset />
@@ -55,6 +63,9 @@ export default async function SiteLayout({
               logoSrc: p.logoUrl as string,
               href: p.href ?? undefined,
             })) ?? undefined
+        }
+        socialLinks={
+          footerSocialLinks.length > 0 ? footerSocialLinks : undefined
         }
       />
       <SanityLive />

@@ -27,7 +27,7 @@ const DEFAULT_SOCIALS: SocialLink[] = [
   { kind: "Website", href: "#", label: "Website" },
   { kind: "LinkedIn", href: "#" },
   { kind: "X", href: "#" },
-  { kind: "Instagram", href: "#" },
+  { kind: "Instagram", href: "https://www.instagram.com/barbadospharmainc" },
 ];
 
 export default function LeaderSection({

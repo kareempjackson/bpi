@@ -185,7 +185,7 @@ export const homePage = defineType({
         { _type: "socialLink", _key: "soc-1", kind: "Website", href: "#", label: "Website" },
         { _type: "socialLink", _key: "soc-2", kind: "LinkedIn", href: "#" },
         { _type: "socialLink", _key: "soc-3", kind: "X", href: "#" },
-        { _type: "socialLink", _key: "soc-4", kind: "Instagram", href: "#" },
+        { _type: "socialLink", _key: "soc-4", kind: "Instagram", href: "https://www.instagram.com/barbadospharmainc" },
       ],
     }),
 

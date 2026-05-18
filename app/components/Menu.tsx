@@ -48,7 +48,7 @@ const DEFAULT_LEGAL = [
 const DEFAULT_SOCIAL: SocialLink[] = [
   { name: "LinkedIn", href: "#" },
   { name: "X", href: "#" },
-  { name: "Instagram", href: "#" },
+  { name: "Instagram", href: "https://www.instagram.com/barbadospharmainc" },
   { name: "YouTube", href: "#" },
 ];
 
