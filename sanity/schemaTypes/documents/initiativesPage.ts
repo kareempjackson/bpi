@@ -152,7 +152,7 @@ export const initiativesPage = defineType({
       type: "array",
       group: "featured",
       description:
-        "Up to three other initiatives shown as cards beneath the featured banner. Pick them from the initiative list — title, excerpt, and link are pulled automatically. Deleted initiatives are skipped automatically.",
+        "Other initiatives shown as cards beneath the featured banner. Pick them from the initiative list — title, excerpt, and link are pulled automatically. Deleted initiatives are skipped automatically. Cards wrap across rows on a 3-column grid; add as many as you want.",
       of: [
         defineArrayMember({
           type: "reference",
@@ -162,7 +162,6 @@ export const initiativesPage = defineType({
           weak: true,
         }),
       ],
-      validation: (Rule) => Rule.max(3),
     }),
 
     // ─────────────────────────────────────────────────── Motion Stories ──

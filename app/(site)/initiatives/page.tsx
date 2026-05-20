@@ -288,10 +288,11 @@ function FeaturedSpotlight({
             data-reveal-stagger
             className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 lg:gap-6"
           >
-            {supporting.slice(0, 3).map((initiative, idx) => {
+            {supporting.map((initiative, idx) => {
+              // Cycle the palette so the visual rhythm continues onto
+              // additional rows when there are more than three cards.
               const palette =
-                SUPPORTING_CARD_PALETTE[idx] ??
-                SUPPORTING_CARD_PALETTE[SUPPORTING_CARD_PALETTE.length - 1];
+                SUPPORTING_CARD_PALETTE[idx % SUPPORTING_CARD_PALETTE.length];
               return (
                 <SupportingInitiativeCard
                   key={initiative._id}
