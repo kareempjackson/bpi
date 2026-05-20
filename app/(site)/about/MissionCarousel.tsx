@@ -186,8 +186,11 @@ export default function MissionCarousel({ children }: Props) {
     >
       {/* Top-right nav — lifted into the section heading row via negative
           top offset so it visually pairs with the section title rather than
-          floating above the cards. */}
-      <div className="absolute right-0 -top-16 md:-top-20 lg:-top-24 z-10 flex items-center gap-2 md:gap-2.5">
+          floating above the cards. Hidden on mobile, where the section
+          description wraps to multiple lines and would collide with the
+          arrows; mobile gets a duplicate pair inline with the progress
+          bar below the cards. */}
+      <div className="hidden md:flex absolute right-0 md:-top-20 lg:-top-24 z-10 items-center md:gap-2.5">
         <button
           type="button"
           onClick={() => scrollByStep(-1)}
@@ -230,7 +233,7 @@ export default function MissionCarousel({ children }: Props) {
         </div>
       </div>
 
-      <div className="mt-6 lg:mt-8">
+      <div className="mt-6 lg:mt-8 flex items-center gap-4">
         <div
           ref={trackRef}
           role="slider"
@@ -241,7 +244,7 @@ export default function MissionCarousel({ children }: Props) {
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={Math.round(progress * 100)}
-          className="group/track relative h-1.5 w-full max-w-md bg-primary-500/10 rounded-full cursor-pointer touch-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 focus-visible:ring-offset-4 focus-visible:ring-offset-error-25"
+          className="group/track relative h-1.5 flex-1 max-w-md bg-primary-500/10 rounded-full cursor-pointer touch-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 focus-visible:ring-offset-4 focus-visible:ring-offset-error-25"
         >
           <div
             className="absolute top-0 h-full bg-error-500 rounded-full transition-[left] duration-150 group-hover/track:bg-error-400"
@@ -250,6 +253,30 @@ export default function MissionCarousel({ children }: Props) {
               left: `${thumbLeft * 100}%`,
             }}
           />
+        </div>
+
+        {/* Mobile-only nav — sits next to the progress bar so the
+            arrows stay visible without colliding with the heading
+            description. The md+ pair lives in the top-right above. */}
+        <div className="md:hidden flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => scrollByStep(-1)}
+            disabled={!canPrev}
+            aria-label="Previous mission card"
+            className={navButtonClass}
+          >
+            <ArrowRight className="rotate-180" />
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollByStep(1)}
+            disabled={!canNext}
+            aria-label="Next mission card"
+            className={navButtonClass}
+          >
+            <ArrowRight />
+          </button>
         </div>
       </div>
     </div>
