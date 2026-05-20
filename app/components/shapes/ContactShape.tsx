@@ -47,41 +47,36 @@ export default function ContactShape({
   const hasMedia = !!(imageSrc || videoSrc);
 
   return (
-    <div
-      className={`relative ${className ?? ""}`}
-      style={{ aspectRatio: `${W} / ${H}` }}
+    <svg
+      width={size}
+      height={size * ASPECT}
+      viewBox={VIEWBOX}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
       role={hasMedia ? "img" : undefined}
       aria-label={hasMedia ? imageAlt || undefined : undefined}
+      {...rest}
     >
-      <svg
-        width="100%"
-        height="100%"
-        viewBox={VIEWBOX}
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="absolute inset-0"
-        {...rest}
-      >
-        <defs>
-          <clipPath id={clipId}>
-            <path d={PATH_D} />
-          </clipPath>
-        </defs>
-        {hasMedia ? (
-          <ShapeMedia
-            clipId={clipId}
-            pathD={PATH_D}
-            width={W}
-            height={H}
-            imageSrc={imageSrc}
-            imageAlt={imageAlt}
-            videoSrc={videoSrc}
-            imagePosition={imagePosition}
-          />
-        ) : (
-          <path d={PATH_D} fill={fill} />
-        )}
-      </svg>
-    </div>
+      <defs>
+        <clipPath id={clipId}>
+          <path d={PATH_D} />
+        </clipPath>
+      </defs>
+      {hasMedia ? (
+        <ShapeMedia
+          clipId={clipId}
+          pathD={PATH_D}
+          width={W}
+          height={H}
+          imageSrc={imageSrc}
+          imageAlt={imageAlt}
+          videoSrc={videoSrc}
+          imagePosition={imagePosition}
+        />
+      ) : (
+        <path d={PATH_D} fill={fill} />
+      )}
+    </svg>
   );
 }

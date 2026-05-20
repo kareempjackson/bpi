@@ -149,7 +149,10 @@ export default async function Home() {
     return {
       title: p.title,
       excerpt: p.excerpt,
-      href: p.externalLink || `/blog/${p.slug}`,
+      // Blog detail pages aren't built yet — route every card to the
+      // under-construction catch-all so visitors see "Please be patient
+      // with us" instead of a 404 / dead link.
+      href: "/coming-soon",
       publishedAt: p.publishedAt,
       imageSrc: mediaImageSrc(m),
       videoSrc: mediaVideoSrc(m),

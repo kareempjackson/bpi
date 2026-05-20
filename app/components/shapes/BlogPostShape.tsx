@@ -70,24 +70,19 @@ export default function BlogPostShape({
 
   if (!children) {
     return (
-      <div
-        className={`relative ${className ?? ""}`}
-        style={{ aspectRatio: `${W} / ${H}` }}
+      <svg
+        width={size}
+        height={size * ASPECT}
+        viewBox={VIEWBOX}
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className={className}
         role={hasMedia ? "img" : undefined}
         aria-label={hasMedia ? imageAlt || undefined : undefined}
+        {...rest}
       >
-        <svg
-          width="100%"
-          height="100%"
-          viewBox={VIEWBOX}
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="absolute inset-0"
-          {...rest}
-        >
-          {renderFill()}
-        </svg>
-      </div>
+        {renderFill()}
+      </svg>
     );
   }
 

@@ -31,7 +31,7 @@ const DEFAULT_POSTS: BlogSectionPost[] = [
     title: "Barbados Pharmaceutical Inc. Meets WHO and WTO Directors General in Geneva",
     excerpt:
       "A small island. A big agenda. Barbados Pharmaceutical Inc. held high level meetings in Geneva with Dr. Tedros Adhanom Ghebreyesus, Director General of the World Health Organization, and Dr. Ngozi Okonjo-Iweala, Director General of the World Trade Organization. These were not courtesy meetings. BPI came with a case and the world's top multilateral leaders heard it.",
-    href: "/about",
+    href: "/coming-soon",
     thumbVariant: 1,
   },
   {
@@ -40,7 +40,7 @@ const DEFAULT_POSTS: BlogSectionPost[] = [
       "The Caribbean Is Getting Its First IV Fluids Manufacturing Facility — and It's Being Built in Barbados",
     excerpt:
       "The Caribbean imports almost every IV fluid it uses. That changes with the construction of a $31.3 million pharmaceutical manufacturing facility at the Grantley Adams Industrial Estate. A joint venture between Barbados Pharmaceutical Inc. and Nigeria's AMA Medical Manufacturing, with capacity for 12 million units a year. The first of its kind in the region.",
-    href: "/initiatives",
+    href: "/coming-soon",
     thumbVariant: 3,
   },
   {
@@ -48,7 +48,7 @@ const DEFAULT_POSTS: BlogSectionPost[] = [
     title: "Barbados and Nigeria Sign Landmark Pharmaceutical MOU",
     excerpt:
       "Barbados Pharmaceutical Inc. and Nigeria's Presidential Initiative for Unlocking the Healthcare Value Chain have signed a Memorandum of Understanding. The first pharmaceutical manufacturing partnership of its kind between Africa and the Caribbean.",
-    href: "/initiatives",
+    href: "/coming-soon",
     thumbVariant: 2,
   },
 ];
