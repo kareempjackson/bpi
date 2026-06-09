@@ -1,5 +1,7 @@
 import { defineField, defineType } from "sanity";
 
+import { externalVideoUrlField } from "./externalVideoUrlField";
+
 /**
  * Sector node content. The 6 nodes' SVG positions / radii / label
  * coordinates are baked into the page code so the molecule layout
@@ -71,6 +73,7 @@ export const sectorNode = defineType({
           type: "imageWithAlt",
           hidden: ({ parent }) => parent?.kind !== "image",
         }),
+        externalVideoUrlField(),
         defineField({
           name: "video",
           title: "Video upload (MP4 recommended)",
@@ -92,13 +95,16 @@ export const sectorNode = defineType({
                 kind?: string;
                 image?: { asset?: unknown };
                 video?: { asset?: unknown };
+                externalVideoUrl?: string;
               }
             | undefined;
           const kind = m?.kind ?? "image";
           if (kind === "image") {
             if (!m?.image?.asset) return "Upload an image.";
           } else if (kind === "video") {
-            if (!m?.video?.asset) return "Upload a video.";
+            // Either a Sanity upload OR an external (R2) URL satisfies a video.
+            if (!m?.video?.asset && !m?.externalVideoUrl)
+              return "Upload a video or paste an external video URL.";
           }
           return true;
         }),

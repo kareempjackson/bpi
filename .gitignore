@@ -36,6 +36,12 @@ yarn-error.log*
 # vercel
 .vercel
 
+# large local video sources — these belong in Cloudflare R2 (uploaded via the
+# in-Studio uploader), not git. GitHub also hard-blocks files over 100MB.
+/public/videos/
+*.mov
+*.mp4
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

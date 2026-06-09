@@ -1,3 +1,4 @@
+import FooterWatermark from "./FooterWatermark";
 import Logo from "./Logo";
 import NewsletterForm from "./NewsletterForm";
 
@@ -39,12 +40,10 @@ const DEFAULT_NAV_GROUPS: NavGroup[] = [
   {
     title: "OUR WORK",
     links: [
-      { label: "Market Access & Trade Development", href: "/pillars/market-access" },
-      { label: "Workforce & Talent Development", href: "/pillars/workforce" },
-      { label: "Research & Development", href: "/pillars/research-development" },
-      { label: "Innovation & Technology", href: "/pillars/innovation-technology" },
-      { label: "Regulatory Development & Policy", href: "/pillars/regulatory-policy" },
-      { label: "Investment & Financing", href: "/pillars/investment-financing" },
+      { label: "Dignity", href: "/dignity" },
+      { label: "Sovereignty", href: "/sovereignty" },
+      { label: "Alliance", href: "/alliance" },
+      { label: "Initiatives", href: "/initiatives" },
     ],
   },
   {
@@ -67,7 +66,9 @@ const DEFAULT_LEGAL: NavLink[] = [
 // right now. Sanity siteSettings.menuSocialLinks overrides these defaults.
 const DEFAULT_SOCIAL: SocialLink[] = [
   { name: "LinkedIn", href: "#" },
+  { name: "X", href: "#" },
   { name: "Instagram", href: "https://www.instagram.com/barbadospharmainc" },
+  { name: "YouTube", href: "#" },
 ];
 
 const DEFAULT_PARTNERS: Partner[] = [
@@ -82,27 +83,55 @@ function SocialIcon({ name }: { name: SocialName }) {
   switch (name) {
     case "LinkedIn":
       return (
-        <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4" aria-hidden>
+        <svg
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="w-4 h-4"
+          aria-hidden
+        >
           <path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.5h4V21H3V9.5zM9 9.5h3.8v1.6h.1c.5-1 1.8-2 3.7-2 4 0 4.7 2.6 4.7 6V21h-4v-5.3c0-1.3 0-2.9-1.8-2.9s-2 1.4-2 2.8V21H9V9.5z" />
         </svg>
       );
     case "X":
       return (
-        <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4" aria-hidden>
+        <svg
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="w-4 h-4"
+          aria-hidden
+        >
           <path d="M18.244 2H21l-6.55 7.49L22 22h-6.83l-4.78-6.26L4.8 22H2l7.02-8.03L2 2h6.91l4.32 5.71L18.244 2zm-2.39 18h1.69L7.23 4H5.45l10.4 16z" />
         </svg>
       );
     case "Instagram":
       return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4" aria-hidden>
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="w-4 h-4"
+          aria-hidden
+        >
           <rect x="3" y="3" width="18" height="18" rx="5" />
           <circle cx="12" cy="12" r="4" />
-          <circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none" />
+          <circle
+            cx="17.5"
+            cy="6.5"
+            r="0.8"
+            fill="currentColor"
+            stroke="none"
+          />
         </svg>
       );
     case "YouTube":
       return (
-        <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4" aria-hidden>
+        <svg
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="w-4 h-4"
+          aria-hidden
+        >
           <path d="M23.5 6.5a3 3 0 0 0-2.1-2.1C19.5 4 12 4 12 4s-7.5 0-9.4.4A3 3 0 0 0 .5 6.5C.1 8.4.1 12 .1 12s0 3.6.4 5.5a3 3 0 0 0 2.1 2.1C4.5 20 12 20 12 20s7.5 0 9.4-.4a3 3 0 0 0 2.1-2.1c.4-1.9.4-5.5.4-5.5s0-3.6-.4-5.5zM9.75 15.5v-7l6 3.5-6 3.5z" />
         </svg>
       );
@@ -138,7 +167,7 @@ export default function Footer({
   legalLinks = DEFAULT_LEGAL,
   socialLinks = DEFAULT_SOCIAL,
   partners = DEFAULT_PARTNERS,
-  showPartners = true,
+  showPartners = false,
   className,
 }: Props) {
   const year = new Date().getFullYear();
@@ -149,38 +178,32 @@ export default function Footer({
   // half of the loop is at least 8 items wide; the visible viewport
   // never shows the "wrap" point as a result.
   const minPerHalf = 8;
-  const repeats = Math.max(1, Math.ceil(minPerHalf / Math.max(partners.length, 1)));
+  const repeats = Math.max(
+    1,
+    Math.ceil(minPerHalf / Math.max(partners.length, 1)),
+  );
   const partnerSeq = Array.from({ length: repeats }, () => partners).flat();
   const loopedPartners = [...partnerSeq, ...partnerSeq];
 
   return (
     <footer
       data-nav-theme="dark"
-      data-nav-bg="#155F8A"
+      data-nav-bg="#042D2B"
       className={`relative text-white overflow-hidden ${className ?? ""}`}
-      style={{ backgroundColor: "#155F8A" }}
+      style={{ backgroundColor: "#042D2B" }}
     >
-      {/* Animated icon watermark */}
-      <div
-        aria-hidden
-        data-reveal="fade"
-        className="pointer-events-none absolute -bottom-16 -right-10 md:-bottom-32 md:-right-24 lg:-bottom-40 lg:-right-32 z-0"
-      >
-        <Logo
-          iconOnly
-          size={420}
-          className="footer-watermark text-white w-56 md:w-80 lg:w-105 h-auto"
-        />
-      </div>
+      {/* Animated icon watermark — replays its "construction" build each
+          time the footer scrolls into view (see FooterWatermark). */}
+      <FooterWatermark />
 
       {/* Newsletter row — spans the full footer width with just a
           gutter, so the logo sits flush to the left edge and the form
           stretches across the entire row, matching the reference. */}
       <div
         data-reveal-stagger
-        className="relative z-10 px-5 sm:px-8 md:px-20 lg:px-32 xl:px-40 pt-12 sm:pt-16 md:pt-36 lg:pt-44"
+        className="relative z-10 px-5 sm:px-8 md:px-16 lg:px-32 pt-12 sm:pt-16 md:pt-36 lg:pt-44"
       >
-        <div className="flex flex-col lg:flex-row lg:items-center gap-5 md:gap-5 lg:gap-6">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
           <span aria-label="BPI" className="shrink-0">
             <Logo
               size={220}
@@ -193,35 +216,39 @@ export default function Footer({
 
       {/* Centered content — title, columns, partners — stays capped at
           the 7xl page width so it sits in a comfortable reading band. */}
-      <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8 lg:px-12 pb-6 md:pb-10 lg:pb-12">
-        {/* Title block */}
-        <div className="mt-10 md:mt-16 lg:mt-24">
-          <h2 className="font-display text-display-xs md:text-display-sm lg:text-display-md font-bold text-warning-100 leading-[1.05] tracking-[-0.02em]">
-            Barbados Pharmaceutical Inc.
-          </h2>
-          <p className="font-display text-display-xs md:text-display-sm lg:text-display-md text-warning-100/70 leading-[1.05] tracking-[-0.02em]">
-            The Caribbean&rsquo;s pharmaceutical gateway.
-          </p>
-        </div>
+      <div className="relative z-10 px-5 sm:px-8 md:px-16 lg:px-32 pb-12 md:pb-20 lg:pb-28">
+        {/* Title on the left, nav columns on the right — they sit side
+            by side from the lg breakpoint and stack on smaller screens. */}
+        <div className="mt-16 md:mt-28 lg:mt-40 flex flex-col lg:flex-row lg:items-start lg:gap-12 xl:gap-16">
+          {/* Title block */}
+          <div className="lg:flex-[1.15] lg:min-w-0">
+            <h2 className="font-display text-display-md md:text-display-xl lg:text-display-2xl font-bold text-error-300 leading-[1.02] tracking-[-0.02em]">
+              Barbados <br /> Pharmaceutical Inc.
+            </h2>
+            <p className="font-display text-display-md md:text-display-xl lg:text-display-2xl text-error-300/65 leading-[1.02] tracking-[-0.02em]">
+              Building the architecture of care.
+            </p>
+          </div>
 
-        {/* Nav columns */}
-        <div className="mt-10 md:mt-16 lg:mt-24 grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-8 md:gap-y-10 lg:gap-x-20">
-          {navGroups.map((group) => (
-            <nav key={group.title} aria-label={group.title}>
-              <h3 className="text-xs md:text-sm font-bold tracking-[0.18em] text-white uppercase">
-                {group.title}
-              </h3>
-              <ul className="mt-4 md:mt-5 border-t border-white/15">
-                {group.links.map((link) => (
-                  <li key={link.href} className="border-b border-white/15">
-                    <span className="block py-3 md:py-3.5 text-sm md:text-base text-white/60 cursor-default select-none">
-                      {link.label}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          ))}
+          {/* Nav columns */}
+          <div className="mt-12 lg:mt-0 grid grid-cols-1 sm:grid-cols-3 gap-x-10 gap-y-8 md:gap-y-10 lg:gap-x-12 lg:flex-1">
+            {navGroups.map((group) => (
+              <nav key={group.title} aria-label={group.title}>
+                <h3 className="text-xs md:text-sm font-bold tracking-[0.18em] text-white uppercase">
+                  {group.title}
+                </h3>
+                <ul className="mt-4 md:mt-5 border-t border-white/15">
+                  {group.links.map((link) => (
+                    <li key={link.href} className="border-b border-white/15">
+                      <span className="block py-3 md:py-3.5 text-sm md:text-base text-white/60 cursor-default select-none">
+                        {link.label}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            ))}
+          </div>
         </div>
 
         {/* Partners row — label on the left, infinite marquee on the
@@ -260,17 +287,18 @@ export default function Footer({
             </div>
           </div>
         ) : null}
-
       </div>
 
       {/* Bottom legal row — sits outside the inner max-w-7xl wrapper so
           it spans the full footer width edge-to-edge (just a small
           horizontal gutter), separating the legal/social strip
           visually from the centred content above. */}
-      <div className="relative z-10 px-16 sm:px-24 lg:px-32 pb-6 md:pb-8">
-        <div className="mt-10 md:mt-16 lg:mt-20 pt-6 md:pt-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between text-xs md:text-sm text-white/65">
+      <div className="relative z-10 px-5 sm:px-8 md:px-16 lg:px-32 pb-12 md:pb-16 lg:pb-20">
+        <div className="mt-16 md:mt-24 lg:mt-32 pt-6 md:pt-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between text-xs md:text-sm text-white/65">
           <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-7">
-            <span>© {year} Barbados Pharmaceutical Inc. All rights reserved.</span>
+            <span>
+              © {year} Barbados Pharmaceutical Inc. All rights reserved.
+            </span>
             <ul className="flex flex-wrap items-center gap-6">
               {legalLinks.map((link) => (
                 <li key={link.href}>
@@ -281,7 +309,7 @@ export default function Footer({
               ))}
             </ul>
           </div>
-          <div className="flex items-center gap-6 md:gap-9">
+          <div className="flex flex-col-reverse items-start gap-4 md:flex-row md:items-center md:gap-9">
             <ul className="flex items-center gap-5 text-white/60">
               {socialLinks.map((s) => {
                 // Skip empty / placeholder hrefs — nothing to click.
@@ -314,6 +342,9 @@ export default function Footer({
                 );
               })}
             </ul>
+            <span className="text-white/65">
+              © {year} Barbados Pharmaceutical Inc. All rights reserved.
+            </span>
           </div>
         </div>
       </div>

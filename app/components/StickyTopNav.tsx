@@ -2,10 +2,20 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useParams } from "next/navigation";
 import Logo from "./Logo";
+import LanguageToggle from "./LanguageToggle";
 import type { MenuConfig } from "./Menu";
 import MenuLauncher from "./MenuLauncher";
+import { hasLocale, localizedHref, toLocale } from "@/app/lib/locale";
+
+/** Strip a leading `/en|/es|…` segment so route comparisons stay locale-agnostic. */
+function stripLocale(pathname: string): string {
+  const segs = pathname.split("/");
+  if (hasLocale(segs[1])) segs.splice(1, 1);
+  const stripped = segs.join("/");
+  return stripped === "" ? "/" : stripped;
+}
 
 export type StickyNavLink = {
   label: string;
@@ -18,7 +28,7 @@ const DEFAULT_NAV_LINKS: StickyNavLink[] = [
   { label: "Initiatives", href: "/initiatives" },
 ];
 
-const FALLBACK_BG = "#cdffe6"; // matches bg-error-25 in globals.css
+const FALLBACK_BG = "#eafbf1"; // matches bg-error-25 in globals.css
 
 /**
  * Pages that mount `<HeroSection />`. Used to determine `hasHero`
@@ -88,11 +98,16 @@ export default function StickyTopNav({
   menuConfig,
 }: Props = {}) {
   const pathname = usePathname() ?? "/";
+  const params = useParams();
+  const lang = toLocale(params?.lang as string | string[] | undefined);
+  // Route comparisons use the locale-stripped path so `/en`, `/es/about`, etc.
+  // resolve like `/`, `/about`.
+  const routePath = stripLocale(pathname);
   // Resolve `hasHero` from the route up front — `usePathname` is valid
   // during SSR so the initial server-rendered nav matches what the user
   // will see on hydration: hidden over hero pages, visible on non-hero
   // pages. No state flip, no flash.
-  const initialHasHero = HERO_PATHS.has(pathname);
+  const initialHasHero = HERO_PATHS.has(routePath);
   // `ready` gates the transition classes until the initial state has
   // settled (first detect pass). Without this gate the colour change
   // from the fallback bg to the sampled bg would animate visibly on the
@@ -120,7 +135,7 @@ export default function StickyTopNav({
   const [renderedPath, setRenderedPath] = useState(pathname);
   if (renderedPath !== pathname) {
     setRenderedPath(pathname);
-    const nextHasHero = HERO_PATHS.has(pathname);
+    const nextHasHero = HERO_PATHS.has(stripLocale(pathname));
     setHasHero(nextHasHero);
     setVisible(!nextHasHero);
     setOverHero(nextHasHero);
@@ -351,8 +366,8 @@ export default function StickyTopNav({
   }, [pathname]);
 
   const isActive = (href: string) => {
-    if (href === "/") return pathname === "/";
-    return pathname === href || pathname.startsWith(`${href}/`);
+    if (href === "/") return routePath === "/";
+    return routePath === href || routePath.startsWith(`${href}/`);
   };
 
   const txt = overHero ? "text-white" : isDark ? "text-white" : "text-primary-500";
@@ -378,7 +393,7 @@ export default function StickyTopNav({
       >
         <div className="flex items-center justify-between gap-5 px-6 md:px-10 lg:px-14 h-16 lg:h-20">
           <Link
-            href="/"
+            href={localizedHref(lang, "/")}
             aria-label="BPI home"
             className="inline-flex items-center shrink-0"
           >
@@ -405,7 +420,7 @@ export default function StickyTopNav({
               return (
                 <Link
                   key={link.href + link.label}
-                  href={link.href}
+                  href={localizedHref(lang, link.href)}
                   aria-current={active ? "page" : undefined}
                   className="group relative text-[11.5px] font-medium tracking-[0.01em] py-1"
                 >
@@ -444,6 +459,8 @@ export default function StickyTopNav({
               </svg>
             </button>
 
+            <LanguageToggle className="hidden md:inline-block" />
+
             <MenuLauncher size={70} menuConfig={menuConfig} />
           </div>
         </div>
@@ -452,110 +469,3 @@ export default function StickyTopNav({
   );
 }
 
-type LanguageCode = "EN" | "ES" | "FR" | "PT" | "NL";
-type Language = { code: LanguageCode; label: string };
-
-const LANGUAGES: Language[] = [
-  { code: "EN", label: "English" },
-  { code: "ES", label: "Español" },
-  { code: "FR", label: "Français" },
-  { code: "PT", label: "Português" },
-  { code: "NL", label: "Nederlands" },
-];
-
-function LanguageToggle() {
-  const [lang, setLang] = useState<LanguageCode>("EN");
-  const [open, setOpen] = useState(false);
-  const wrapRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => {
-      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
-
-  return (
-    <div
-      ref={wrapRef}
-      className="hidden md:inline-block relative text-[11.5px] font-medium tracking-[0.06em] uppercase"
-    >
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-label="Change language"
-        className="group inline-flex items-center gap-1.5 py-1 px-0.5 transition-opacity duration-200 ease-[var(--ease-premium)] hover:opacity-70 focus-visible:outline-none focus-visible:opacity-100"
-      >
-        <span>{lang}</span>
-        <svg
-          viewBox="0 0 12 12"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={`w-3 h-3 transition-transform duration-200 ease-[var(--ease-premium)] ${
-            open ? "rotate-180" : "rotate-0"
-          }`}
-          aria-hidden
-        >
-          <path d="m3 4.5 3 3 3-3" />
-        </svg>
-      </button>
-
-      <div
-        className={`absolute right-0 mt-3 min-w-44 origin-top-right transition-all duration-400 ease-[var(--ease-premium)] motion-reduce:transition-none ${
-          open
-            ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
-            : "opacity-0 scale-[0.98] -translate-y-1 pointer-events-none"
-        }`}
-      >
-        <ul
-          role="listbox"
-          aria-label="Languages"
-          className="overflow-hidden rounded-xl border border-primary-500/8 bg-white/95 backdrop-blur-xl shadow-[0_20px_50px_-24px_rgba(0,0,54,0.25)] text-primary-500 py-1.5"
-        >
-          {LANGUAGES.map((l) => {
-            const selected = l.code === lang;
-            return (
-              <li key={l.code}>
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={selected}
-                  onClick={() => {
-                    setLang(l.code);
-                    setOpen(false);
-                  }}
-                  className="group/lang relative flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors duration-200 hover:bg-primary-500/4 focus-visible:bg-primary-500/4 focus-visible:outline-none"
-                >
-                  <span className="font-semibold tracking-[0.12em] text-[10.5px] w-7 shrink-0">
-                    {l.code}
-                  </span>
-                  <span
-                    className={`normal-case tracking-[0.005em] text-[13px] transition-colors duration-200 ${
-                      selected ? "text-primary-500" : "text-primary-500/45"
-                    }`}
-                  >
-                    {l.label}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </div>
-  );
-}

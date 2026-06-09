@@ -1,10 +1,8 @@
 "use client";
 
-import type { CSSProperties } from "react";
-import { useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import LazyVideo from "./LazyVideo";
-import ArrowCircle from "./ArrowCircle";
 import CtaLink from "./CtaLink";
 
 type Item = {
@@ -24,131 +22,239 @@ type Props = {
   items?: Item[];
 };
 
+// Wide feature media anchoring the bottom of the section. Served from
+// public/videos; the spaces in the filename are URL-encoded.
+const FEATURE_VIDEO_SRC = "/videos/Shot%205%20Smaller.mov";
+
 export default function ArchitectureOfCareSection({
-  heading = "Four Strategic Priorities",
-  description = "Each one a deliberate step toward a Caribbean that manufactures, distributes, and regulates its own medicines.",
+  heading = "How We Work",
+  description = "BPI is focused on four strategic priorities. Each one a deliberate step toward a Caribbean that manufactures, distributes, and regulates its own medicines.",
   items = [],
 }: Props) {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  // Closed by default. A row opens only on a *deliberate* hover — the
+  // pointer must come to rest over it. Scroll-induced mouseenter events
+  // (the page moving under a stationary cursor) are ignored so the
+  // dropdowns don't flicker open while the user is scrolling past.
+  const [active, setActive] = useState<number | null>(null);
 
-  const scrollByCard = (direction: -1 | 1) => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const first = el.firstElementChild as HTMLElement | null;
-    const cardWidth = first?.offsetWidth ?? 320;
-    const gap = 20;
-    el.scrollBy({
-      left: (cardWidth + gap) * direction,
-      behavior: "smooth",
-    });
-  };
+  const scrollingRef = useRef(false);
+  const candidateRef = useRef<number | null>(null);
+  const dwellTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearDwell = useCallback(() => {
+    if (dwellTimer.current) {
+      clearTimeout(dwellTimer.current);
+      dwellTimer.current = null;
+    }
+  }, []);
+
+  // Open `idx` only after the pointer has rested on it briefly and the
+  // page isn't mid-scroll.
+  const scheduleOpen = useCallback(
+    (idx: number) => {
+      clearDwell();
+      dwellTimer.current = setTimeout(() => {
+        if (!scrollingRef.current && candidateRef.current === idx) {
+          setActive(idx);
+        }
+      }, 90);
+    },
+    [clearDwell],
+  );
+
+  const handleEnter = useCallback(
+    (idx: number) => {
+      candidateRef.current = idx;
+      if (scrollingRef.current) return; // ignore enters caused by scrolling
+      scheduleOpen(idx);
+    },
+    [scheduleOpen],
+  );
+
+  const handleLeave = useCallback(
+    (idx: number) => {
+      if (candidateRef.current === idx) candidateRef.current = null;
+      clearDwell();
+    },
+    [clearDwell],
+  );
+
+  const handleListLeave = useCallback(() => {
+    candidateRef.current = null;
+    clearDwell();
+    setActive(null);
+  }, [clearDwell]);
+
+  // Keyboard focus opens immediately — unaffected by pointer / scroll.
+  const handleFocus = useCallback((idx: number) => {
+    candidateRef.current = idx;
+    setActive(idx);
+  }, []);
+
+  // While the page is scrolling, suppress hover opens. Once scrolling
+  // settles, open whichever row the cursor has come to rest on.
+  useEffect(() => {
+    const markScrolling = () => {
+      scrollingRef.current = true;
+      clearDwell();
+      if (settleTimer.current) clearTimeout(settleTimer.current);
+      settleTimer.current = setTimeout(() => {
+        scrollingRef.current = false;
+        if (candidateRef.current != null) scheduleOpen(candidateRef.current);
+      }, 160);
+    };
+    window.addEventListener("scroll", markScrolling, { passive: true });
+    window.addEventListener("wheel", markScrolling, { passive: true });
+    window.addEventListener("touchmove", markScrolling, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", markScrolling);
+      window.removeEventListener("wheel", markScrolling);
+      window.removeEventListener("touchmove", markScrolling);
+      clearDwell();
+      if (settleTimer.current) clearTimeout(settleTimer.current);
+    };
+  }, [clearDwell, scheduleOpen]);
+
+  // Wide feature image that anchors the bottom of the section — uses the
+  // first item that has media uploaded.
+  const feature = items.find((it) => it.imageSrc || it.videoSrc) ?? null;
 
   return (
     <section
       data-nav-theme="light"
       className="bg-error-25 px-5 md:px-20 lg:px-32 pt-10 md:pt-20 lg:pt-28 pb-8 md:pb-16 lg:pb-24"
     >
-      <div className="mx-auto max-w-page rounded-3xl bg-white px-5 md:px-14 lg:px-20 py-10 md:py-20 lg:py-28">
-        {/* Header */}
+      <div className="mx-auto max-w-page">
         <div
           data-reveal-stagger
-          className="flex items-start justify-between gap-4 md:gap-6 mb-8 md:mb-16"
+          className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-20 items-start"
         >
-          <div className="max-w-2xl">
+          <div className="max-w-xl lg:sticky lg:top-28">
             <h2 className="font-display text-display-xs md:text-display-sm lg:text-display-md font-semibold text-primary-500 leading-[1.05] tracking-[-0.02em]">
               {heading}
             </h2>
-            <p className="mt-2 md:mt-3 text-sm md:text-base text-primary-500 leading-relaxed">
-              {description}
-            </p>
+            {description ? (
+              <p className="mt-4 md:mt-5 text-sm md:text-base text-primary-500/70 leading-relaxed max-w-md">
+                {description}
+              </p>
+            ) : null}
           </div>
 
-          <div className="flex items-center gap-3 shrink-0 lg:hidden">
-            <CarouselButton
-              onClick={() => scrollByCard(-1)}
-              direction="prev"
-            />
-            <CarouselButton
-              onClick={() => scrollByCard(1)}
-              direction="next"
-            />
-          </div>
+          <ul
+            className="flex flex-col border-b border-primary-500/15"
+            onMouseLeave={handleListLeave}
+          >
+            {items.map((item, idx) => (
+              <PriorityRow
+                key={`${item.href}-${idx}`}
+                item={item}
+                index={idx}
+                active={idx === active}
+                onEnter={handleEnter}
+                onLeave={handleLeave}
+                onFocus={handleFocus}
+              />
+            ))}
+          </ul>
         </div>
 
-        {/* Cards — horizontal carousel on mobile/tablet, 4-column grid
-            on desktop so all four sit side-by-side without scrolling. */}
+        {/* Wide feature video anchoring the bottom of the section */}
         <div
-          ref={scrollRef}
-          data-reveal-stagger
-          className="flex gap-5 overflow-x-auto snap-x snap-mandatory no-scrollbar lg:grid lg:grid-cols-4 lg:gap-5 lg:overflow-visible"
+          data-reveal="scale"
+          className="relative mt-10 md:mt-16 lg:mt-20 w-full aspect-video sm:aspect-2/1 lg:aspect-1976/640 rounded-2xl lg:rounded-3xl overflow-hidden bg-primary-500"
         >
-          {items.map((item, idx) => (
-            <PriorityCard key={`${item.href}-${idx}`} item={item} />
-          ))}
+          <LazyVideo
+            src={FEATURE_VIDEO_SRC}
+            poster={feature?.imageSrc}
+            ariaLabel={feature?.imageAlt || undefined}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
         </div>
       </div>
     </section>
   );
 }
 
-function CarouselButton({
-  onClick,
-  direction,
+function PriorityRow({
+  item,
+  index,
+  active,
+  onEnter,
+  onLeave,
+  onFocus,
 }: {
-  onClick: () => void;
-  direction: "prev" | "next";
+  item: Item;
+  index: number;
+  active: boolean;
+  onEnter: (idx: number) => void;
+  onLeave: (idx: number) => void;
+  onFocus: (idx: number) => void;
 }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={direction === "prev" ? "Previous" : "Next"}
-      className={`group/arrow inline-flex text-primary-500 transition-all duration-300 ease-[var(--ease-premium)] hover:opacity-90 active:scale-95 motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500/40 rounded-full ${
-        direction === "prev"
-          ? "hover:-translate-x-0.5"
-          : "hover:translate-x-0.5"
-      }`}
-    >
-      <ArrowCircle size={48} direction={direction} />
-    </button>
-  );
-}
+  const hasMedia = Boolean(item.imageSrc || item.videoSrc);
+  const num = String(index + 1).padStart(2, "0");
 
-function PriorityCard({ item }: { item: Item }) {
   return (
-    <CtaLink
-      href={item.href}
-      className="shrink-0 snap-start w-[85%] sm:w-[60%] aspect-4/3 rounded-3xl p-5 md:p-7 flex flex-col group lg:w-auto lg:shrink lg:aspect-auto lg:h-full lg:p-6"
-      style={{ backgroundColor: item.color } as CSSProperties}
+    <li
+      className="border-t border-primary-500/15"
+      onMouseEnter={() => onEnter(index)}
+      onMouseLeave={() => onLeave(index)}
     >
-      <h3 className="font-display text-xs lg:text-[11px] font-bold uppercase tracking-[0.06em] text-primary-500 leading-tight group-hover:opacity-80 transition-opacity">
-        {item.title}
-      </h3>
-      <p className="mt-3 md:mt-4 font-display text-xl md:text-2xl lg:text-base font-light text-primary-500/85 leading-[1.3] tracking-tight max-w-md">
-        {item.description}
-      </p>
-
-      <div className="mt-auto pt-6 flex items-end justify-between gap-4">
-        <div className="relative w-[42%] aspect-square rounded-2xl overflow-hidden">
-          {item.videoSrc ? (
-            <LazyVideo
-              src={item.videoSrc}
-              poster={item.imageSrc}
-              ariaLabel={item.imageAlt || undefined}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          ) : (
-            <Image
-              src={item.imageSrc}
-              alt={item.imageAlt ?? ""}
-              fill
-              sizes="(min-width: 1024px) 44vw, 45vw"
-              className="object-cover"
-            />
-          )}
+      <CtaLink
+        href={item.href}
+        onFocus={() => onFocus(index)}
+        aria-expanded={active}
+        className="group block py-5 md:py-6 focus-visible:outline-none"
+      >
+        {/* Title row — number stays pinned to the right. */}
+        <div className="flex items-center justify-between gap-6 text-primary-500">
+          <span className="font-display text-xl md:text-2xl leading-tight tracking-[-0.01em] transition-opacity duration-300 group-hover:opacity-80">
+            {item.title}
+          </span>
+          <span className="font-display text-sm md:text-base text-primary-500/50 tabular-nums">
+            {num}
+          </span>
         </div>
-        <ArrowCircle size={48} className="shrink-0 text-primary-500" />
-      </div>
-    </CtaLink>
+
+        {/* Expandable panel — animates open via grid-template-rows so the
+            content height is measured automatically. */}
+        <div
+          className={`grid transition-[grid-template-rows] duration-500 ease-[var(--ease-premium)] motion-reduce:transition-none ${
+            active ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+          }`}
+        >
+          <div className="min-h-0 overflow-hidden">
+            <div className="pt-4 md:pt-5">
+              {item.description ? (
+                <p className="text-sm md:text-base text-primary-500/90 leading-relaxed max-w-lg">
+                  {item.description}
+                </p>
+              ) : null}
+
+              {hasMedia ? (
+                <div className="relative mt-5 w-full max-w-md aspect-4/3 rounded-xl overflow-hidden bg-primary-500">
+                  {item.videoSrc ? (
+                    <LazyVideo
+                      src={item.videoSrc}
+                      poster={item.imageSrc}
+                      ariaLabel={item.imageAlt || undefined}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Image
+                      src={item.imageSrc}
+                      alt={item.imageAlt ?? ""}
+                      fill
+                      sizes="(min-width: 1024px) 28vw, 90vw"
+                      className="object-cover"
+                    />
+                  )}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </CtaLink>
+    </li>
   );
 }

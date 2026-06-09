@@ -1,5 +1,7 @@
 import { defineField, defineType } from "sanity";
 
+import { externalVideoUrlField } from "./externalVideoUrlField";
+
 /**
  * Media shown in the right-hand panel of the full-screen menu, swapped
  * out per hovered link / sub-link. Pick image or video; both are
@@ -36,6 +38,7 @@ export const menuMedia = defineType({
           return true;
         }),
     }),
+    externalVideoUrlField(),
     defineField({
       name: "video",
       title: "Video upload (MP4 recommended)",
@@ -44,9 +47,13 @@ export const menuMedia = defineType({
       hidden: ({ parent }) => parent?.kind !== "video",
       validation: (Rule) =>
         Rule.custom((value, context) => {
-          const kind =
-            (context.parent as { kind?: string } | undefined)?.kind ?? "image";
-          if (kind === "video" && !value) return "Upload a video.";
+          const parent = context.parent as
+            | { kind?: string; externalVideoUrl?: string }
+            | undefined;
+          const kind = parent?.kind ?? "image";
+          // Either a Sanity upload OR an external (R2) URL satisfies a video.
+          if (kind === "video" && !value && !parent?.externalVideoUrl)
+            return "Upload a video or paste an external video URL.";
           return true;
         }),
     }),

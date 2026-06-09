@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Logo from "./Logo";
+import CtaLink from "./CtaLink";
+import { useLenis } from "./LenisProvider";
 import LogoShape, { LOGO_SHAPE_PATH_D } from "./shapes/LogoShape";
 
 type Node = {
@@ -31,6 +32,8 @@ type Node = {
 type Props = {
   heading?: string;
   body?: string;
+  ctaLabel?: string;
+  ctaHref?: string;
   nodes?: Node[];
 };
 
@@ -40,6 +43,8 @@ const VIEWBOX_H = 702;
 export default function SectorsSection({
   heading = "Shifting Trade Prowess in Favour of the Global South",
   body = "BPI is building across six sectors, each one a structural component of the Caribbean's pharmaceutical future.",
+  ctaLabel = "Explore our work",
+  ctaHref = "/initiatives",
   nodes = [],
 }: Props) {
   const sectionRef = useRef<HTMLElement>(null);
@@ -52,16 +57,41 @@ export default function SectorsSection({
   const diagramRef = useRef<HTMLDivElement>(null);
   const mouseTargetRef = useRef({ x: 0, y: 0 });
   const mouseRef = useRef({ x: 0, y: 0 });
-  // Custom cursor that follows the mouse only while hovering an
-  // activated node. We write `transform` directly via ref so the
-  // cursor tracking doesn't trigger React re-renders.
-  const cursorRef = useRef<HTMLDivElement>(null);
+  const { sync } = useLenis();
+  // Asymmetric scroll length, the buttery way — no programmatic scroll.
+  // Going DOWN the section is tall so the six nodes reveal one-by-one over
+  // a long pinned scrub. Once revealed AND scrolled fully past, the tall
+  // scroll range COLLAPSES to a short sticky section (like Initiatives):
+  // scrolling back up the Why-BPI slide-over reveals the diagram, it
+  // sticks for a beat, then a normal short scroll carries you to the
+  // section above — all natural momentum, nothing forced. When you go back
+  // above it, the tall range is restored so the next downward pass reveals
+  // from scratch. Height changes happen only while the section is fully
+  // off-screen, with the scroll position compensated in a layout effect so
+  // there's no visible jump.
+  const revealedRef = useRef(false);
+  const lastScrollYRef = useRef(0);
+  const scrollDirRef = useRef<"up" | "down">("down");
+  const [collapsed, setCollapsed] = useState(false);
+  const collapsedRef = useRef(false);
+  // Collapsed height. The Why-BPI slide-over overlaps the bottom 120vh of
+  // this section, so the collapsed pinned range must outlast that overlap:
+  // ~120vh for Why-BPI to slide off + a short ~40vh hold of the FULL
+  // diagram, then the section unpins promptly toward "how we work". The
+  // trailing static-hold scroll = (COLLAPSED_VH - 220)vh, so keep this just
+  // above 220 for a brief hold rather than a long dead scrub.
+  const COLLAPSED_VH = 260;
+  const TALL_VH = (nodes.length + 1) * 100;
   const router = useRouter();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [portalIndex, setPortalIndex] = useState<number | null>(null);
   const [step, setStep] = useState(0);
   const [introP, setIntroP] = useState(0);
   const [activationP, setActivationP] = useState(0);
+  // Recede ("push to back") progress for the slide-over: 0 = molecule at
+  // full size on its stage, 1 = scaled down + dimmed into the dark stage
+  // as the next section covers it.
+  const [pushP, setPushP] = useState(0);
   const [enterP, setEnterP] = useState(0);
   const [exitP, setExitP] = useState(0);
   const [isDesktop, setIsDesktop] = useState(false);
@@ -84,6 +114,32 @@ export default function SectorsSection({
 
   const pinned = isDesktop && !reducedMotion;
 
+  // Compensate scroll when the tall range collapses. The collapse only
+  // ever fires while the section is fully ABOVE the viewport (the user has
+  // scrolled past it), so shrinking it pulls everything below — including
+  // what the user is looking at — up by the height delta. We subtract that
+  // delta from the scroll position in a layout effect (before paint) so
+  // the view never moves. Restoring fires while the section is fully BELOW
+  // the viewport, so growth happens off-screen below the user and needs no
+  // compensation — just a Lenis resize so its scroll limits stay correct.
+  const prevCollapsedRef = useRef(false);
+  useLayoutEffect(() => {
+    if (!pinned) {
+      prevCollapsedRef.current = collapsed;
+      return;
+    }
+    if (prevCollapsedRef.current === collapsed) return; // not a real toggle
+    const wasCollapsed = prevCollapsedRef.current;
+    prevCollapsedRef.current = collapsed;
+    if (collapsed && !wasCollapsed) {
+      // Section shrank above the viewport → pull the view up by the delta.
+      const deltaPx = ((TALL_VH - COLLAPSED_VH) / 100) * window.innerHeight;
+      window.scrollTo(0, Math.max(0, window.scrollY - deltaPx));
+    }
+    // Re-align Lenis with the new scroll position / document height.
+    sync();
+  }, [collapsed, pinned, TALL_VH, sync]);
+
   // Single-threshold background-color flip. The section stays the page's
   // baseline mint until the user has scrolled completely past the heading
   // block (so the page above and the section's top match — no edge line).
@@ -104,15 +160,19 @@ export default function SectorsSection({
     let raf = 0;
     const apply = () => {
       const vh = window.innerHeight;
-      const headingEl = headingRef.current;
-      if (headingEl) {
-        // Scroll-coupled entrance. Starts when the heading's top edge
-        // reaches the viewport top (the user has "scrolled to Shifting")
-        // and completes after another 0.6 vh of scroll. Eased so the
-        // colour washes in gracefully rather than ramping linearly.
-        const top = headingEl.getBoundingClientRect().top;
-        const entryEnd = -vh * 0.6;
-        const raw = Math.max(0, Math.min(1, top / entryEnd));
+      const sectionEl = sectionRef.current;
+      if (sectionEl) {
+        // Scroll-coupled entrance keyed to the SECTION (not the heading,
+        // which now pins inside the diagram stage). The teal wash completes
+        // exactly as the section reaches the viewport top — so the title +
+        // shape lock onto the dark stage together with no mid-screen edge.
+        const top = sectionEl.getBoundingClientRect().top;
+        const entryStart = vh * 0.35;
+        const entryEnd = 0;
+        const raw = Math.max(
+          0,
+          Math.min(1, (entryStart - top) / (entryStart - entryEnd))
+        );
         setEnterP(easeOutExpo(raw));
       }
       const exitEl = exitRef.current;
@@ -149,6 +209,7 @@ export default function SectorsSection({
       setStep(nodes.length);
       setIntroP(1);
       setActivationP(1);
+      setPushP(0);
       return;
     }
     // Scroll position is read into `target.*`; a continuous RAF then
@@ -161,13 +222,14 @@ export default function SectorsSection({
     let settledFor = 0;
     let inView = false;
     let isHidden = typeof document !== "undefined" && document.hidden;
-    const target = { introP: 0, activationP: 0 };
-    const displayed = { introP: 0, activationP: 0 };
+    const target = { introP: 0, activationP: 0, pushP: 0 };
+    const displayed = { introP: 0, activationP: 0, pushP: 0 };
     // Last setState'd values — we only call setState when the displayed
     // value crosses a perceptual threshold, so re-renders happen ~5-10x
     // per scroll traversal instead of 60Hz.
     let lastSetIntro = -Infinity;
     let lastSetAct = -Infinity;
+    let lastSetPush = -Infinity;
     let lastSetStep = -1;
 
     const readTargets = () => {
@@ -178,11 +240,19 @@ export default function SectorsSection({
       target.introP = Math.max(0, Math.min(1, 1 - rect.top / vh));
       const total = el.offsetHeight - vh;
       const p = total > 0 ? Math.max(0, Math.min(1, -rect.top / total)) : 0;
-      // Most of the scroll budget goes to the activation phase. A short
-      // hold (~15 %) lets the eye finish on the fully-lit diagram, then
-      // the section releases promptly so the page keeps moving without
-      // feeling stuck.
-      target.activationP = Math.min(1, p / 0.85);
+      // Reveal completes within the first ~70 % of the pinned travel, so
+      // the last node is fully shown and the diagram then HOLDS — pinned
+      // and stationary, fully lit — for the remaining ~30 %. That stuck
+      // hold is the beat the user reads as "the section stays put"; only
+      // after it does the section release and the next section slide up
+      // over it. (Pacing 1:1 with `p` finished the reveal exactly at the
+      // un-pin point, leaving no hold, so node 6 looked cut off.)
+      target.activationP = Math.min(1, p / 0.7);
+      // Recede over the last ~28 % of the pinned travel — beginning just
+      // after the reveal completes (~p 0.72) so the molecule + heading ease
+      // back gradually as the next section slides up and covers them,
+      // rather than snapping back over a short window.
+      target.pushP = Math.max(0, Math.min(1, (p - 0.72) / 0.28));
     };
 
     const LERP = 0.14; // premium smoothing — high enough to feel
@@ -197,16 +267,36 @@ export default function SectorsSection({
 
     const tick = () => {
       readTargets();
+
+      // Mark the section as fully revealed once the reveal completes.
+      if (target.activationP >= 0.999 && target.introP >= 0.999) {
+        revealedRef.current = true;
+      }
+      // Hold the diagram fully lit when the section is collapsed (it's
+      // "done"), or when scrolling up after a reveal but before collapse —
+      // so the nodes never reverse one-by-one on the way back up.
+      if (
+        collapsedRef.current ||
+        (revealedRef.current && scrollDirRef.current === "up")
+      ) {
+        target.introP = 1;
+        target.activationP = 1;
+      }
+
       const nextIntro =
         displayed.introP + (target.introP - displayed.introP) * LERP;
       const nextAct =
         displayed.activationP + (target.activationP - displayed.activationP) * LERP;
+      const nextPush =
+        displayed.pushP + (target.pushP - displayed.pushP) * LERP;
       const settled =
         Math.abs(target.introP - nextIntro) < SETTLE_EPSILON &&
-        Math.abs(target.activationP - nextAct) < SETTLE_EPSILON;
+        Math.abs(target.activationP - nextAct) < SETTLE_EPSILON &&
+        Math.abs(target.pushP - nextPush) < SETTLE_EPSILON;
 
       displayed.introP = nextIntro;
       displayed.activationP = nextAct;
+      displayed.pushP = nextPush;
 
       // Coalesced re-renders. Always commit on settle so the final
       // frame lands exactly on target.
@@ -217,6 +307,10 @@ export default function SectorsSection({
       if (settled || Math.abs(nextAct - lastSetAct) > RENDER_EPSILON) {
         setActivationP(nextAct);
         lastSetAct = nextAct;
+      }
+      if (settled || Math.abs(nextPush - lastSetPush) > RENDER_EPSILON) {
+        setPushP(nextPush);
+        lastSetPush = nextPush;
       }
       const nextStep = Math.min(
         nodes.length,
@@ -285,10 +379,13 @@ export default function SectorsSection({
     readTargets();
     displayed.introP = target.introP;
     displayed.activationP = target.activationP;
+    displayed.pushP = target.pushP;
     setIntroP(target.introP);
     setActivationP(target.activationP);
+    setPushP(target.pushP);
     lastSetIntro = target.introP;
     lastSetAct = target.activationP;
+    lastSetPush = target.pushP;
     const initialStep = Math.min(
       nodes.length,
       Math.floor(target.activationP * (nodes.length + 1)),
@@ -303,10 +400,49 @@ export default function SectorsSection({
     }
     if (inView && !isHidden) raf = requestAnimationFrame(tick);
 
+    // ── Collapse / restore the tall scroll range ────────────────────
+    // Always-on so it reacts to natural scrolling (no programmatic scroll).
+    //   • COLLAPSE once the reveal is done AND the section is fully above
+    //     the viewport (scrolled past): the tall range shrinks to a short
+    //     sticky section, so scrolling back up is a brief Initiatives-style
+    //     stick rather than a 700vh scrub. Compensated in the layout effect.
+    //   • RESTORE once the section is fully below the viewport (scrolled
+    //     back above it): the tall range returns so the next downward pass
+    //     reveals node-by-node from scratch.
+    lastScrollYRef.current = window.scrollY;
+    const onRangeScroll = () => {
+      const yy = window.scrollY;
+      if (yy < lastScrollYRef.current - 0.5) scrollDirRef.current = "up";
+      else if (yy > lastScrollYRef.current + 0.5) scrollDirRef.current = "down";
+      lastScrollYRef.current = yy;
+
+      const rangeEl = stickyRangeRef.current;
+      if (!rangeEl) return;
+      const rect = rangeEl.getBoundingClientRect();
+      const vh = window.innerHeight;
+
+      if (
+        !collapsedRef.current &&
+        revealedRef.current &&
+        rect.bottom <= 0
+      ) {
+        // Fully scrolled past, below the section → collapse.
+        collapsedRef.current = true;
+        setCollapsed(true);
+      } else if (collapsedRef.current && rect.top >= vh) {
+        // Scrolled back above the section → restore tall + re-arm reveal.
+        collapsedRef.current = false;
+        revealedRef.current = false;
+        setCollapsed(false);
+      }
+    };
+
     window.addEventListener("scroll", ensureRunning, { passive: true });
+    window.addEventListener("scroll", onRangeScroll, { passive: true });
     window.addEventListener("resize", ensureRunning, { passive: true });
     return () => {
       window.removeEventListener("scroll", ensureRunning);
+      window.removeEventListener("scroll", onRangeScroll);
       window.removeEventListener("resize", ensureRunning);
       document.removeEventListener("visibilitychange", onVisibility);
       io?.disconnect();
@@ -366,21 +502,6 @@ export default function SectorsSection({
       if (raf) cancelAnimationFrame(raf);
     };
   }, [pinned]);
-
-  // Custom-cursor follower — when a node is hovered, the BPI logo
-  // icon tracks the cursor via direct DOM writes (no React re-render).
-  // The listener is window-scoped so the icon stays aligned even if
-  // the mouse moves slightly off the SVG hit-zone between frames.
-  useEffect(() => {
-    if (hoveredIndex === null) return;
-    const cursor = cursorRef.current;
-    if (!cursor) return;
-    const handle = (e: MouseEvent) => {
-      cursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
-    };
-    window.addEventListener("mousemove", handle, { passive: true });
-    return () => window.removeEventListener("mousemove", handle);
-  }, [hoveredIndex]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!pinned) return;
@@ -447,7 +568,10 @@ export default function SectorsSection({
     ? "rgba(255, 255, 255, 0.9)"
     : "rgba(0, 0, 54, 0.9)";
   const colorEase =
-    "color 700ms var(--ease-premium)";
+    "color 900ms var(--ease-premium)";
+  // Heading is navy on the light/mint baseline, then turns brand green once
+  // the dark teal stage is active — eased with the same colour transition.
+  const headingColor = onDark ? "#06FE83" : "#000036";
 
   return (
     <section
@@ -462,9 +586,14 @@ export default function SectorsSection({
           the user has continuous scroll time to feel the return to mint;
           no abrupt flip. Section bg always remains mint so there's never
           a visible "edge" between the section and the page above or below. */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
+      {/* Bounded to stop 20vh short of the section bottom (desktop) so this
+          sticky teal stage un-pins together with the diagram, leaving the
+          exit buffer as a clean mint gap. Spanning the full section made the
+          teal stay pinned with no gap, so the next (Why BPI) section visibly
+          slid up over it. */}
+      <div className="absolute inset-x-0 top-0 bottom-0 md:bottom-[20vh] z-0 pointer-events-none">
         <div
-          className="sticky top-0 h-screen w-full overflow-hidden transition-opacity duration-500 ease-[var(--ease-premium)]"
+          className="sticky top-0 h-screen w-full overflow-hidden transition-opacity duration-900 ease-[var(--ease-premium)]"
           style={{
             backgroundColor: "#042D2B",
             opacity: darkness,
@@ -487,28 +616,35 @@ export default function SectorsSection({
           />
         </div>
       </div>
-      {/* Heading + body — flow normally above the sticky range. The
-          `headingRef` covers BOTH so the bg flip waits until both have
-          scrolled past the viewport top, preventing any text-on-changing-
-          bg contrast issues. */}
+      {/* Mobile heading — desktop renders its heading pinned inside the
+          diagram stage (see below) so the title stays put with the shape. */}
       <div
         ref={headingRef}
-        className="relative z-10 px-12 md:px-20 lg:px-32 pt-16 md:pt-24 lg:pt-32 pb-4 md:pb-6 lg:pb-8"
+        className="md:hidden relative z-10 px-12 pt-16 pb-4"
       >
         <div className="mx-auto max-w-page">
           <div className="max-w-3xl">
             <h2
-              className="font-display text-display-lg lg:text-display-xl font-bold leading-[1.02] tracking-tight"
-              style={{ color: txt, transition: colorEase }}
+              className="font-display text-display-xs md:text-display-sm font-bold leading-[1.05] tracking-[-0.02em]"
+              style={{ color: headingColor, transition: colorEase }}
             >
               {heading}
             </h2>
             <p
-              className="mt-6 text-base lg:text-lg leading-[1.55] max-w-xl"
+              className="mt-3 text-sm md:text-base leading-relaxed max-w-xl"
               style={{ color: txt70, transition: colorEase }}
             >
               {body}
             </p>
+            {ctaLabel ? (
+              <CtaLink
+                href={ctaHref}
+                className="mt-5 inline-flex rounded-round border border-current px-5 py-2 text-sm font-semibold transition hover:opacity-80"
+                style={{ color: txt, transition: colorEase }}
+              >
+                {ctaLabel}
+              </CtaLink>
+            ) : null}
           </div>
         </div>
       </div>
@@ -519,29 +655,76 @@ export default function SectorsSection({
       <div
         ref={stickyRangeRef}
         className="hidden md:block relative z-10"
-        style={pinned ? { height: `${(nodes.length + 2) * 100}vh` } : undefined}
+        style={
+          pinned
+            ? { height: `${collapsed ? COLLAPSED_VH : TALL_VH}vh` }
+            : undefined
+        }
       >
         <div
           className={
             pinned
-              ? "sticky top-0 h-screen overflow-hidden flex items-start justify-center px-6 lg:px-10 pt-6 lg:pt-10 pb-20 lg:pb-32"
-              : "relative px-6 lg:px-10 pb-14 md:pb-20 lg:pb-28"
+              ? "sticky top-0 h-screen overflow-hidden flex flex-col px-6 md:px-20 lg:px-32 pt-12 lg:pt-16 pb-4 lg:pb-8"
+              : "relative flex flex-col px-6 md:px-20 lg:px-32 pt-12 lg:pt-16 pb-14 md:pb-20 lg:pb-28"
           }
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         >
+          {/* Heading — pinned with the diagram so the title stays put
+              (top-left) on the teal stage while the molecule reveals. It
+              recedes (scales back + dims + drifts) on `pushP` in lockstep
+              with the diagram, so the whole stage pushes to the back as the
+              next section slides over the top. */}
+          <div
+            className="relative z-10 mx-auto w-full max-w-page shrink-0"
+            style={{
+              opacity: 1 - pushP * 0.7,
+              transform: `translateY(${pushP * 56}px) scale(${1 - pushP * 0.24})`,
+              transformOrigin: "left top",
+              willChange: "opacity, transform",
+            }}
+          >
+            <div className="max-w-3xl">
+              <h2
+                className="font-display text-display-xs md:text-display-sm lg:text-display-md font-bold leading-[1.05] tracking-[-0.02em]"
+                style={{ color: headingColor, transition: colorEase }}
+              >
+                {heading}
+              </h2>
+              <p
+                className="mt-3 text-sm md:text-base leading-relaxed max-w-xl"
+                style={{ color: txt70, transition: colorEase }}
+              >
+                {body}
+              </p>
+              {ctaLabel ? (
+                <CtaLink
+                  href={ctaHref}
+                  className="mt-5 lg:mt-6 inline-flex rounded-round border border-current px-5 py-2 text-sm font-semibold transition hover:opacity-80"
+                  style={{ color: txt, transition: colorEase }}
+                >
+                  {ctaLabel}
+                </CtaLink>
+              ) : null}
+            </div>
+          </div>
+
           {/* Perspective wrapper — gives the diagram a discreet "looking
               down at it" tilt. Also driven by introP for the entry rise +
               fade so the molecule arrives gracefully as the user scrolls
               toward it. Disabled for prefers-reduced-motion via `pinned`. */}
           <div
             ref={perspectiveRef}
-            className="relative w-full mx-auto"
+            className="relative w-full mx-auto mt-2 lg:mt-4"
             style={{
               perspective: "1600px",
-              maxWidth: "140vh",
-              opacity: introP,
-              transform: `translateY(${(1 - introP) * 24}px)`,
+              maxWidth: "110vh",
+              // `introP` fades/raises the molecule in on entry; `pushP`
+              // scales it down and dims it on exit so it recedes deep into
+              // the dark stage as the next section slides over the top.
+              opacity: introP * (1 - pushP * 0.7),
+              transform: `translateY(${(1 - introP) * 24 + pushP * 56}px) scale(${1 - pushP * 0.24})`,
+              transformOrigin: "center 45%",
               willChange: "opacity, transform",
             }}
           >
@@ -738,6 +921,7 @@ export default function SectorsSection({
                 return (
                   <g
                     key={n.id}
+                    data-cursor="icon"
                     onMouseEnter={() =>
                       activated && setHoveredIndex(i)
                     }
@@ -925,13 +1109,13 @@ export default function SectorsSection({
                 }}
               >
                 <h3
-                  className="font-display text-lg lg:text-xl font-bold leading-tight tracking-[-0.01em]"
+                  className="font-display text-sm lg:text-base font-bold leading-tight tracking-[-0.01em]"
                   style={{ color: txt, transition: colorEase }}
                 >
                   {parseInt(n.num, 10)}. {n.title}
                 </h3>
                 <p
-                  className="mt-3 text-base lg:text-lg leading-[1.45]"
+                  className="mt-2 text-xs lg:text-sm leading-[1.4]"
                   style={{ color: txt75, transition: colorEase }}
                 >
                   {n.description}
@@ -942,6 +1126,21 @@ export default function SectorsSection({
 
             </div>
           </div>
+
+          {/* Scroll-progress indicator — vertical track on the right that
+              fills top→bottom like a progress bar as the reveal sequence
+              advances through the nodes. */}
+          {pinned ? (
+            <div
+              className="pointer-events-none absolute right-5 lg:right-10 top-1/2 -translate-y-1/2 h-[52vh] w-[3px] rounded-full bg-white/15"
+              aria-hidden
+            >
+              <div
+                className="absolute left-0 top-0 w-full rounded-full bg-error-500 transition-[height] duration-150 ease-[var(--ease-premium)]"
+                style={{ height: `${activationP * 100}%` }}
+              />
+            </div>
+          ) : null}
 
         </div>
       </div>
@@ -982,25 +1181,6 @@ export default function SectorsSection({
         className="hidden md:block relative z-10 h-[20vh] pointer-events-none"
         aria-hidden
       />
-
-      {/* Custom cursor — the BPI molecular icon follows the mouse
-          whenever an activated node is being hovered, replacing the
-          default arrow with a brand cue. Pointer-events disabled so
-          it never blocks clicks on the node beneath. */}
-      <div
-        ref={cursorRef}
-        aria-hidden
-        className="hidden md:block fixed top-0 left-0 z-50 pointer-events-none"
-        style={{
-          opacity: hoveredIndex !== null ? 1 : 0,
-          transform: "translate3d(-200px, -200px, 0)",
-          transition:
-            "opacity 220ms var(--ease-premium)",
-          mixBlendMode: "difference",
-        }}
-      >
-        <Logo iconOnly size={22} className="text-white" />
-      </div>
 
       {/* Mobile fallback — stacked list. */}
       <div className="md:hidden relative z-10 px-6 pb-14 flex flex-col gap-7">

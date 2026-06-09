@@ -1,109 +1,156 @@
 import CtaLink from "./CtaLink";
-import FooterImageShape from "./shapes/FooterImageShape";
+
+type ImageTile = { src?: string; alt?: string };
 
 type Props = {
   imageSrc?: string;
   videoSrc?: string;
   imageAlt?: string;
+  /** Up to three portrait images shown on the right. Falls back to
+   *  `imageSrc` repeated when fewer are supplied. */
+  images?: ImageTile[];
+  /** Single headline. Falls back to the two legacy headline lines. */
+  heading?: string;
   headlineLine1?: string;
   headlineLine2?: string;
+  body?: string;
   primaryLabel?: string;
   primaryHref?: string;
   secondaryLabel?: string;
   secondaryHref?: string;
+  /** Partner wordmarks for the bottom marquee. */
+  partners?: string[];
 };
+
+const DEFAULT_PARTNERS = [
+  "Google+",
+  "Microsoft",
+  "MetalLB",
+  "LinkedIn",
+  "Instagram",
+  "Apple Pay",
+  "amazon",
+];
 
 export default function BuildingSection({
   imageSrc,
-  videoSrc,
   imageAlt = "",
-  headlineLine1 = "The gateway is open.",
-  headlineLine2 = "Ready to build with us?",
+  images,
+  heading,
+  headlineLine1,
+  headlineLine2,
+  body = "Deliberately. Piece by piece. With the people it is for. If you are a partner, investor, or government we would like to build with you.",
   primaryLabel = "Get in touch",
   primaryHref = "/contact",
   secondaryLabel = "Our initiatives",
   secondaryHref = "/initiatives",
+  partners = DEFAULT_PARTNERS,
 }: Props) {
+  const title =
+    heading ||
+    [headlineLine1, headlineLine2].filter(Boolean).join(" ") ||
+    "Building the architecture of care.";
+
+  // Build exactly three image tiles, repeating whatever source(s) we have
+  // so the 3-up grid is always filled even when Sanity only supplies one
+  // image. Wire `images` to a gallery field for three distinct photos.
+  const base: ImageTile[] =
+    images && images.length
+      ? images
+      : imageSrc
+        ? [{ src: imageSrc, alt: imageAlt }]
+        : [];
+  const tiles: ImageTile[] = [0, 1, 2].map((i) =>
+    base.length ? base[i % base.length] : { src: undefined, alt: "" }
+  );
+
+  // The marquee duplicates the list so the linear loop is seamless.
+  const looped = [...partners, ...partners];
+
   return (
-    <section data-nav-theme="light" className="pt-3 lg:pt-4">
-      <div className="rounded-t-4xl md:rounded-t-[3rem] lg:rounded-t-[5rem] bg-error-200 overflow-hidden px-4 md:px-6 lg:px-10 pt-10 md:pt-16 lg:pt-20 pb-10 md:pb-16 lg:pb-20">
-        {/* Mobile / tablet layout */}
-        <div className="lg:hidden mx-auto max-w-2xl flex flex-col gap-6 md:gap-8">
-          <div data-reveal="scale">
-            <FooterImageShape
-              size={1245}
-              imageSrc={imageSrc}
-              videoSrc={videoSrc}
-              imageAlt={imageAlt}
-              className="w-full h-auto"
-            />
-          </div>
+    <section data-nav-theme="light" className="bg-[#EAFBF1] px-5 sm:px-8 md:px-12 lg:px-20 xl:px-28 pt-12 md:pt-20 lg:pt-28 pb-12 md:pb-20 lg:pb-28">
+      <div className="rounded-2xl md:rounded-3xl bg-error-500 overflow-hidden px-6 md:px-12 lg:px-16 pt-10 md:pt-14 lg:pt-20 pb-8 md:pb-10 lg:pb-14">
+        <div className="flex flex-col gap-12 md:gap-16 lg:gap-24">
+          {/* Top: copy on the left, three images on the right */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12 items-center">
+            {/* Left — heading, body, CTAs */}
+            <div data-reveal-stagger className="flex flex-col gap-6 lg:gap-8 lg:max-w-xl">
+              <h2 className="font-display text-3xl md:text-4xl lg:text-display-lg font-bold text-primary-500 leading-[1.05] tracking-[-0.02em]">
+                {title}
+              </h2>
+              <p className="text-base md:text-lg text-primary-500/80 leading-relaxed max-w-md">
+                {body}
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <CtaLink
+                  href={primaryHref}
+                  className="rounded-round bg-primary-500 px-5 py-2 text-sm font-semibold text-white text-center transition hover:bg-primary-600"
+                >
+                  {primaryLabel}
+                </CtaLink>
+                <CtaLink
+                  href={secondaryHref}
+                  className="rounded-round border border-primary-500 px-5 py-2 text-sm font-semibold text-primary-500 text-center transition hover:bg-primary-500/5"
+                >
+                  {secondaryLabel}
+                </CtaLink>
+              </div>
+            </div>
 
-          <div data-reveal-stagger className="flex flex-col gap-3">
-            <h2 className="font-display text-2xl md:text-3xl font-bold text-primary-500 leading-[1.1]">
-              <span className="block">{headlineLine1}</span>
-              <span className="block">{headlineLine2}</span>
-            </h2>
-          </div>
-
-          <div
-            data-reveal-stagger
-            className="flex flex-col sm:flex-row gap-2.5 sm:gap-3"
-          >
-            <CtaLink
-              href={primaryHref}
-              className="flex-1 rounded-round border border-dashed border-primary-500/40 bg-error-500 px-6 py-3 text-sm md:text-base font-semibold text-primary-500 text-center transition hover:bg-error-400"
+            {/* Right — three portrait tiles, progressively wider L→R */}
+            <div
+              data-reveal="scale"
+              className="grid grid-cols-[0.7fr_1fr_1.4fr] gap-3 md:gap-4 h-72 md:h-96 lg:h-112"
             >
-              {primaryLabel}
-            </CtaLink>
-            <CtaLink
-              href={secondaryHref}
-              className="flex-1 rounded-round border border-dashed border-primary-500/40 bg-transparent px-6 py-3 text-sm md:text-base font-semibold text-primary-500 text-center transition hover:bg-primary-500/5"
-            >
-              {secondaryLabel}
-            </CtaLink>
-          </div>
-        </div>
-
-        {/* Desktop layout */}
-        <div className="hidden lg:block relative mx-auto max-w-350">
-          <div data-reveal="scale">
-            <FooterImageShape
-              size={1245}
-              imageSrc={imageSrc}
-              videoSrc={videoSrc}
-              imageAlt={imageAlt}
-              className="w-full h-auto"
-            />
+              {tiles.map((tile, i) => (
+                <div
+                  key={i}
+                  className="relative h-full overflow-hidden rounded-2xl bg-primary-500/5"
+                >
+                  {tile.src ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={tile.src}
+                      alt={tile.alt ?? ""}
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                  ) : null}
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div
-            data-reveal-stagger
-            className="absolute right-[4%] top-[46%] -translate-y-1/2 w-[42%]"
-          >
-            <h2 className="font-display text-2xl lg:text-4xl font-bold text-primary-500 leading-[1.05]">
-              <span className="block">{headlineLine1}</span>
-              <span className="block">{headlineLine2}</span>
-            </h2>
-          </div>
-
-          <div
-            data-reveal-stagger
-            className="absolute left-[1.5%] bottom-0 flex flex-col items-stretch gap-2.5 lg:gap-3 w-[18%] min-w-56"
-          >
-            <CtaLink
-              href={primaryHref}
-              className="rounded-round border border-dashed border-primary-500/40 bg-error-500 px-6 lg:px-8 py-2.5 lg:py-3 text-sm lg:text-base font-semibold text-primary-500 text-center transition hover:bg-error-400"
-            >
-              {primaryLabel}
-            </CtaLink>
-            <CtaLink
-              href={secondaryHref}
-              className="rounded-round border border-dashed border-primary-500/40 bg-transparent px-6 lg:px-8 py-2.5 lg:py-3 text-sm lg:text-base font-semibold text-primary-500 text-center transition hover:bg-primary-500/5"
-            >
-              {secondaryLabel}
-            </CtaLink>
-          </div>
+          {/* Bottom: partners marquee */}
+          {partners.length > 0 ? (
+            <div className="flex flex-row items-center gap-5 md:gap-8 lg:gap-10">
+              <span className="shrink-0 text-[11px] md:text-xs font-semibold tracking-[0.18em] text-primary-500/50 uppercase">
+                Partners
+              </span>
+              <div
+                className="relative overflow-hidden flex-1"
+                style={{
+                  maskImage:
+                    "linear-gradient(to right, transparent 0, black 5%, black 95%, transparent 100%)",
+                  WebkitMaskImage:
+                    "linear-gradient(to right, transparent 0, black 5%, black 95%, transparent 100%)",
+                }}
+              >
+                <div
+                  className="flex w-max items-center gap-x-10 md:gap-x-14 lg:gap-x-20 motion-reduce:animate-none"
+                  style={{ animation: "partners-marquee 28s linear infinite" }}
+                >
+                  {looped.map((name, idx) => (
+                    <span
+                      key={`${name}-${idx}`}
+                      className="shrink-0 whitespace-nowrap text-base md:text-lg lg:text-xl font-semibold tracking-tight text-primary-500/40"
+                    >
+                      {name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
     </section>

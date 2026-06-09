@@ -1,0 +1,100 @@
+{
+  "nav": {
+    "links": [
+      { "label": "Nosotros", "href": "/about" },
+      { "label": "Iniciativas", "href": "/initiatives" }
+    ],
+    "search": "Buscar",
+    "menu": "Menú"
+  },
+  "hero": {
+    "headline": "Construyendo la puerta farmacéutica del Caribe.",
+    "body": "El 97% de los medicamentos del Caribe son importados. BPI está construyendo la capacidad de fabricación, la cadena de suministro y la infraestructura regulatoria para cambiarlo.",
+    "navLinks": [
+      { "label": "NOSOTROS", "href": "/about" },
+      { "label": "ECOSISTEMA", "href": "#ecosystem" },
+      { "label": "INICIATIVAS", "href": "#initiative" }
+    ],
+    "cta": "Saber más"
+  },
+  "whyBpi": {
+    "quote": "«Cada pieza que construimos, la construimos con las personas para quienes es — para que la próxima generación no tenga que esperar con la mano extendida.»",
+    "body": "Barbados Pharmaceuticals Inc. está construyendo la infraestructura farmacéutica que Barbados y su región merecen, demostrando que los estados pequeños pueden dar forma a los sistemas de los que dependen.",
+    "cta": "¿Por qué BPI?"
+  },
+  "sectors": {
+    "heading": "Cómo llega la salud",
+    "body": "BPI trabaja en seis sectores para construir los sistemas, las rutas y la infraestructura que determinan si los medicamentos esenciales llegan al Caribe de forma fiable y a tiempo.",
+    "cta": "Conoce nuestro trabajo"
+  },
+  "initiatives": {
+    "eyebrow": "LO QUE ESTAMOS CONSTRUYENDO",
+    "heading": "Iniciativas",
+    "viewAll": "Ver todo"
+  },
+  "careers": {
+    "eyebrow": "Lo que estamos construyendo",
+    "heading": "Empleo",
+    "lead": "Nuestro enfoque hacia la innovación y el crecimiento se guía por prioridades claras que dan forma al impacto y la dirección. Creado para fortalecer los sistemas, las personas y el éxito a largo plazo.",
+    "body": "Construido deliberadamente, pieza por pieza, con las personas para quienes es. Si eres un socio, inversor o gobierno, nos gustaría construir contigo.",
+    "primary": "Ver empleos",
+    "secondary": "Nuestras iniciativas"
+  },
+  "building": {
+    "body": "Deliberadamente. Pieza por pieza. Con las personas para quienes es. Si eres un socio, inversor o gobierno, nos gustaría construir contigo.",
+    "primary": "Contáctanos",
+    "secondary": "Nuestras iniciativas"
+  },
+  "blog": {
+    "heading": "Lo último de BPI",
+    "viewAll": "Ver todo"
+  },
+  "newsletter": {
+    "label": "Suscríbete al boletín",
+    "fullName": "Nombre completo",
+    "email": "Correo electrónico",
+    "submit": "Suscribirse",
+    "submitting": "Suscribiendo…",
+    "success": "Gracias — ya estás en la lista.",
+    "error": "Algo salió mal. Inténtalo de nuevo en breve."
+  },
+  "footer": {
+    "heading": "Barbados Pharmaceuticals Inc.",
+    "tagline": "Construyendo la arquitectura del cuidado.",
+    "partnersLabel": "Socios",
+    "rights": "Todos los derechos reservados.",
+    "navGroups": [
+      {
+        "title": "NOSOTROS",
+        "links": [
+          { "label": "Por qué BPI", "href": "/why-bpi" },
+          { "label": "Nuestra historia", "href": "/our-story" },
+          { "label": "Liderazgo", "href": "/leadership" },
+          { "label": "Gobernanza", "href": "/governance" }
+        ]
+      },
+      {
+        "title": "NUESTRO TRABAJO",
+        "links": [
+          { "label": "Dignidad", "href": "/dignity" },
+          { "label": "Soberanía", "href": "/sovereignty" },
+          { "label": "Alianza", "href": "/alliance" },
+          { "label": "Iniciativas", "href": "/initiatives" }
+        ]
+      },
+      {
+        "title": "CONECTAR",
+        "links": [
+          { "label": "Socios", "href": "/partners" },
+          { "label": "Inversores", "href": "/investors" },
+          { "label": "Prensa", "href": "/media" },
+          { "label": "Contacto", "href": "/contact" }
+        ]
+      }
+    ],
+    "legalLinks": [
+      { "label": "Términos de uso", "href": "/terms" },
+      { "label": "Términos de uso de los recursos", "href": "/media-assets-terms" }
+    ]
+  }
+}

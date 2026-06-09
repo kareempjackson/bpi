@@ -11,6 +11,15 @@ import {
 import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 
+type ScrollToOptions = {
+  duration?: number;
+  immediate?: boolean;
+  /** Prevent user scroll input from interrupting until the target is reached. */
+  lock?: boolean;
+  /** Scroll even if Lenis is currently stopped. */
+  force?: boolean;
+};
+
 type LenisControls = {
   stop: () => void;
   start: () => void;
@@ -22,12 +31,20 @@ type LenisControls = {
    * event would otherwise yank the page to a stale offset).
    */
   sync: () => void;
+  /**
+   * Smoothly (or immediately) scroll to an absolute document Y position
+   * through Lenis, so the motion uses the same easing as wheel scrolls.
+   * Falls back to native `window.scrollTo` when Lenis is absent
+   * (e.g. reduced-motion).
+   */
+  scrollTo: (target: number, opts?: ScrollToOptions) => void;
 };
 
 const LenisContext = createContext<LenisControls>({
   stop: () => {},
   start: () => {},
   sync: () => {},
+  scrollTo: () => {},
 });
 
 export const useLenis = () => useContext(LenisContext);
@@ -162,13 +179,30 @@ export default function LenisProvider({
     lenis.resize();
     lenis.scrollTo(window.scrollY, { immediate: true, force: true });
   }, []);
+  const scrollTo = useCallback((target: number, opts?: ScrollToOptions) => {
+    const lenis = lenisRef.current;
+    if (lenis) {
+      lenis.scrollTo(target, {
+        duration: opts?.duration,
+        immediate: opts?.immediate,
+        lock: opts?.lock,
+        force: opts?.force,
+        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      });
+      return;
+    }
+    window.scrollTo({
+      top: target,
+      behavior: opts?.immediate ? "auto" : "smooth",
+    });
+  }, []);
 
   // Memoise so consumers depending on the context value (e.g.
   // `BfcacheReset`'s effect with `[sync]` deps) don't re-run their
   // effects on every parent render.
   const value = useMemo<LenisControls>(
-    () => ({ stop, start, sync }),
-    [stop, start, sync]
+    () => ({ stop, start, sync, scrollTo }),
+    [stop, start, sync, scrollTo]
   );
 
   return (

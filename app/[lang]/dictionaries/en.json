@@ -1,0 +1,100 @@
+{
+  "nav": {
+    "links": [
+      { "label": "About", "href": "/about" },
+      { "label": "Initiatives", "href": "/initiatives" }
+    ],
+    "search": "Search",
+    "menu": "Menu"
+  },
+  "hero": {
+    "headline": "Building the Caribbean's pharmaceutical gateway.",
+    "body": "97% of Caribbean medicines are imported. BPI is building the manufacturing capacity, supply chain, and regulatory infrastructure to change that.",
+    "navLinks": [
+      { "label": "ABOUT", "href": "/about" },
+      { "label": "ECOSYSTEM", "href": "#ecosystem" },
+      { "label": "INITIATIVES", "href": "#initiative" }
+    ],
+    "cta": "Learn More"
+  },
+  "whyBpi": {
+    "quote": "\"Every piece we build, we build with the people it is for — so that the next generation does not have to wait with its hand out.\"",
+    "body": "Barbados Pharmaceuticals Inc. is building the pharmaceutical infrastructure Barbados and its region deserve — and proving that small states can shape the systems they depend on.",
+    "cta": "Why BPI?"
+  },
+  "sectors": {
+    "heading": "How Health Gets Here",
+    "body": "BPI works across six sectors to build the systems, routes, and infrastructure that determine whether essential medicines reach the Caribbean reliably and on time.",
+    "cta": "Explore our work"
+  },
+  "initiatives": {
+    "eyebrow": "WHAT WE'RE BUILDING",
+    "heading": "Initiatives",
+    "viewAll": "View all"
+  },
+  "careers": {
+    "eyebrow": "What We Are Building",
+    "heading": "Careers",
+    "lead": "Our approach to innovation and growth is guided by clear priorities that shape impact and direction. Built to strengthen systems, people, and long-term success.",
+    "body": "Built deliberately, piece by piece, with the people it is for. If you are a partner, investor, or government, we would like to build with you.",
+    "primary": "View Jobs",
+    "secondary": "Our initiatives"
+  },
+  "building": {
+    "body": "Deliberately. Piece by piece. With the people it is for. If you are a partner, investor, or government we would like to build with you.",
+    "primary": "Get in touch",
+    "secondary": "Our initiatives"
+  },
+  "blog": {
+    "heading": "Latest from BPI",
+    "viewAll": "View all"
+  },
+  "newsletter": {
+    "label": "Newsletter signup",
+    "fullName": "Full Name",
+    "email": "Email",
+    "submit": "Subscribe",
+    "submitting": "Subscribing…",
+    "success": "Thanks — you're on the list.",
+    "error": "Something went wrong. Please try again shortly."
+  },
+  "footer": {
+    "heading": "Barbados Pharmaceuticals Inc.",
+    "tagline": "Building the architecture of care.",
+    "partnersLabel": "Partners",
+    "rights": "All rights reserved.",
+    "navGroups": [
+      {
+        "title": "ABOUT US",
+        "links": [
+          { "label": "Why BPI", "href": "/why-bpi" },
+          { "label": "Our Story", "href": "/our-story" },
+          { "label": "Leadership", "href": "/leadership" },
+          { "label": "Governance", "href": "/governance" }
+        ]
+      },
+      {
+        "title": "OUR WORK",
+        "links": [
+          { "label": "Dignity", "href": "/dignity" },
+          { "label": "Sovereignty", "href": "/sovereignty" },
+          { "label": "Alliance", "href": "/alliance" },
+          { "label": "Initiatives", "href": "/initiatives" }
+        ]
+      },
+      {
+        "title": "CONNECT",
+        "links": [
+          { "label": "Partners", "href": "/partners" },
+          { "label": "Investors", "href": "/investors" },
+          { "label": "Media", "href": "/media" },
+          { "label": "Contact", "href": "/contact" }
+        ]
+      }
+    ],
+    "legalLinks": [
+      { "label": "Terms of Use", "href": "/terms" },
+      { "label": "Media Assets Terms of Use", "href": "/media-assets-terms" }
+    ]
+  }
+}

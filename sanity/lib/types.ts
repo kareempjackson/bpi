@@ -76,6 +76,22 @@ export type HeroBackground = {
   image?: SanityImage | null;
 };
 
+export type HeroSlideData = {
+  headline: string;
+  body?: string | null;
+  ctaHref?: string | null;
+  background?: HeroBackground | null;
+  thumbnail?: SanityImage | null;
+};
+
+export type HeroFeatureData = {
+  label?: string | null;
+  eyebrow?: string | null;
+  href?: string | null;
+  videoUrl?: string | null;
+  poster?: SanityImage | null;
+};
+
 export type NavLink = {
   label: string;
   href: string;
@@ -251,6 +267,8 @@ export type HomePage = {
   heroBody: string;
   heroCtaHref?: string | null;
   heroBackground: HeroBackground;
+  heroSlides?: HeroSlideData[] | null;
+  heroFeature?: HeroFeatureData | null;
 
   leaderQuote: string;
   leaderBody: string;

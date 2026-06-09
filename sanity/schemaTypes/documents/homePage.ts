@@ -1,5 +1,7 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 
+import { externalVideoUrlField } from "../objects/externalVideoUrlField";
+
 export const homePage = defineType({
   name: "homePage",
   title: "Home page",
@@ -83,6 +85,7 @@ export const homePage = defineType({
           },
           initialValue: "video",
         }),
+        externalVideoUrlField(),
         defineField({
           name: "video",
           title: "Video upload (MP4 recommended, < 100 MB)",
@@ -104,16 +107,138 @@ export const homePage = defineType({
                 kind?: string;
                 video?: { asset?: unknown };
                 image?: { asset?: unknown };
+                externalVideoUrl?: string;
               }
             | undefined;
           const kind = bg?.kind ?? "video";
           if (kind === "video") {
-            if (!bg?.video?.asset) return "Upload a video.";
+            // Either a Sanity upload OR an external (R2) URL satisfies a video.
+            if (!bg?.video?.asset && !bg?.externalVideoUrl)
+              return "Upload a video or paste an external video URL.";
           } else if (kind === "image") {
             if (!bg?.image?.asset) return "Upload an image.";
           }
           return true;
         }),
+    }),
+    defineField({
+      name: "heroSlides",
+      title: "Featured slides",
+      type: "array",
+      group: "hero",
+      description:
+        "Turn the hero into a slider. Each slide has its own background, headline, body, and CTA — the slider cycles through them. Leave empty to show a single static hero using the fields above. The first slide reuses the headline/body/background above if its own are left blank.",
+      of: [
+        defineArrayMember({
+          name: "heroSlide",
+          title: "Slide",
+          type: "object",
+          fields: [
+            defineField({
+              name: "headline",
+              title: "Headline",
+              type: "string",
+              validation: (Rule) => Rule.required(),
+            }),
+            defineField({
+              name: "body",
+              title: "Body",
+              type: "text",
+              rows: 3,
+            }),
+            defineField({
+              name: "ctaHref",
+              title: "CTA link (arrow button)",
+              type: "string",
+              description: "Destination for the arrow button beside the body.",
+            }),
+            defineField({
+              name: "background",
+              title: "Background (video or image)",
+              type: "object",
+              fields: [
+                defineField({
+                  name: "kind",
+                  title: "Type",
+                  type: "string",
+                  options: {
+                    list: [
+                      { title: "Video", value: "video" },
+                      { title: "Image", value: "image" },
+                    ],
+                    layout: "radio",
+                  },
+                  initialValue: "video",
+                }),
+                externalVideoUrlField(),
+                defineField({
+                  name: "video",
+                  title: "Video upload (MP4 recommended, < 100 MB)",
+                  type: "file",
+                  options: { accept: "video/mp4,video/webm" },
+                  hidden: ({ parent }) => parent?.kind !== "video",
+                }),
+                defineField({
+                  name: "image",
+                  title: "Image",
+                  type: "imageWithAlt",
+                  hidden: ({ parent }) => parent?.kind !== "image",
+                }),
+              ],
+            }),
+            defineField({
+              name: "thumbnail",
+              title: "Thumbnail (slider control)",
+              type: "imageWithAlt",
+              description:
+                "Small preview shown in the bottom-left slider control. Falls back to the background image.",
+            }),
+          ],
+          preview: {
+            select: { title: "headline", media: "thumbnail" },
+          },
+        }),
+      ],
+    }),
+    defineField({
+      name: "heroFeature",
+      title: "Hero feature card (bottom-right)",
+      type: "object",
+      group: "hero",
+      description:
+        "A single fixed video callout shown in the bottom-right of the hero. It does NOT change with the slider.",
+      fields: [
+        defineField({
+          name: "label",
+          title: "Title",
+          type: "string",
+          description: 'e.g. "Who we are".',
+        }),
+        defineField({
+          name: "eyebrow",
+          title: "Eyebrow",
+          type: "string",
+          description: 'Small label above the title. Defaults to "Feature".',
+        }),
+        defineField({
+          name: "href",
+          title: "Link",
+          type: "string",
+          description: "Where the card links to.",
+        }),
+        externalVideoUrlField(false),
+        defineField({
+          name: "video",
+          title: "Video (MP4 recommended, < 100 MB)",
+          type: "file",
+          options: { accept: "video/mp4,video/webm" },
+        }),
+        defineField({
+          name: "poster",
+          title: "Poster / fallback image",
+          type: "imageWithAlt",
+        }),
+      ],
     }),
 
     // ───────────────────────────────────────────────────────────── Leader ──

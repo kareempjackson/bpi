@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import "@/app/globals.css";
+import { albertSans, avenirNext } from "@/app/fonts";
 import Logo from "./components/Logo";
 
 export const metadata: Metadata = {
@@ -22,6 +24,11 @@ export const metadata: Metadata = {
  */
 export default function NotFound() {
   return (
+    <html
+      lang="en"
+      className={`${albertSans.variable} ${avenirNext.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col">
     <main className="relative min-h-screen flex flex-col bg-error-25 text-primary-500 overflow-hidden">
       {/* Top bar — just the logo so the page still feels like part of the
           site without needing the full sticky nav + Sanity data. */}
@@ -89,6 +96,8 @@ export default function NotFound() {
           </div>
         </div>
       </section>
-    </main>
+        </main>
+      </body>
+    </html>
   );
 }

@@ -3,9 +3,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import Image from "next/image";
-import ArrowRight from "./ArrowRight";
-import Button from "./Button";
 import CtaLink from "./CtaLink";
+import LanguageToggle from "./LanguageToggle";
 import Logo from "./Logo";
 import type { MenuConfig } from "./Menu";
 import MenuLauncher from "./MenuLauncher";
@@ -25,6 +24,42 @@ export type NavLink = {
   disabled?: boolean;
 };
 
+/**
+ * A single hero slide — its own background, copy, and CTA. The slider only
+ * cycles these; the bottom-right feature card is fixed (see HeroFeature).
+ */
+export type HeroSlide = {
+  headline: string;
+  body?: string;
+  ctaHref?: string;
+  /** "video" (default) renders the autoplay loop; "image" renders a still. */
+  backgroundKind?: "video" | "image";
+  videoSrc?: string;
+  imageSrc?: string;
+  imageAlt?: string;
+  /** Thumbnail for the bottom-left slider control. Falls back to imageSrc. */
+  thumbnailSrc?: string;
+  thumbnailAlt?: string;
+};
+
+/**
+ * The fixed bottom-right feature card. A single looping video callout that
+ * does NOT change with the slider — set once.
+ */
+export type HeroFeature = {
+  /** Small label above the title, defaults to "Feature". */
+  eyebrow?: string;
+  /** The feature title, e.g. "Who we are". */
+  label: string;
+  /** Where the card links to. */
+  href?: string;
+  /** Looping video shown in the card. */
+  videoSrc?: string;
+  /** Still poster / fallback image. */
+  posterSrc?: string;
+  posterAlt?: string;
+};
+
 export type HeroSectionProps = {
   headline?: string;
   body?: string;
@@ -34,9 +69,20 @@ export type HeroSectionProps = {
   imageSrc?: string;
   imageAlt?: string;
   ctaHref?: string;
+  /**
+   * Slides. When two or more are supplied the hero becomes an auto-advancing
+   * slider with progress segments (bottom-left). When omitted, the top-level
+   * headline/body/background props render as a single static slide.
+   */
+  slides?: HeroSlide[];
+  /** Fixed bottom-right feature card — independent of the slider. */
+  feature?: HeroFeature;
   navLinks?: NavLink[];
   menuConfig?: MenuConfig;
 };
+
+/** How long each slide stays before auto-advancing, in ms. */
+const SLIDE_DURATION = 7000;
 
 // The hero card has a notched top-right where the embedded nav sits. The
 // original path was authored at 1412×1020 and clipped with `objectBoundingBox`
@@ -69,14 +115,14 @@ function computeHeroGeo(cardW: number): HeroGeo {
       R: 28,
       nr: 18,
       nh: 84,
-      notchW: Math.min(Math.max(cardW * 0.36, 300), 380),
+      notchW: Math.min(Math.max(cardW * 0.42, 360), 480),
     };
   }
   return {
     R: 36,
     nr: 22,
     nh: 76,
-    notchW: Math.min(Math.max(cardW * 0.32, 420), 540),
+    notchW: Math.min(Math.max(cardW * 0.34, 560), 600),
   };
 }
 
@@ -157,14 +203,32 @@ export default function HeroSection({
   imageSrc,
   imageAlt = "",
   ctaHref,
+  slides: slidesProp,
+  feature,
   navLinks = DEFAULT_NAV_LINKS,
   menuConfig,
 }: HeroSectionProps = {}) {
   const NAV_LINKS = navLinks;
-  const showImage = backgroundKind === "image" && !!imageSrc;
+
+  // Normalise to a slide list. With no slides configured we synthesise a
+  // single slide from the top-level props so the hero stays a plain hero.
+  const slides: HeroSlide[] =
+    slidesProp && slidesProp.length > 0
+      ? slidesProp
+      : [{ headline, body, ctaHref, backgroundKind, videoSrc, imageSrc, imageAlt }];
+
+  const [active, setActive] = useState(0);
+  const isSlider = slides.length > 1;
+  const safeActive = active % slides.length;
+  const activeSlide = slides[safeActive];
+
+  const slideBackgroundKind = activeSlide.backgroundKind ?? "video";
+  const showImage = slideBackgroundKind === "image" && !!activeSlide.imageSrc;
+
   const sectionRef = useRef<HTMLElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const copyWrapRef = useRef<HTMLDivElement>(null);
+  const bottomBarRef = useRef<HTMLDivElement>(null);
   const heroWrapRef = useRef<HTMLDivElement>(null);
   const tintRef = useRef<HTMLDivElement>(null);
   const videoWrapRef = useRef<HTMLDivElement>(null);
@@ -213,6 +277,18 @@ export default function HeroSection({
       /^((?!chrome|crios|fxios|edg|android|opr).)*safari/i.test(ua);
     setIsDesktopSafari(isSafari);
   }, [isDesktop]);
+
+  // Auto-advance the slider. Pauses for reduced-motion and when there is
+  // only a single slide. Re-arms whenever the active index changes (whether
+  // from the timer or a manual click), keeping the progress bar in sync.
+  useEffect(() => {
+    if (!isSlider || reducedMotion) return;
+    const id = window.setTimeout(
+      () => setActive((a) => (a + 1) % slides.length),
+      SLIDE_DURATION,
+    );
+    return () => window.clearTimeout(id);
+  }, [safeActive, isSlider, reducedMotion, slides.length]);
 
   // Track the card's measured pixel size so the clip-path stays sleek.
   // `offsetWidth` / `offsetHeight` ignore the scroll-driven scale transform
@@ -284,12 +360,17 @@ export default function HeroSection({
         copyWrapRef.current.style.opacity = String(copyOpacity);
         copyWrapRef.current.style.transform = `translate3d(0, ${copyTranslateY}px, 0)`;
       }
+      if (bottomBarRef.current) {
+        bottomBarRef.current.style.opacity = String(copyOpacity);
+        bottomBarRef.current.style.transform = `translate3d(0, ${copyTranslateY}px, 0)`;
+        bottomBarRef.current.style.pointerEvents = copyOpacity < 0.05 ? "none" : "";
+      }
       if (heroWrapRef.current) {
         heroWrapRef.current.style.opacity = String(heroOverallOpacity);
       }
       if (tintRef.current) {
         // Add a deepening dark layer as we scroll into the video
-        tintRef.current.style.opacity = String(0.22 + tintBoost);
+        tintRef.current.style.opacity = String(0.38 + tintBoost);
       }
       if (videoWrapRef.current) {
         // Subtle parallax: video drifts down ~40px over the hero range,
@@ -398,46 +479,70 @@ export default function HeroSection({
                 ref={videoWrapRef}
                 className="absolute inset-x-0 top-[-6%] bottom-[-6%] will-change-transform"
               >
-                {showImage ? (
-                  <Image
-                    key={imageSrc}
-                    src={imageSrc!}
-                    alt={imageAlt}
-                    fill
-                    preload
-                    sizes="100vw"
-                    quality={90}
-                    className="hero-video object-cover"
-                  />
-                ) : videoSrc ? (
-                  <video
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    preload="metadata"
-                    disableRemotePlayback
-                    disablePictureInPicture
-                    className="hero-video absolute inset-0 w-full h-full object-cover"
-                    key={videoSrc}
-                  >
-                    <source src={videoSrc} />
-                  </video>
-                ) : null}
+                {/* Active slide background — keyed by index so a slide change
+                    remounts the media and crossfades it in. */}
+                <div key={safeActive} className="hero-slide-media absolute inset-0">
+                  {showImage ? (
+                    <Image
+                      src={activeSlide.imageSrc!}
+                      alt={activeSlide.imageAlt ?? ""}
+                      fill
+                      priority={safeActive === 0}
+                      sizes="100vw"
+                      quality={90}
+                      className="hero-video object-cover"
+                    />
+                  ) : activeSlide.videoSrc ? (
+                    <video
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      preload="metadata"
+                      disableRemotePlayback
+                      disablePictureInPicture
+                      className="hero-video absolute inset-0 w-full h-full object-cover"
+                    >
+                      <source src={activeSlide.videoSrc} />
+                    </video>
+                  ) : null}
+                </div>
               </div>
 
               {/* Brand tint — opacity bumps as we scroll deeper */}
               <div
                 ref={tintRef}
                 className="absolute inset-0"
-                style={{ backgroundColor: "#000036", opacity: 0.22 }}
+                style={{ backgroundColor: "#000036", opacity: 0.38 }}
+              />
+
+              {/* Cinematic colour grade — a teal→green→navy wash that gives
+                  the footage a graded, filmic tone. Plain (non-blend) overlay
+                  so it never flickers while the card scales on scroll. */}
+              <div
+                aria-hidden
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(2,47,46,0.55) 0%, rgba(6,254,131,0.12) 50%, rgba(26,26,74,0.55) 100%)",
+                }}
+              />
+
+              {/* Cinematic vignette — darkens the edges to draw the eye in. */}
+              <div
+                aria-hidden
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background:
+                    "radial-gradient(120% 100% at 50% 42%, transparent 48%, rgba(0,0,22,0.55) 100%)",
+                }}
               />
 
               {/* Top scrim — keeps nav legible */}
               <div className="absolute inset-x-0 top-0 h-[18%] bg-linear-to-b from-black/55 to-transparent" />
 
               {/* Bottom scrim — keeps headline legible */}
-              <div className="absolute inset-x-0 bottom-0 h-[42%] bg-linear-to-t from-black/78 via-black/45 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 h-[50%] bg-linear-to-t from-black/90 via-black/60 to-transparent" />
             </div>
 
             <div
@@ -461,15 +566,18 @@ export default function HeroSection({
 
             <div
               ref={navLinksRef}
-              className="absolute z-30 hidden md:flex items-center justify-end gap-7 lg:gap-9 will-change-[opacity,transform]"
+              className="absolute z-30 hidden md:flex items-center justify-end gap-6 lg:gap-9 will-change-[opacity,transform]"
               style={{
-                right: "calc(var(--hero-notch-right) + 4px)",
+                // Sit flush to the card's right edge so the menu blob's
+                // right side lines up with the hero video's right edge
+                // (previously inset by the notch radius).
+                right: 0,
                 top: 0,
                 height: "var(--hero-notch-h)",
                 maxWidth: "var(--hero-notch-w)",
               }}
             >
-              <nav data-page-header className="flex items-center gap-7 lg:gap-9 text-[11px] font-semibold uppercase tracking-[0.14em] text-black">
+              <nav data-page-header className="flex items-center gap-6 lg:gap-9 text-[13px] lg:text-[13.5px] font-semibold uppercase tracking-[0.14em] text-black whitespace-nowrap">
                 {NAV_LINKS.map((link, i) =>
                   link.disabled ? (
                     <div
@@ -512,6 +620,18 @@ export default function HeroSection({
               </nav>
               <div
                 data-nav-item
+                data-page-header
+                className="will-change-[opacity,transform] text-black"
+              >
+                <div
+                  className="hero-anim-fade"
+                  style={{ "--anim-delay": "0.5s" } as CSSProperties}
+                >
+                  <LanguageToggle className="text-[13px] lg:text-[13.5px] tracking-[0.14em]" />
+                </div>
+              </div>
+              <div
+                data-nav-item
                 className="will-change-[opacity,transform]"
               >
                 <div
@@ -532,46 +652,224 @@ export default function HeroSection({
 
             <div
               ref={copyWrapRef}
-              className="absolute bottom-0 left-0 z-10 px-8 lg:px-14 pb-36 lg:pb-48 max-w-2xl"
+              className="absolute bottom-0 left-0 z-10 px-8 lg:px-14 pb-52 lg:pb-72 max-w-4xl"
             >
-              <h1
-                className="hero-anim font-display text-display-lg font-semibold text-white tracking-[-0.03em] leading-[1.02]"
-                style={{ "--anim-delay": "0.65s" } as CSSProperties}
-              >
-                {headline}
-              </h1>
-              <div className="mt-7 lg:mt-9 flex items-center gap-6">
-                <p
-                  className="hero-anim text-md lg:text-lg text-white/70 max-w-md leading-[1.6]"
-                  style={{ "--anim-delay": "0.78s" } as CSSProperties}
+              {/* Keyed by active slide so the copy re-animates on change,
+                  while the scroll-driven fade stays on the stable parent. */}
+              <div key={safeActive}>
+                <h1
+                  className="hero-anim font-display text-display-lg lg:text-display-xl font-semibold text-white tracking-[-0.03em] leading-[1.02]"
+                  style={
+                    { "--anim-delay": safeActive === 0 ? "0.65s" : "0.05s" } as CSSProperties
+                  }
                 >
-                  {body}
-                </p>
+                  {activeSlide.headline}
+                </h1>
+                {activeSlide.body ? (
+                  <p
+                    className="hero-anim mt-7 lg:mt-9 text-lg lg:text-xl text-white/70 max-w-md leading-[1.6]"
+                    style={
+                      { "--anim-delay": safeActive === 0 ? "0.78s" : "0.12s" } as CSSProperties
+                    }
+                  >
+                    {activeSlide.body}
+                  </p>
+                ) : null}
                 <div
-                  className="hero-anim shrink-0"
-                  style={{ "--anim-delay": "0.9s" } as CSSProperties}
+                  className="hero-anim mt-8 lg:mt-10"
+                  style={
+                    { "--anim-delay": safeActive === 0 ? "0.9s" : "0.18s" } as CSSProperties
+                  }
                 >
-                  {ctaHref ? (
-                    <CtaLink href={ctaHref} className="inline-flex" aria-label="Learn more">
-                      <Button variant="primary" iconOnly="md">
-                        <ArrowRight />
-                      </Button>
+                  {activeSlide.ctaHref ? (
+                    <CtaLink
+                      href={activeSlide.ctaHref}
+                      className="inline-flex items-center rounded-round bg-error-500 px-5 py-2 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-[var(--ease-premium)] hover:bg-error-400"
+                    >
+                      Learn More
                     </CtaLink>
                   ) : (
-                    <Button
-                      variant="primary"
-                      iconOnly="md"
-                      aria-label="Learn more"
+                    <button
+                      type="button"
+                      className="inline-flex items-center rounded-round bg-error-500 px-5 py-2 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-[var(--ease-premium)] hover:bg-error-400"
                     >
-                      <ArrowRight />
-                    </Button>
+                      Learn More
+                    </button>
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* Bottom bar — slider progress (left) + feature card (right).
+                Fades out on scroll alongside the headline copy. */}
+            <div
+              ref={bottomBarRef}
+              className="absolute inset-x-0 bottom-0 z-20 px-8 lg:px-14 pb-10 lg:pb-14 flex items-end justify-between gap-6 will-change-[opacity,transform]"
+            >
+              {/* Left: a single preview of the active slide, above the
+                  clickable progress toggles. The preview is exactly one
+                  segment wide and carries a thin green border; the lines
+                  are hairline-thin. Click any toggle to jump to a slide. */}
+              {isSlider ? (
+                <div
+                  className="hero-anim-fade flex flex-col gap-3"
+                  style={{ "--anim-delay": "1s" } as CSSProperties}
+                >
+                  {/* Outer wrapper slides horizontally so the preview sits
+                      above the active segment (segment width + the 0.625rem
+                      `gap-2.5`). The inner keyed div handles the crossfade. */}
+                  <div
+                    className="w-20 lg:w-24 transition-transform duration-700 ease-[var(--ease-emphasized)] motion-reduce:transition-none"
+                    style={{
+                      transform: `translateX(calc(${safeActive} * (100% + 0.625rem)))`,
+                    }}
+                  >
+                    <div
+                      key={safeActive}
+                      className="hero-slide-media relative w-full aspect-5/3 overflow-hidden rounded-xs ring-[1.5px] ring-error-500"
+                    >
+                      {activeSlide.thumbnailSrc ?? activeSlide.imageSrc ? (
+                        <Image
+                          src={(activeSlide.thumbnailSrc ?? activeSlide.imageSrc)!}
+                          alt={activeSlide.thumbnailAlt ?? ""}
+                          fill
+                          sizes="96px"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <span className="absolute inset-0 bg-white/10" />
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    {slides.map((s, i) => (
+                      <button
+                        key={`${s.headline}-${i}`}
+                        type="button"
+                        onClick={() => setActive(i)}
+                        aria-label={`Go to slide ${i + 1}`}
+                        aria-current={i === safeActive}
+                        className="group flex h-3 w-20 lg:w-24 items-center focus-visible:outline-none"
+                      >
+                        <span className="relative block h-px w-full overflow-hidden rounded-full bg-white/35 transition-colors group-hover:bg-white/55">
+                          <span
+                            className="absolute inset-0 origin-left rounded-full bg-error-500"
+                            style={
+                              i < safeActive
+                                ? { transform: "scaleX(1)" }
+                                : i === safeActive
+                                  ? reducedMotion
+                                    ? { transform: "scaleX(1)" }
+                                    : {
+                                        transform: "scaleX(0)",
+                                        animation: `hero-slider-fill ${SLIDE_DURATION}ms linear forwards`,
+                                      }
+                                  : { transform: "scaleX(0)" }
+                            }
+                          />
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <span />
+              )}
+
+              {/* Right: fixed feature callout card — does not change with
+                  the slider. */}
+              {feature?.label ? (
+                <FeatureCard
+                  eyebrow={feature.eyebrow ?? "Feature"}
+                  label={feature.label}
+                  href={feature.href}
+                  videoSrc={feature.videoSrc}
+                  posterSrc={feature.posterSrc}
+                  posterAlt={feature.posterAlt ?? ""}
+                />
+              ) : null}
             </div>
           </div>
         </div>
       </section>
     </>
+  );
+}
+
+function FeatureCard({
+  eyebrow,
+  label,
+  href,
+  videoSrc,
+  posterSrc,
+  posterAlt,
+}: {
+  eyebrow: string;
+  label: string;
+  href?: string;
+  videoSrc?: string;
+  posterSrc?: string;
+  posterAlt?: string;
+}) {
+  const inner = (
+    <>
+      <div className="flex flex-col justify-between py-1">
+        <span className="text-xs font-medium uppercase tracking-[0.14em] text-error-500/80">
+          {eyebrow}
+        </span>
+        <span className="font-display text-base lg:text-lg font-semibold leading-tight text-error-500">
+          {label}
+        </span>
+      </div>
+      <div className="relative h-14 w-24 shrink-0 overflow-hidden rounded-xs bg-black/30">
+        {videoSrc ? (
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="metadata"
+            poster={posterSrc}
+            disableRemotePlayback
+            disablePictureInPicture
+            className="absolute inset-0 h-full w-full object-cover"
+          >
+            <source src={videoSrc} />
+          </video>
+        ) : posterSrc ? (
+          <Image
+            src={posterSrc}
+            alt={posterAlt ?? ""}
+            fill
+            sizes="96px"
+            className="object-cover"
+          />
+        ) : null}
+        <span className="absolute inset-0 flex items-center justify-center">
+          <span className="flex size-7 items-center justify-center rounded-full bg-black/45 backdrop-blur-sm">
+            <svg viewBox="0 0 24 24" className="ml-0.5 h-3.5 w-3.5 fill-white" aria-hidden>
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </span>
+        </span>
+      </div>
+    </>
+  );
+
+  const className =
+    "hero-anim-fade group hidden sm:flex items-stretch gap-5 rounded-md border border-error-500/55 bg-black/20 p-3 backdrop-blur-md transition-colors hover:border-error-500/90";
+  const style = { "--anim-delay": "1.05s" } as CSSProperties;
+
+  if (href) {
+    return (
+      <CtaLink href={href} className={className} style={style} aria-label={`${eyebrow}: ${label}`}>
+        {inner}
+      </CtaLink>
+    );
+  }
+  return (
+    <div className={className} style={style}>
+      {inner}
+    </div>
   );
 }

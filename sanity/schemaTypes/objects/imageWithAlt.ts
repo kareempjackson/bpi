@@ -1,5 +1,7 @@
 import { defineField, defineType } from "sanity";
 
+import { externalVideoUrlField } from "./externalVideoUrlField";
+
 /**
  * Universal media object — interchangeable between still image and
  * looping video. Editors flip the "Type" radio to choose. The `asset`
@@ -34,6 +36,7 @@ export const imageWithAlt = defineType({
       description:
         "Used as the rendered media when Type is Image, or as the poster while the video buffers when Type is Video.",
     }),
+    externalVideoUrlField(),
     defineField({
       name: "video",
       title: "Video upload (MP4 recommended)",

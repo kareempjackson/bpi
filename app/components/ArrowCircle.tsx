@@ -8,11 +8,14 @@ type Props = Omit<
   size?: number;
   /** Arrow direction. `prev` mirrors horizontally. */
   direction?: "next" | "prev";
+  /** Dashed ring border. Defaults to true (the site-wide style). */
+  dashed?: boolean;
 };
 
 export default function ArrowCircle({
   size = 44,
   direction = "next",
+  dashed = true,
   className,
   style,
   ...rest
@@ -40,7 +43,7 @@ export default function ArrowCircle({
         height="43"
         rx="21.5"
         stroke="currentColor"
-        strokeDasharray="4 4"
+        strokeDasharray={dashed ? "4 4" : undefined}
       />
       <path
         d="M13.75 22H30.25"

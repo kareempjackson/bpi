@@ -3,7 +3,7 @@ import { defineQuery } from "next-sanity";
 const IMAGE_PROJECTION = `{
   kind,
   asset,
-  "videoUrl": video.asset->url,
+  "videoUrl": coalesce(externalVideoUrl, video.asset->url),
   alt
 }`;
 
@@ -15,7 +15,7 @@ const CTA_PROJECTION = `{
 const MENU_MEDIA_PROJECTION = `{
   kind,
   image${IMAGE_PROJECTION},
-  "videoUrl": video.asset->url
+  "videoUrl": coalesce(externalVideoUrl, video.asset->url)
 }`;
 
 export const SITE_SETTINGS_QUERY = defineQuery(`
@@ -65,8 +65,26 @@ export const HOME_PAGE_QUERY = defineQuery(`
     heroCtaHref,
     heroBackground{
       kind,
-      "videoUrl": video.asset->url,
+      "videoUrl": coalesce(externalVideoUrl, video.asset->url),
       image${IMAGE_PROJECTION}
+    },
+    heroSlides[]{
+      headline,
+      body,
+      ctaHref,
+      background{
+        kind,
+        "videoUrl": coalesce(externalVideoUrl, video.asset->url),
+        image${IMAGE_PROJECTION}
+      },
+      thumbnail${IMAGE_PROJECTION}
+    },
+    heroFeature{
+      label,
+      eyebrow,
+      href,
+      "videoUrl": coalesce(externalVideoUrl, video.asset->url),
+      poster${IMAGE_PROJECTION}
     },
 
     leaderQuote,
@@ -102,7 +120,7 @@ export const HOME_PAGE_QUERY = defineQuery(`
       media{
         kind,
         image${IMAGE_PROJECTION},
-        "videoUrl": video.asset->url,
+        "videoUrl": coalesce(externalVideoUrl, video.asset->url),
         videoPoster${IMAGE_PROJECTION}
       },
       href

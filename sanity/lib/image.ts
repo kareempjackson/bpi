@@ -29,7 +29,10 @@ function resolveImageUrl(
   if (!hasUpload) return null;
   let b = builder.image(image.asset as SanityImageSource);
   if (width) b = b.width(width);
-  return b.auto("format").url();
+  // `quality(75)` trims the source bytes Sanity serves per transform (it then
+  // gets re-encoded by next/image). 75 is visually lossless for photos and is
+  // allowlisted in next.config's `images.qualities`.
+  return b.auto("format").quality(75).url();
 }
 
 /**

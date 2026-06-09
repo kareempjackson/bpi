@@ -29,9 +29,9 @@ function variantClasses(variant: Variant, onDark: boolean): string {
   }
   switch (variant) {
     case "primary":
-      return "border border-dashed border-primary-500/45 bg-error-500 text-primary-500 hover:bg-error-400 hover:border-primary-500/70 hover:shadow-[0_6px_18px_-8px_rgba(0,0,54,0.35)]";
+      return "border border-dashed border-primary-500/45 bg-error-500 text-primary-500 hover:bg-error-400 hover:border-primary-500/70";
     case "secondary":
-      return "border border-gray-200 bg-white text-primary-500 hover:bg-gray-50 hover:border-gray-300 hover:shadow-[0_4px_14px_-8px_rgba(0,0,54,0.18)]";
+      return "border border-gray-200 bg-white text-primary-500 hover:bg-gray-50 hover:border-gray-300";
     case "tertiary":
       return "border border-dashed border-primary-500/60 bg-transparent text-primary-500 hover:bg-primary-500/5 hover:border-primary-500/90";
     case "tertiary-light":
@@ -54,8 +54,8 @@ export default function Button({
     : `${TEXT_SIZES[size]} inline-flex items-center gap-2`;
 
   const motion = iconOnly
-    ? "transition-all duration-300 ease-[var(--ease-premium)] hover:scale-[1.06] active:scale-95 motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500/40"
-    : "transition-all duration-300 ease-[var(--ease-premium)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500/40";
+    ? "transition-all duration-300 ease-[var(--ease-premium)] active:scale-95 motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500/40"
+    : "transition-all duration-300 ease-[var(--ease-premium)] active:scale-[0.98] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500/40";
 
   return (
     <button

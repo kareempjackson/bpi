@@ -23,7 +23,9 @@
   --color-primary-950: #000005;
 
   /* ─── Error (Green per BPI brand) ────────────────────────────── */
-  --color-error-25: #cdffe6;
+  /* error-25 is the page's baseline light green — used as the background
+     across every section/route via `bg-error-25`. */
+  --color-error-25: #eafbf1;
   --color-error-50: #9bffcd;
   --color-error-100: #83ffc1;
   --color-error-200: #51fea8;
@@ -183,6 +185,13 @@ body.menu-open [data-page-header] {
 html.lenis,
 html.lenis body {
   height: auto;
+}
+/* Disable browser scroll anchoring while smooth-scroll is active. The
+   SectorsSection collapses/restores its tall pinned scroll range while it
+   is off-screen and compensates the scroll position manually; scroll
+   anchoring would fight that manual adjustment and cause a visible jump. */
+html.lenis {
+  overflow-anchor: none;
 }
 .lenis.lenis-smooth {
   scroll-behavior: auto !important;
@@ -347,6 +356,25 @@ html.lenis body {
   .hero-video {
     animation: none;
     transform: none;
+  }
+}
+
+/* ─── Hero slider — segment progress fill + slide crossfade ───── */
+@keyframes hero-slider-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes hero-slide-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.hero-slide-media {
+  animation: hero-slide-in 0.8s var(--ease-premium) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-slide-media {
+    animation: none;
+    opacity: 1;
   }
 }
 
@@ -533,23 +561,62 @@ body.menu-open [data-hide-on-menu] {
   pointer-events: none;
 }
 
-/* ─── Footer watermark — sleek fade reveal (static after) ────── */
+/* ─── Footer watermark — scroll-triggered "construction" reveal. The
+       molecule outline draws itself on (stroke), then its fill
+       materialises — as if the mark is being built. Slow + deliberate.
+       Plays when the footer enters view (`[data-in-view]`). ── */
 .footer-watermark {
   opacity: 0;
-  clip-path: inset(100% 0 0 0);
-  transition:
-    opacity 1.1s var(--ease-premium),
-    clip-path 1.1s var(--ease-premium);
 }
-[data-in-view] .footer-watermark {
-  opacity: 0.03;
-  clip-path: inset(0 0 0 0);
+/* `is-building` is toggled by <FooterWatermark> on every scroll-into-view
+   (not the one-shot `[data-in-view]`), so the build replays each time. */
+.footer-watermark.is-building {
+  opacity: 0.08;
+  transition: opacity 1.2s var(--ease-premium);
 }
+
+/* `pathLength="1"` normalises the dash metrics, so dashoffset 1 = fully
+   undrawn, 0 = fully drawn — independent of the path's real length. */
+.footer-watermark-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  fill-opacity: 0;
+  will-change: stroke-dashoffset, fill-opacity;
+}
+.footer-watermark.is-building .footer-watermark-path {
+  animation: footer-watermark-build 4.6s var(--ease-premium) forwards;
+}
+
+@keyframes footer-watermark-build {
+  0% {
+    stroke-dashoffset: 1;
+    fill-opacity: 0;
+  }
+  /* Outline finishes drawing across the first ~65% … */
+  65% {
+    stroke-dashoffset: 0;
+    fill-opacity: 0;
+  }
+  /* … then the fill fades in to complete the build. */
+  100% {
+    stroke-dashoffset: 0;
+    fill-opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .footer-watermark {
+  .footer-watermark,
+  .footer-watermark.is-building {
     opacity: 0.025;
-    clip-path: none;
     transition: none;
+  }
+  .footer-watermark-path {
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+    fill-opacity: 1;
+  }
+  .footer-watermark.is-building .footer-watermark-path {
+    animation: none;
   }
 }
 
@@ -656,4 +723,14 @@ body.menu-open [data-hide-on-menu] {
     transform: none;
     transition: none;
   }
+}
+
+/* ─── Custom cursor — BPI logo mark appears over interactive elements ──
+   The native cursor is kept by default. <CustomCursor> toggles this class
+   onto <html> (only on fine-pointer devices) while the pointer is over a
+   selectable element, swapping the native pointer for the logo mark.
+   `!important` overrides per-element cursor utilities (e.g. cursor-pointer). */
+html.cursor-icon-active,
+html.cursor-icon-active * {
+  cursor: none !important;
 }
