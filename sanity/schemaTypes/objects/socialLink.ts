@@ -30,7 +30,7 @@ export const socialLink = defineType({
     defineField({
       name: "label",
       title: "Accessible label (optional, defaults to network name)",
-      type: "string",
+      type: "internationalizedArrayString",
     }),
   ],
   preview: {

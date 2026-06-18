@@ -175,7 +175,7 @@ export default function MissionCarousel({ children }: Props) {
   const thumbLeft = trackTravel * progress;
 
   const navButtonClass =
-    "inline-flex items-center justify-center size-10 lg:size-11 rounded-round border border-dashed border-primary-500/45 text-primary-500 transition-all duration-300 ease-[var(--ease-premium)] hover:border-primary-500/70 hover:bg-primary-500/5 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-primary-500/45 motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 focus-visible:ring-offset-2";
+    "inline-flex items-center justify-center size-10 lg:size-11 rounded-round border border-primary-500/45 text-primary-500 transition-all duration-300 ease-[var(--ease-premium)] hover:border-primary-500/70 hover:bg-primary-500/5 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-primary-500/45 motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 focus-visible:ring-offset-2";
 
   return (
     <div

@@ -1,6 +1,5 @@
 // Client-safe locale constants + helpers. NOTE: no "server-only" here so
 // these can be imported from client components (LanguageToggle, LocaleLink).
-// `dictionaries.ts` (server-only) re-exports these.
 
 export const locales = ["en", "es", "fr", "pt", "nl"] as const;
 export type Locale = (typeof locales)[number];
@@ -31,8 +30,14 @@ export function toLocale(value: string | string[] | undefined): Locale {
  * anchors (`#…`), and mailto/tel/absolute URLs are returned untouched.
  * Already-prefixed paths (`/es/…`) are normalized to the given locale.
  */
-export function localizedHref(lang: string, href: string): string {
-  if (!href || !href.startsWith("/")) return href;
+export function localizedHref(
+  lang: string,
+  href: string | null | undefined,
+): string {
+  // A missing href (e.g. an unset/disabled nav link from the CMS) must not
+  // reach <Link>, which throws on null — fall back to a no-op anchor.
+  if (!href) return "#";
+  if (!href.startsWith("/")) return href;
   const segments = href.split("/"); // ["", "maybeLocale", ...rest]
   if (hasLocale(segments[1])) {
     segments[1] = lang;

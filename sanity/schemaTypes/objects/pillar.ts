@@ -8,15 +8,12 @@ export const pillar = defineType({
     defineField({
       name: "eyebrow",
       title: "Eyebrow",
-      type: "string",
-      validation: (Rule) => Rule.required(),
+      type: "internationalizedArrayString",
     }),
     defineField({
       name: "description",
       title: "Description",
-      type: "text",
-      rows: 3,
-      validation: (Rule) => Rule.required(),
+      type: "internationalizedArrayText",
     }),
     /**
      * `imageWithAlt` accepts either an image or a video (toggled by its
@@ -41,6 +38,6 @@ export const pillar = defineType({
     }),
   ],
   preview: {
-    select: { title: "eyebrow", subtitle: "description", media: "image.asset" },
+    select: { title: "eyebrow.0.value", subtitle: "description", media: "image.asset" },
   },
 });

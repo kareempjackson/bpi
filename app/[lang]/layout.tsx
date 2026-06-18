@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import "@/app/globals.css";
 import { albertSans, avenirNext } from "@/app/fonts";
 import BrowserCheck from "@/app/components/BrowserCheck";
-import { hasLocale, locales } from "./dictionaries";
+import { hasLocale, locales } from "@/app/lib/locale";
 
 export const metadata: Metadata = {
   title: "Barbados Pharmaceutical Inc",

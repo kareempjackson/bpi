@@ -2,7 +2,8 @@ import Link from "next/link";
 import type { AnchorHTMLAttributes, ReactNode } from "react";
 
 type Props = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & {
-  href: string;
+  /** May be null/undefined when it comes from an unset Sanity CTA. */
+  href?: string | null;
   children: ReactNode;
 };
 
@@ -21,6 +22,12 @@ type Props = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & {
  * was leaving pages frozen / unscrollable after a Back click.
  */
 export default function CtaLink({ href, children, ...rest }: Props) {
+  // No destination configured (e.g. a Sanity CTA left blank). Render the
+  // styled element as a non-navigating `<a>` rather than crashing on a
+  // null href — the label still shows; it just isn't clickable.
+  if (!href) {
+    return <a {...rest}>{children}</a>;
+  }
   if (href.startsWith("/")) {
     return (
       <Link href={href} {...rest}>

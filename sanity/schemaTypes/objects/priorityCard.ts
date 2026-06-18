@@ -8,15 +8,12 @@ export const priorityCard = defineType({
     defineField({
       name: "title",
       title: "Title (eyebrow)",
-      type: "string",
-      validation: (Rule) => Rule.required(),
+      type: "internationalizedArrayString",
     }),
     defineField({
       name: "description",
       title: "Description",
-      type: "text",
-      rows: 3,
-      validation: (Rule) => Rule.required(),
+      type: "internationalizedArrayText",
     }),
     defineField({
       name: "href",
@@ -37,6 +34,6 @@ export const priorityCard = defineType({
     }),
   ],
   preview: {
-    select: { title: "title", subtitle: "description", media: "image.asset" },
+    select: { title: "title.0.value", subtitle: "description", media: "image.asset" },
   },
 });

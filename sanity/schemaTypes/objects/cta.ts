@@ -8,8 +8,7 @@ export const cta = defineType({
     defineField({
       name: "label",
       title: "Label",
-      type: "string",
-      validation: (Rule) => Rule.required(),
+      type: "internationalizedArrayString",
     }),
     defineField({
       name: "href",
@@ -21,6 +20,6 @@ export const cta = defineType({
     }),
   ],
   preview: {
-    select: { title: "label", subtitle: "href" },
+    select: { title: "label.0.value", subtitle: "href" },
   },
 });

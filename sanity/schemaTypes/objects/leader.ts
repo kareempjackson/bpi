@@ -8,14 +8,12 @@ export const leader = defineType({
     defineField({
       name: "name",
       title: "Name",
-      type: "string",
-      validation: (Rule) => Rule.required(),
+      type: "internationalizedArrayString",
     }),
     defineField({
       name: "role",
       title: "Role",
-      type: "string",
-      validation: (Rule) => Rule.required(),
+      type: "internationalizedArrayString",
     }),
     defineField({
       name: "image",
@@ -26,49 +24,9 @@ export const leader = defineType({
     defineField({
       name: "bio",
       title: "Bio",
-      type: "array",
+      type: "internationalizedArrayPortableText",
       description:
         "Biography shown on leader detail and modal views. Supports rich text — paragraphs, bold/italic, lists, and links.",
-      of: [
-        {
-          type: "block",
-          styles: [
-            { title: "Body", value: "normal" },
-            { title: "Heading", value: "h3" },
-            { title: "Quote", value: "blockquote" },
-          ],
-          lists: [
-            { title: "Bullet", value: "bullet" },
-            { title: "Numbered", value: "number" },
-          ],
-          marks: {
-            decorators: [
-              { title: "Strong", value: "strong" },
-              { title: "Emphasis", value: "em" },
-              { title: "Underline", value: "underline" },
-            ],
-            annotations: [
-              {
-                name: "link",
-                title: "External link",
-                type: "object",
-                fields: [
-                  {
-                    name: "href",
-                    title: "URL",
-                    type: "url",
-                    validation: (Rule) =>
-                      Rule.uri({
-                        allowRelative: true,
-                        scheme: ["http", "https", "mailto", "tel"],
-                      }),
-                  },
-                ],
-              },
-            ],
-          },
-        },
-      ],
     }),
     defineField({
       name: "linkedin",
@@ -84,6 +42,6 @@ export const leader = defineType({
     }),
   ],
   preview: {
-    select: { title: "name", subtitle: "role", media: "image.asset" },
+    select: { title: "name.0.value", subtitle: "role", media: "image.asset" },
   },
 });

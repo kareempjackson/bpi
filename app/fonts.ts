@@ -6,13 +6,19 @@ import localFont from "next/font/local";
 export const albertSans = localFont({
   variable: "--font-albert-sans",
   display: "swap",
+  // Albert Sans ships as a variable font (wght axis 100–900). Declaring the
+  // weight range on the @font-face exposes the axis so `font-semibold` (600),
+  // `font-bold` (700), etc. render at the requested weight rather than being
+  // pinned to a single default.
   src: [
     {
       path: "../public/fonts/Albert_Sans/AlbertSans-VariableFont_wght.ttf",
+      weight: "100 900",
       style: "normal",
     },
     {
       path: "../public/fonts/Albert_Sans/AlbertSans-Italic-VariableFont_wght.ttf",
+      weight: "100 900",
       style: "italic",
     },
   ],

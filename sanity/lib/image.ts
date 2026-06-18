@@ -72,6 +72,14 @@ export function resolveMedia(
       alt: image.alt ?? "",
     };
   }
+  if (image.kind === "audio" && image.audioUrl) {
+    return {
+      kind: "audio",
+      src: image.audioUrl,
+      poster: posterUrl ?? undefined,
+      alt: image.alt ?? "",
+    };
+  }
   if (!posterUrl) return null;
   return { kind: "image", src: posterUrl, alt: image.alt ?? "" };
 }

@@ -17,8 +17,17 @@ import { apiVersion } from "../env";
  * GROQ coalesces this URL over any Sanity upload, so the site plays the video
  * from R2 and the bytes never bill against Sanity bandwidth.
  */
-export function R2VideoInput(props: StringInputProps) {
-  const { value, onChange } = props;
+type R2MediaInputProps = StringInputProps & { mediaKind?: "video" | "audio" };
+
+function R2MediaInput(props: R2MediaInputProps) {
+  const { value, onChange, mediaKind: mediaKindProp } = props;
+  const mediaKind = mediaKindProp ?? "video";
+  const isAudio = mediaKind === "audio";
+  const accept = isAudio
+    ? "audio/mpeg,audio/mp4,audio/wav,audio/ogg,audio/aac,audio/x-m4a"
+    : "video/mp4,video/webm,video/quicktime";
+  const noun = isAudio ? "audio" : "video";
+
   const client = useClient({ apiVersion });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -28,8 +37,12 @@ export function R2VideoInput(props: StringInputProps) {
   const upload = useCallback(
     async (file: File) => {
       setError(null);
-      if (!file.type.startsWith("video/")) {
-        setError("Please choose a video file (MP4 or WebM).");
+      if (!file.type.startsWith(`${mediaKind}/`)) {
+        setError(
+          isAudio
+            ? "Please choose an audio file (MP3, M4A, WAV, etc.)."
+            : "Please choose a video file (MP4 or WebM).",
+        );
         return;
       }
       const token = client.config().token;
@@ -100,25 +113,29 @@ export function R2VideoInput(props: StringInputProps) {
         if (fileInputRef.current) fileInputRef.current.value = "";
       }
     },
-    [client, onChange],
+    [client, onChange, mediaKind, isAudio],
   );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       {value ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <video
-            src={value}
-            muted
-            playsInline
-            controls
-            style={{
-              width: "100%",
-              maxHeight: 220,
-              borderRadius: 6,
-              background: "#000",
-            }}
-          />
+          {isAudio ? (
+            <audio src={value} controls style={{ width: "100%" }} />
+          ) : (
+            <video
+              src={value}
+              muted
+              playsInline
+              controls
+              style={{
+                width: "100%",
+                maxHeight: 220,
+                borderRadius: 6,
+                background: "#000",
+              }}
+            />
+          )}
           <div
             style={{
               fontSize: 12,
@@ -134,7 +151,7 @@ export function R2VideoInput(props: StringInputProps) {
       <input
         ref={fileInputRef}
         type="file"
-        accept="video/mp4,video/webm,video/quicktime"
+        accept={accept}
         disabled={uploading}
         style={{ display: "none" }}
         onChange={(e) => {
@@ -153,8 +170,8 @@ export function R2VideoInput(props: StringInputProps) {
           {uploading
             ? `Uploading… ${progress}%`
             : value
-              ? "Replace video"
-              : "Upload video to R2"}
+              ? `Replace ${noun}`
+              : `Upload ${noun} to R2`}
         </button>
         {value && !uploading ? (
           <button
@@ -200,6 +217,15 @@ export function R2VideoInput(props: StringInputProps) {
       </details>
     </div>
   );
+}
+
+/** Field-input wrappers — Sanity instantiates these with no extra props, so the
+ *  media kind is baked in here rather than read from schema options. */
+export function R2VideoInput(props: StringInputProps) {
+  return <R2MediaInput {...props} mediaKind="video" />;
+}
+export function R2AudioInput(props: StringInputProps) {
+  return <R2MediaInput {...props} mediaKind="audio" />;
 }
 
 function buttonStyle(disabled: boolean): React.CSSProperties {

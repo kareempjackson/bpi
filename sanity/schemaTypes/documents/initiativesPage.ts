@@ -24,20 +24,14 @@ export const initiativesPage = defineType({
     defineField({
       name: "seoTitle",
       title: "Page title",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "seo",
-      initialValue: "Initiatives — BPI",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "seoDescription",
       title: "Meta description",
-      type: "text",
-      rows: 3,
+      type: "internationalizedArrayText",
       group: "seo",
-      initialValue:
-        "The deliberate projects building the Caribbean's pharmaceutical gateway. Manufacturing, supply, regulation, and partnership.",
-      validation: (Rule) => Rule.required(),
     }),
 
     // ─────────────────────────────────────────────────────────── Hero ──
@@ -52,18 +46,14 @@ export const initiativesPage = defineType({
     defineField({
       name: "heroHeadline",
       title: "Headline",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "hero",
-      initialValue: "Pushing from investment to impact.",
     }),
     defineField({
       name: "heroBody",
       title: "Body",
-      type: "text",
-      rows: 3,
+      type: "internationalizedArrayText",
       group: "hero",
-      initialValue:
-        "Each one a real investment, contributing to sector development across BPI's four strategic priorities.",
     }),
     defineField({
       name: "heroPrimaryCta",
@@ -93,18 +83,14 @@ export const initiativesPage = defineType({
     defineField({
       name: "workInMotionHeading",
       title: "Heading",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "workInMotion",
-      initialValue: "Work in Motion",
     }),
     defineField({
       name: "workInMotionBody",
       title: "Body",
-      type: "text",
-      rows: 5,
+      type: "internationalizedArrayText",
       group: "workInMotion",
-      initialValue:
-        "BPI develops catalytic projects across pharmaceutical manufacturing, supply chain, regulatory development, and regional trade. Each project is structured from concept to bankability to execution, with the partnerships, financing, and government alignment to make it last.",
     }),
     defineField({
       name: "workInMotionBg",
@@ -127,6 +113,14 @@ export const initiativesPage = defineType({
       group: "workInMotion",
       initialValue: { label: "Our Ecosystem", href: "/#ecosystem" },
     }),
+    defineField({
+      name: "workInMotionImage",
+      title: "Banner image",
+      type: "imageWithAlt",
+      group: "workInMotion",
+      description:
+        "Wide image shown across the bottom of the Work in Motion section.",
+    }),
 
     // ─────────────────────────────────────────────── Featured spotlight ──
     // Pick a single initiative to feature in the banner. Underneath the
@@ -145,6 +139,14 @@ export const initiativesPage = defineType({
       weak: true,
       description:
         "Select which initiative appears in the banner. Its title, excerpt, cover image, and link are pulled automatically. If you delete the referenced initiative, this slot will simply be empty until a new one is selected.",
+    }),
+    defineField({
+      name: "featuredStatBody",
+      title: "Featured stat / secondary line",
+      type: "internationalizedArrayText",
+      group: "featured",
+      description:
+        "Short supporting line shown lower-right of the featured banner (e.g. \"Producing 12 million bags annually, it creates the first pharmaceutical trade route between Africa and the Caribbean.\").",
     }),
     defineField({
       name: "featuredSupportingInitiatives",
@@ -177,9 +179,8 @@ export const initiativesPage = defineType({
     defineField({
       name: "motionStoriesHeading",
       title: "Heading",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "motionStories",
-      initialValue: "Motion Stories",
     }),
     defineField({
       name: "motionStoriesBg",
@@ -219,41 +220,32 @@ export const initiativesPage = defineType({
     defineField({
       name: "otherWorksEyebrow",
       title: "Eyebrow",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "otherWorks",
-      initialValue: "Initiatives",
     }),
     defineField({
       name: "otherWorksHeading",
       title: "Heading",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "otherWorks",
-      initialValue: "Other Works",
     }),
     defineField({
       name: "otherWorksBody",
       title: "Body",
-      type: "text",
-      rows: 4,
+      type: "internationalizedArrayText",
       group: "otherWorks",
-      initialValue:
-        "Our mission is to create a pharmaceutical ecosystem where every person in the Caribbean has access to healthy, innovative, and affordable medicines while building regional manufacturing excellence.",
     }),
     defineField({
       name: "otherWorksBlueTitle",
       title: "Blue panel — title",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "otherWorks",
-      initialValue: "Human Capital Development",
     }),
     defineField({
       name: "otherWorksBlueBody",
       title: "Blue panel — body",
-      type: "text",
-      rows: 3,
+      type: "internationalizedArrayText",
       group: "otherWorks",
-      initialValue:
-        "Building world-class pharmaceutical talent through education, training, and skills development programs",
     }),
     defineField({
       name: "otherWorksBlueCta",
@@ -275,18 +267,14 @@ export const initiativesPage = defineType({
     defineField({
       name: "otherWorksGreenTitle",
       title: "Green panel — title",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "otherWorks",
-      initialValue: "Human Capital Development",
     }),
     defineField({
       name: "otherWorksGreenBody",
       title: "Green panel — body",
-      type: "text",
-      rows: 3,
+      type: "internationalizedArrayText",
       group: "otherWorks",
-      initialValue:
-        "Building world-class pharmaceutical talent through education, training, and skills development programs",
     }),
     defineField({
       name: "otherWorksGreenBg",
@@ -309,23 +297,61 @@ export const initiativesPage = defineType({
       type: "imageWithAlt",
       group: "otherWorks",
     }),
+    defineField({
+      name: "otherWorksInitiatives",
+      title: "Other initiatives (cards)",
+      type: "array",
+      group: "otherWorks",
+      description:
+        "Initiatives shown as mint cards in the right-hand masonry. Each card pulls its tag, title, cover image, and description automatically. Pick up to ~6.",
+      of: [
+        defineArrayMember({
+          type: "reference",
+          to: [{ type: "initiative" }],
+          weak: true,
+        }),
+      ],
+    }),
+    defineField({
+      name: "otherWorksFeaturedTitle",
+      title: "Featured tile — title",
+      type: "internationalizedArrayString",
+      group: "otherWorks",
+      description:
+        "Large dark media tile shown below the cards (e.g. a flagship story).",
+    }),
+    defineField({
+      name: "otherWorksFeaturedImage",
+      title: "Featured tile — image",
+      type: "imageWithAlt",
+      group: "otherWorks",
+    }),
+    defineField({
+      name: "otherWorksFeaturedHref",
+      title: "Featured tile — link",
+      type: "string",
+      group: "otherWorks",
+    }),
+    defineField({
+      name: "otherWorksViewAllHref",
+      title: "\"View More\" link",
+      type: "string",
+      group: "otherWorks",
+      initialValue: "/initiatives",
+    }),
 
     // ────────────────────────────────────────────── Building the Future ──
     defineField({
       name: "buildingFutureHeading",
       title: "Heading",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "buildingFuture",
-      initialValue: "Building The Future Of Pharmaceutical Access",
     }),
     defineField({
       name: "buildingFutureBody",
       title: "Body",
-      type: "text",
-      rows: 4,
+      type: "internationalizedArrayText",
       group: "buildingFuture",
-      initialValue:
-        "Barbados Pharmaceuticals Inc. was established with a vision to strengthen pharmaceutical capacity within the region while supporting global healthcare advancement. We operate at the intersection of pharmaceutical production, education, research, and strategic healthcare development.",
     }),
     defineField({
       name: "buildingFutureStats",
@@ -340,19 +366,16 @@ export const initiativesPage = defineType({
             defineField({
               name: "value",
               title: "Value (e.g. \"13000 +\")",
-              type: "string",
-              validation: (Rule) => Rule.required(),
+              type: "internationalizedArrayString",
             }),
             defineField({
               name: "body",
               title: "Body",
-              type: "text",
-              rows: 2,
-              validation: (Rule) => Rule.required(),
+              type: "internationalizedArrayText",
             }),
           ],
           preview: {
-            select: { title: "value", subtitle: "body" },
+            select: { title: "value.0.value", subtitle: "body" },
           },
         }),
       ],
@@ -364,6 +387,17 @@ export const initiativesPage = defineType({
       type: "hexColor",
       group: "buildingFuture",
       initialValue: "#A5F9D2",
+    }),
+    defineField({
+      name: "pageSections",
+      title: "Page sections",
+      description:
+        "Add and reorder modular sections (Call to Action, Careers) shown at the bottom of this page. Each can have its own copy, links, and image or video.",
+      type: "array",
+      of: [
+        defineArrayMember({ type: "ctaSection" }),
+        defineArrayMember({ type: "careersSection" }),
+      ],
     }),
   ],
   preview: {

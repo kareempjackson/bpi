@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import CtaLink from "./CtaLink";
 
 type Props = {
@@ -6,11 +8,14 @@ type Props = {
   lead?: string;
   body?: string;
   imageSrc?: string;
+  videoSrc?: string;
   imageAlt?: string;
   primaryLabel?: string;
   primaryHref?: string;
   secondaryLabel?: string;
   secondaryHref?: string;
+  /** "mint" (default) or "blue" — recolors the section + primary button. */
+  tone?: "mint" | "blue";
 };
 
 export default function CareersSection({
@@ -19,16 +24,24 @@ export default function CareersSection({
   lead = "Our approach to innovation and growth is guided by clear priorities that shape impact and direction. Built to strengthen systems, people, and long-term success.",
   body = "It was then that, in 2010, inspired by a vision, the first directional signs for natural areas appeared, marking the genesis of Floema.",
   imageSrc,
+  videoSrc,
   imageAlt = "",
   primaryLabel = "View Jobs",
   primaryHref = "/careers",
   secondaryLabel = "Our initiatives",
   secondaryHref = "/initiatives",
+  tone = "mint",
 }: Props) {
+  const isBlue = tone === "blue";
+  const primaryBtnClass = isBlue
+    ? "rounded-round bg-primary-500 px-5 py-2 text-sm font-semibold text-white text-center transition hover:bg-primary-600"
+    : "rounded-round bg-error-600 px-5 py-2 text-sm font-semibold text-white text-center transition hover:bg-error-700";
   return (
     <section
       data-nav-theme="light"
-      className="bg-[#EAFBF1] px-5 sm:px-8 md:px-12 lg:px-20 xl:px-28 pt-16 md:pt-24 lg:pt-32 pb-4 lg:pb-8"
+      className={`${
+        isBlue ? "bg-[#E7F9FF]" : "bg-[#EAFBF1]"
+      } px-5 sm:px-8 md:px-12 lg:px-20 xl:px-28 pt-16 md:pt-24 lg:pt-32 pb-4 lg:pb-8`}
     >
       {/* Heading block */}
       <div data-reveal-stagger className="flex flex-col gap-3 md:gap-4">
@@ -46,12 +59,25 @@ export default function CareersSection({
           data-reveal="scale"
           className="relative aspect-4/3 overflow-hidden rounded-3xl bg-primary-500/5"
         >
-          {imageSrc ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+          {videoSrc ? (
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              poster={imageSrc}
+              className="absolute inset-0 h-full w-full object-cover"
+            >
+              <source src={videoSrc} />
+            </video>
+          ) : imageSrc ? (
+            <Image
               src={imageSrc}
               alt={imageAlt}
-              className="absolute inset-0 h-full w-full object-cover"
+              fill
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              className="object-cover"
             />
           ) : null}
         </div>
@@ -64,10 +90,7 @@ export default function CareersSection({
             {body}
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
-            <CtaLink
-              href={primaryHref}
-              className="rounded-round bg-error-600 px-5 py-2 text-sm font-semibold text-white text-center transition hover:bg-error-700"
-            >
+            <CtaLink href={primaryHref} className={primaryBtnClass}>
               {primaryLabel}
             </CtaLink>
             <CtaLink

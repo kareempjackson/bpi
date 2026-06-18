@@ -74,9 +74,11 @@ export async function POST(req: NextRequest) {
   } | null;
 
   const contentType = body?.contentType ?? "";
-  if (!contentType.startsWith("video/")) {
+  const isVideo = contentType.startsWith("video/");
+  const isAudio = contentType.startsWith("audio/");
+  if (!isVideo && !isAudio) {
     return NextResponse.json(
-      { error: "Only video files can be uploaded here." },
+      { error: "Only video or audio files can be uploaded here." },
       { status: 400 },
     );
   }
@@ -90,7 +92,7 @@ export async function POST(req: NextRequest) {
   // Content-addressed key: a random id keeps uploads from colliding and makes
   // the public URL effectively immutable (safe to cache forever).
   const ext = extensionFor(body?.filename, contentType);
-  const key = `videos/${randomUUID()}${ext}`;
+  const key = `${isAudio ? "audio" : "videos"}/${randomUUID()}${ext}`;
 
   const s3 = new S3Client({
     region: "auto",
@@ -121,5 +123,9 @@ function extensionFor(filename: string | undefined, contentType: string): string
   if (fromName) return fromName.toLowerCase();
   if (contentType.includes("webm")) return ".webm";
   if (contentType.includes("quicktime")) return ".mov";
+  if (contentType.includes("mpeg")) return ".mp3";
+  if (contentType.includes("wav")) return ".wav";
+  if (contentType.includes("ogg")) return ".ogg";
+  if (contentType.startsWith("audio/")) return ".m4a";
   return ".mp4";
 }

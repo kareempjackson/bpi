@@ -8,15 +8,12 @@ export const missionCard = defineType({
     defineField({
       name: "title",
       title: "Title",
-      type: "string",
-      validation: (Rule) => Rule.required(),
+      type: "internationalizedArrayString",
     }),
     defineField({
       name: "description",
       title: "Description",
-      type: "text",
-      rows: 3,
-      validation: (Rule) => Rule.required(),
+      type: "internationalizedArrayText",
     }),
     defineField({
       name: "href",
@@ -28,7 +25,7 @@ export const missionCard = defineType({
     defineField({
       name: "eyebrow",
       title: "Eyebrow (next to logo)",
-      type: "string",
+      type: "internationalizedArrayString",
     }),
     defineField({
       name: "image",
@@ -42,6 +39,6 @@ export const missionCard = defineType({
     }),
   ],
   preview: {
-    select: { title: "title", subtitle: "href", media: "image.asset" },
+    select: { title: "title.0.value", subtitle: "href", media: "image.asset" },
   },
 });

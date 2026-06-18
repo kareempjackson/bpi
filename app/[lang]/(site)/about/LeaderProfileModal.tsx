@@ -203,12 +203,12 @@ export default function LeaderProfileModal({
         className={`relative w-full max-w-7xl h-[96vh] md:h-auto md:max-h-[94vh] overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] rounded-2xl md:rounded-3xl px-3 pt-14 pb-5 sm:px-4 sm:pt-16 md:px-8 md:pt-20 md:pb-8 lg:px-14 lg:pt-20 lg:pb-14 transition-all duration-400 ease-(--ease-premium) ${
           open ? "scale-100 translate-y-0" : "scale-[0.97] translate-y-2"
         }`}
-        style={{ backgroundColor: "#CAF1FF" }}
+        style={{ backgroundColor: "#01331a" }}
       >
         {/* Logo watermark layer */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 text-primary-500/8 overflow-hidden"
+          className="pointer-events-none absolute inset-0 text-white/8 overflow-hidden"
         >
           <Logo iconOnly size={96} className="absolute top-8 left-10" />
           <Logo iconOnly size={70} className="absolute top-28 left-[26%] rotate-18" />
@@ -225,25 +225,10 @@ export default function LeaderProfileModal({
           type="button"
           onClick={onClose}
           aria-label="Close profile"
-          className="group/close absolute top-6 right-6 md:top-7 md:right-8 lg:top-8 lg:right-10 z-10 inline-flex items-center gap-2.5 text-sm lg:text-base font-medium text-primary-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 focus-visible:ring-offset-4 focus-visible:ring-offset-warning-25 rounded-full"
+          className="group/close absolute top-6 right-6 md:top-7 md:right-8 lg:top-8 lg:right-10 z-10 inline-flex items-center gap-2.5 text-sm lg:text-base font-medium text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-4 focus-visible:ring-offset-error-900 rounded-full"
         >
           <span className="hidden sm:inline">Close</span>
           <span className="relative inline-flex size-9 items-center justify-center">
-            <svg
-              viewBox="0 0 40 40"
-              fill="none"
-              className="absolute inset-0 w-full h-full"
-              aria-hidden
-            >
-              <circle
-                cx="20"
-                cy="20"
-                r="18.5"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeDasharray="3 4"
-              />
-            </svg>
             <svg
               viewBox="0 0 16 16"
               fill="none"

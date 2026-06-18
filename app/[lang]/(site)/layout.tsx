@@ -12,13 +12,12 @@ import { loadQuery, TAG } from "@/sanity/lib/fetch";
 import { resolveMenuConfig } from "@/sanity/lib/menu";
 import { SITE_SETTINGS_QUERY } from "@/sanity/lib/queries";
 import type { SiteSettings } from "@/sanity/lib/types";
-import { getDictionary } from "../dictionaries";
-import { toLocale } from "@/app/lib/locale";
 import DraftModeBanner from "./DraftModeBanner";
 import StickyTopNavSlot from "./StickyTopNavSlot";
 
-async function getSiteSettings(): Promise<SiteSettings | null> {
+async function getSiteSettings(lang: string): Promise<SiteSettings | null> {
   return loadQuery<SiteSettings | null>(SITE_SETTINGS_QUERY, {
+    params: { lang },
     tags: [TAG.siteSettings],
   });
 }
@@ -31,12 +30,12 @@ export default async function SiteLayout({
   params: Promise<{ lang: string }>;
 }>) {
   const { lang } = await params;
-  const [{ isEnabled: isDraftMode }, settings, dict] = await Promise.all([
+  const [{ isEnabled: isDraftMode }, settings] = await Promise.all([
     draftMode(),
-    getSiteSettings(),
-    getDictionary(toLocale(lang)),
+    getSiteSettings(lang),
   ]);
 
+  // Editor-managed nav structure from Sanity, already localized by GROQ.
   const navLinks = (settings?.navLinks ?? []).map((l) => ({
     label: l.label,
     href: l.href,
@@ -58,24 +57,14 @@ export default async function SiteLayout({
       <CustomCursor />
       <RevealController />
       <ParallaxController />
-      <StickyTopNavSlot
-        navLinks={navLinks.length ? navLinks : dict.nav.links}
-        menuConfig={menuConfig}
-      />
+      <StickyTopNavSlot navLinks={navLinks} menuConfig={menuConfig} />
       <div className="flex-1">{children}</div>
       <Footer
-        navGroups={dict.footer.navGroups}
-        legalLinks={dict.footer.legalLinks}
-        showPartners={settings?.showFooterPartners ?? true}
-        partners={
-          settings?.footerPartners
-            ?.filter((p) => !!p.logoUrl)
-            .map((p) => ({
-              name: p.name,
-              logoSrc: p.logoUrl as string,
-              href: p.href ?? undefined,
-            })) ?? undefined
-        }
+        navGroups={settings?.footerNavGroups}
+        legalLinks={settings?.footerLegalLinks}
+        tagline={settings?.footerTagline}
+        rightsLabel={settings?.footerRights}
+        showPartners={true}
         socialLinks={
           footerSocialLinks.length > 0 ? footerSocialLinks : undefined
         }

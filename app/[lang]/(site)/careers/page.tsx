@@ -2,22 +2,22 @@ import type { Metadata } from "next";
 
 import CtaLink from "@/app/components/CtaLink";
 import MediaImage from "@/app/components/MediaImage";
+import PageSections from "@/app/components/PageSections";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
 import { resolveMedia } from "@/sanity/lib/image";
 import {
   ALL_JOBS_QUERY,
   CAREERS_PAGE_QUERY,
 } from "@/sanity/lib/queries";
-import type { CareersPage, JobSummary } from "@/sanity/lib/types";
+import type {
+  CareersPage,
+  JobSummary,
+} from "@/sanity/lib/types";
+import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
 import CareersWatermark from "./CareersWatermark";
 import JobsSection, { type JobsSectionJob } from "./JobsSection";
 
 export const revalidate = 3600;
-
-// Faint rounded-tile grid drawn behind the dark hero — a single SVG tile
-// (108px rounded square inset 2px for the gap) repeated across the section.
-const HERO_GRID_TILE =
-  "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='112'%20height='112'%3E%3Crect%20x='2'%20y='2'%20width='108'%20height='108'%20rx='14'%20fill='none'%20stroke='%23ffffff'%20stroke-opacity='0.06'%20stroke-width='1'/%3E%3C/svg%3E";
 
 /**
  * Split the hero headline into its first sentence (rendered white) and the
@@ -31,21 +31,28 @@ function splitHeadline(headline: string): { lead: string; rest: string } {
   return { lead: match[1], rest: match[2] };
 }
 
-async function getCareersPage(): Promise<CareersPage | null> {
+async function getCareersPage(lang: string): Promise<CareersPage | null> {
   return loadQuery<CareersPage | null>(CAREERS_PAGE_QUERY, {
+    params: { lang },
     tags: [TAG.careersPage],
   });
 }
 
-async function getAllJobs(): Promise<JobSummary[]> {
+async function getAllJobs(lang: string): Promise<JobSummary[]> {
   const data = await loadQuery<JobSummary[] | null>(ALL_JOBS_QUERY, {
+    params: { lang },
     tags: [TAG.job],
   });
   return data ?? [];
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const data = await getCareersPage();
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  const data = await getCareersPage(lang);
   return {
     title: data?.seoTitle ?? "Careers — BPI",
     description:
@@ -54,8 +61,16 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function CareersPage() {
-  const [data, jobs] = await Promise.all([getCareersPage(), getAllJobs()]);
+export default async function CareersPage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+  const [data, jobs] = await Promise.all([
+    getCareersPage(lang),
+    getAllJobs(lang),
+  ]);
 
   if (!data) {
     return <EmptyState />;
@@ -63,9 +78,22 @@ export default async function CareersPage() {
 
   const heroMedia = resolveMedia(data.heroImage, { width: 1800 });
   const whyMedia = resolveMedia(data.whyImage, { width: 1000 });
-  const { lead: headlineLead, rest: headlineRest } = splitHeadline(
-    data.heroHeadlineLine1,
-  );
+  // Prefer the dedicated highlight field; fall back to splitting the headline
+  // for documents authored before that field existed.
+  const split = splitHeadline(data.heroHeadlineLine1);
+  const headlineLead = data.heroHeadlineHighlight ? data.heroHeadlineLine1 : split.lead;
+  const headlineRest = data.heroHeadlineHighlight ?? split.rest;
+  // Break the green headline so its final word sits on its own line,
+  // matching the "Be Part of our / Mission" treatment.
+  const headlineRestLastSpace = headlineRest.trimEnd().lastIndexOf(" ");
+  const headlineRestHead =
+    headlineRestLastSpace > 0
+      ? headlineRest.slice(0, headlineRestLastSpace)
+      : "";
+  const headlineRestTail =
+    headlineRestLastSpace > 0
+      ? headlineRest.slice(headlineRestLastSpace + 1)
+      : headlineRest;
 
   const jobsForSection: JobsSectionJob[] = jobs.map((j) => ({
     slug: j.slug,
@@ -82,64 +110,104 @@ export default async function CareersPage() {
       <div className="relative">
         <section
           data-nav-theme="dark"
-          className="relative flex flex-col overflow-hidden bg-error-950 lg:h-dvh"
+          data-cursor="icon"
+          className="relative flex flex-col overflow-hidden bg-error-950 lg:min-h-[90vh]"
         >
-          {/* Faint rounded-tile grid backdrop. */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0"
-            style={{ backgroundImage: `url("${HERO_GRID_TILE}")` }}
-          />
+          {/* Interactive rounded-tile grid backdrop — tiles light up on hover,
+              and the BPI logo mark replaces the cursor across the hero (via the
+              global CustomCursor, opted in with data-cursor="icon"). */}
+          <GridHoverBackdrop />
 
-          {/* Top band — oversized headline (left) + description & CTA (right). */}
-          <div className="relative shrink-0 px-6 md:px-12 lg:px-20 xl:px-28 pt-28 md:pt-32 lg:pt-32 pb-8 md:pb-10 lg:pb-12">
-            <div className="mx-auto grid w-full max-w-page grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+          {/* Decorative scroll-down arrow anchored to the bottom-right. */}
+          <svg
+            aria-hidden
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="pointer-events-none absolute bottom-8 right-6 md:bottom-12 md:right-12 lg:right-20 xl:right-28 h-28 w-28 md:h-44 md:w-44 lg:h-52 lg:w-52 text-error-500/35"
+          >
+            <path d="M5 5l14 14" />
+            <path d="M19 9v10H9" />
+          </svg>
+
+          <div className="relative flex flex-1 flex-col px-6 md:px-12 lg:px-20 xl:px-28 pt-16 md:pt-20 lg:pt-20 pb-10 md:pb-12 lg:pb-12">
+            <div className="mx-auto flex w-full max-w-page flex-1 flex-col">
+              {/* "We are hiring." — white lead headline across the top. */}
               <h1
                 data-reveal-stagger
-                className="font-display text-[clamp(2.75rem,5.5vw,5rem)] font-bold leading-[0.95] tracking-[-0.03em] max-w-3xl"
+                className="font-display text-[clamp(2.75rem,5.5vw,5rem)] font-semibold leading-[0.92] tracking-[-0.035em] text-white"
               >
-                <span className="text-white">{headlineLead}</span>
-                {headlineRest ? (
-                  <>
-                    {" "}
-                    <span className="text-error-500">{headlineRest}</span>
-                  </>
-                ) : null}
+                {headlineLead}
               </h1>
 
-              <div
-                data-reveal-stagger
-                className="flex flex-col gap-6 max-w-sm lg:justify-self-end lg:pt-2"
-              >
-                <p className="text-base md:text-lg text-white/70 leading-relaxed">
-                  {data.heroDescription}
-                </p>
-                <CtaLink
-                  href="/contact"
-                  className="inline-flex w-fit items-center rounded-round bg-error-500 px-6 py-2.5 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-(--ease-premium) hover:bg-error-400"
+              {/* Image (left) + green headline / description / CTA (right). */}
+              <div className="mt-6 md:mt-8 grid flex-1 grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-stretch">
+                {heroMedia ? (
+                  <div
+                    data-reveal="scale"
+                    className="group relative w-full aspect-4/5 sm:aspect-4/3 lg:aspect-auto lg:h-full rounded-3xl overflow-hidden bg-white/5 ring-1 ring-white/10 shadow-2xl shadow-black/40"
+                  >
+                    <MediaImage
+                      media={heroMedia}
+                      sizes="(min-width: 1024px) 45vw, 100vw"
+                      preload
+                      eager
+                    />
+                    {/* Subtle gradient to seat the image into the dark canvas. */}
+                    <div
+                      aria-hidden
+                      className="pointer-events-none absolute inset-0 bg-linear-to-t from-error-950/40 via-transparent to-transparent"
+                    />
+                  </div>
+                ) : null}
+
+                <div
+                  data-reveal-stagger
+                  className="flex flex-col gap-8 lg:justify-between"
                 >
-                  Partner With BPI
-                </CtaLink>
+                  {headlineRest ? (
+                    <h2 className="font-display text-[clamp(2.5rem,5vw,4.5rem)] font-semibold leading-[0.92] tracking-[-0.035em] text-error-500">
+                      {headlineRestHead ? (
+                        <>
+                          {headlineRestHead}
+                          <br />
+                        </>
+                      ) : null}
+                      {headlineRestTail}
+                    </h2>
+                  ) : null}
+
+                  <div className="flex flex-col gap-7 max-w-sm lg:mt-auto">
+                    <p className="text-base md:text-lg text-white/65 leading-relaxed">
+                      {data.heroDescription}
+                    </p>
+                    <CtaLink
+                      href="/contact"
+                      className="group inline-flex w-fit items-center gap-2 rounded-round bg-error-500 pl-6 pr-5 py-3 text-sm font-semibold text-primary-500 transition-all duration-300 ease-(--ease-premium) hover:bg-error-400 hover:shadow-lg hover:shadow-error-500/20"
+                    >
+                      Partner With BPI
+                      <svg
+                        aria-hidden
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-4 w-4 transition-transform duration-300 ease-(--ease-premium) group-hover:translate-x-0.5"
+                      >
+                        <path d="M5 12h14" />
+                        <path d="M13 6l6 6-6 6" />
+                      </svg>
+                    </CtaLink>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-
-          {/* Full-width team image fills the remaining height of the hero. */}
-          {heroMedia ? (
-            <div
-              data-reveal="scale"
-              className="relative w-full lg:flex-1 lg:min-h-0"
-            >
-              <div className="relative w-full aspect-4/3 sm:aspect-video lg:aspect-auto lg:h-full overflow-hidden bg-white/5">
-                <MediaImage
-                  media={heroMedia}
-                  sizes="100vw"
-                  preload
-                  eager
-                />
-              </div>
-            </div>
-          ) : null}
         </section>
 
         <section
@@ -214,6 +282,7 @@ export default async function CareersPage() {
           bg={data.jobsBg ?? "#CAF1FF"}
         />
       </div>
+      <PageSections sections={data.pageSections} />
     </main>
   );
 }

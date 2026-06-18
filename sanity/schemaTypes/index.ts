@@ -1,18 +1,26 @@
 import type { SchemaTypeDefinition } from "sanity";
 
 import { aboutPage } from "./documents/aboutPage";
+import { blogPage } from "./documents/blogPage";
 import { careersPage } from "./documents/careersPage";
 import { contactPage } from "./documents/contactPage";
 import { contactSubmission } from "./documents/contactSubmission";
+import { event } from "./documents/event";
 import { homePage } from "./documents/homePage";
 import { initiative } from "./documents/initiative";
 import { initiativesPage } from "./documents/initiativesPage";
 import { job } from "./documents/job";
 import { newsletterSubscription } from "./documents/newsletterSubscription";
+import { portalPage } from "./documents/portalPage";
+import { portalResource } from "./documents/portalResource";
+import { portalUser } from "./documents/portalUser";
 import { post } from "./documents/post";
 import { siteSettings } from "./documents/siteSettings";
+import { tag } from "./documents/tag";
+import { careersSection } from "./objects/careersSection";
 import { contactRow } from "./objects/contactRow";
 import { cta } from "./objects/cta";
+import { ctaSection } from "./objects/ctaSection";
 import { hexColor } from "./objects/hexColor";
 import { imageWithAlt } from "./objects/imageWithAlt";
 import { jobSection } from "./objects/jobSection";
@@ -22,15 +30,21 @@ import { menuMedia } from "./objects/menuMedia";
 import { menuSubLink } from "./objects/menuSubLink";
 import { missionCard } from "./objects/missionCard";
 import { navLink } from "./objects/navLink";
+import { metricsTable } from "./objects/metricsTable";
+import { pageLink } from "./objects/pageLink";
 import { pillar } from "./objects/pillar";
+import { portalFile } from "./objects/portalFile";
 import { priorityCard } from "./objects/priorityCard";
 import { sectorNode } from "./objects/sectorNode";
 import { socialLink } from "./objects/socialLink";
 import { stat } from "./objects/stat";
+import { statCard } from "./objects/statCard";
 
 export const schemaTypes: SchemaTypeDefinition[] = [
   // Objects (reusable)
   cta,
+  ctaSection,
+  careersSection,
   hexColor,
   imageWithAlt,
   navLink,
@@ -45,7 +59,11 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   menuMedia,
   menuSubLink,
   menuLink,
+  pageLink,
   jobSection,
+  portalFile,
+  statCard,
+  metricsTable,
   // Documents
   siteSettings,
   homePage,
@@ -53,9 +71,15 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   initiativesPage,
   contactPage,
   careersPage,
+  blogPage,
   initiative,
   post,
+  tag,
   job,
+  event,
   contactSubmission,
   newsletterSubscription,
+  portalUser,
+  portalPage,
+  portalResource,
 ];

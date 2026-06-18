@@ -1,3 +1,4 @@
+import CtaLink from "./CtaLink";
 import FooterWatermark from "./FooterWatermark";
 import Logo from "./Logo";
 import NewsletterForm from "./NewsletterForm";
@@ -24,6 +25,12 @@ type Props = {
   partners?: Partner[];
   /** Toggle the partner marquee on/off. Defaults to true. */
   showPartners?: boolean;
+  /** Localized tagline under the brand name. */
+  tagline?: string;
+  /** Localized "All rights reserved." line in the bottom legal row. */
+  rightsLabel?: string;
+  /** Localized "Partners" marquee label. */
+  partnersLabel?: string;
   className?: string;
 };
 
@@ -168,8 +175,20 @@ export default function Footer({
   socialLinks = DEFAULT_SOCIAL,
   partners = DEFAULT_PARTNERS,
   showPartners = false,
+  tagline = "Building the architecture of care.",
+  rightsLabel = "All rights reserved.",
+  partnersLabel = "Partners",
   className,
 }: Props) {
+  // Sanity returns `null` (not `undefined`) for unset fields, and default
+  // parameters only apply to `undefined` — so coalesce null → defaults here
+  // to keep the `.map` calls below safe when the CMS fields are empty.
+  navGroups = navGroups ?? DEFAULT_NAV_GROUPS;
+  legalLinks = legalLinks ?? DEFAULT_LEGAL;
+  socialLinks = socialLinks ?? DEFAULT_SOCIAL;
+  partners = partners ?? DEFAULT_PARTNERS;
+  tagline = tagline ?? "Building the architecture of care.";
+
   const year = new Date().getFullYear();
 
   // The marquee duplicates the list to make the loop seamless. If the
@@ -188,9 +207,11 @@ export default function Footer({
   return (
     <footer
       data-nav-theme="dark"
-      data-nav-bg="#042D2B"
       className={`relative text-white overflow-hidden ${className ?? ""}`}
-      style={{ backgroundColor: "#042D2B" }}
+      // Defaults to the brand teal; a page can override it by setting the
+      // `--footer-bg` custom property (e.g. the initiative detail page recolors
+      // the footer to match its chosen page colour).
+      style={{ backgroundColor: "var(--footer-bg, #042D2B)" }}
     >
       {/* Animated icon watermark — replays its "construction" build each
           time the footer scrolls into view (see FooterWatermark). */}
@@ -222,11 +243,17 @@ export default function Footer({
         <div className="mt-16 md:mt-28 lg:mt-40 flex flex-col lg:flex-row lg:items-start lg:gap-12 xl:gap-16">
           {/* Title block */}
           <div className="lg:flex-[1.15] lg:min-w-0">
-            <h2 className="font-display text-display-md md:text-display-xl lg:text-display-2xl font-bold text-error-300 leading-[1.02] tracking-[-0.02em]">
+            <h2
+              className="font-display text-display-md md:text-display-xl lg:text-display-2xl font-bold leading-[1.02] tracking-[-0.02em]"
+              style={{ color: "var(--brand-accent, #38fe9c)" }}
+            >
               Barbados <br /> Pharmaceutical Inc.
             </h2>
-            <p className="font-display text-display-md md:text-display-xl lg:text-display-2xl text-error-300/65 leading-[1.02] tracking-[-0.02em]">
-              Building the architecture of care.
+            <p
+              className="font-display text-display-md md:text-display-xl lg:text-display-2xl leading-[1.02] tracking-[-0.02em]"
+              style={{ color: "var(--brand-accent, #38fe9c)", opacity: 0.65 }}
+            >
+              {tagline}
             </p>
           </div>
 
@@ -238,11 +265,14 @@ export default function Footer({
                   {group.title}
                 </h3>
                 <ul className="mt-4 md:mt-5 border-t border-white/15">
-                  {group.links.map((link) => (
+                  {(group.links ?? []).map((link) => (
                     <li key={link.href} className="border-b border-white/15">
-                      <span className="block py-3 md:py-3.5 text-sm md:text-base text-white/60 cursor-default select-none">
+                      <CtaLink
+                        href={link.href}
+                        className="block py-3 md:py-3.5 text-sm md:text-base text-white/60 transition-colors hover:text-white"
+                      >
                         {link.label}
-                      </span>
+                      </CtaLink>
                     </li>
                   ))}
                 </ul>
@@ -261,7 +291,7 @@ export default function Footer({
         {showPartners && partners.length > 0 ? (
           <div className="mt-12 md:mt-20 lg:mt-28 flex flex-row items-center justify-center gap-6 md:gap-8 lg:gap-10">
             <span className="shrink-0 text-[11px] md:text-xs font-semibold tracking-[0.18em] text-white/40 uppercase">
-              Partners
+              {partnersLabel}
             </span>
             <div
               className="relative overflow-hidden flex-1 max-w-3xl"
@@ -297,14 +327,17 @@ export default function Footer({
         <div className="mt-16 md:mt-24 lg:mt-32 pt-6 md:pt-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between text-xs md:text-sm text-white/65">
           <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-7">
             <span>
-              © {year} Barbados Pharmaceutical Inc. All rights reserved.
+              © {year} Barbados Pharmaceutical Inc. {rightsLabel}
             </span>
             <ul className="flex flex-wrap items-center gap-6">
               {legalLinks.map((link) => (
                 <li key={link.href}>
-                  <span className="text-white/60 cursor-default select-none">
+                  <CtaLink
+                    href={link.href}
+                    className="text-white/60 transition-colors hover:text-white"
+                  >
                     {link.label}
-                  </span>
+                  </CtaLink>
                 </li>
               ))}
             </ul>
@@ -343,7 +376,7 @@ export default function Footer({
               })}
             </ul>
             <span className="text-white/65">
-              © {year} Barbados Pharmaceutical Inc. All rights reserved.
+              © {year} Barbados Pharmaceutical Inc. {rightsLabel}
             </span>
           </div>
         </div>

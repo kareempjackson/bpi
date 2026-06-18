@@ -8,26 +8,24 @@ export const contactRow = defineType({
     defineField({
       name: "label",
       title: "Label",
-      type: "string",
+      type: "internationalizedArrayString",
       description: 'e.g. "Partner with us", "Find us".',
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "value",
       title: "Value",
-      type: "string",
+      type: "internationalizedArrayString",
       description: "Shown on the page.",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "copyValue",
       title: "Copy value (optional)",
-      type: "string",
+      type: "internationalizedArrayString",
       description:
         'If set, the "Copy" button copies this instead of the display value (e.g. show a friendly address but copy a phone number).',
     }),
   ],
   preview: {
-    select: { title: "label", subtitle: "value" },
+    select: { title: "label.0.value", subtitle: "value" },
   },
 });

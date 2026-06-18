@@ -1,6 +1,9 @@
+import Image from "next/image";
+
 import CtaLink from "./CtaLink";
 
-/** Kept for backwards-compatible imports elsewhere. */
+/** A post as consumed by the home "Latest from BPI" bento. Shaped by the
+ *  homepage from the Sanity LATEST_POSTS_QUERY result. */
 export type BlogSectionPost = {
   title: string;
   excerpt?: string;
@@ -9,90 +12,67 @@ export type BlogSectionPost = {
   imageSrc?: string;
   videoSrc?: string;
   imageAlt?: string;
-  pillar?: string;
-  thumbVariant?: 1 | 2 | 3;
+  /** Tag titles, rendered as pills. */
+  tags?: string[];
+  /** Content-type label shown as the eyebrow on feature tiles (e.g. "News"). */
+  category?: string;
 };
 
 type Card = {
+  /** Stable position in the source list — used for React keys after reorder. */
+  idx: number;
   title: string;
-  /** Overlay label shown on the large feature cards (e.g. "ALLIANCE"). */
+  /** Overlay label shown on the large feature cards (the content type). */
   category?: string;
   tags: string[];
   href: string;
-  imageSrc: string;
+  imageSrc?: string;
   imageAlt?: string;
   /** Feature cards span two columns and use the dark image-overlay style. */
-  featured?: boolean;
+  featured: boolean;
 };
-
-// Dummy content — not wired to Sanity yet. Card order maps directly onto
-// the bento grid: [feature, small, small] then [small, feature, small],
-// which on a 4-column grid resolves to two clean rows because the feature
-// cards span two columns each (2+1+1 / 1+2+1).
-const CARDS: Card[] = [
-  {
-    featured: true,
-    category: "Alliance",
-    tags: ["investment", "Partnership"],
-    title:
-      "First pharmaceutical cargo between Africa and the Caribbean departs Kaduna",
-    href: "/coming-soon",
-    imageSrc: "https://picsum.photos/seed/bpi-alliance/1200/900",
-    imageAlt: "",
-  },
-  {
-    tags: ["investment", "Partnership"],
-    title: "BMPRA regulatory framework moves to next phase in partnership with WHO",
-    href: "/coming-soon",
-    imageSrc: "https://picsum.photos/seed/bpi-who/800/800",
-    imageAlt: "",
-  },
-  {
-    tags: ["investment", "Partnership"],
-    title:
-      "Queen Elizabeth Hospital receives first shipment from the AMA IV fluids corridor",
-    href: "/coming-soon",
-    imageSrc: "https://picsum.photos/seed/bpi-hospital/800/800",
-    imageAlt: "",
-  },
-  {
-    tags: ["investment", "Partnership"],
-    title: "BMPRA regulatory framework moves to next phase in partnership with WHO",
-    href: "/coming-soon",
-    imageSrc: "https://picsum.photos/seed/bpi-who-2/800/800",
-    imageAlt: "",
-  },
-  {
-    featured: true,
-    category: "Alliance",
-    tags: ["investment", "Partnership"],
-    title:
-      "First pharmaceutical cargo between Africa and the Caribbean departs Kaduna",
-    href: "/coming-soon",
-    imageSrc: "https://picsum.photos/seed/bpi-headspace/1200/900",
-    imageAlt: "",
-  },
-  {
-    tags: ["investment", "Partnership"],
-    title:
-      "Queen Elizabeth Hospital receives first shipment from the AMA IV fluids corridor",
-    href: "/coming-soon",
-    imageSrc: "https://picsum.photos/seed/bpi-hospital-2/800/800",
-    imageAlt: "",
-  },
-];
 
 type Props = {
   heading?: string;
   viewAllHref?: string;
-  /** Accepted for compatibility; ignored while running on dummy data. */
   posts?: BlogSectionPost[];
 };
 
 export default function BlogSection({
   heading = "Latest from BPI",
-  viewAllHref = "/coming-soon",
+  viewAllHref = "/blog",
+  posts = [],
 }: Props) {
+  if (posts.length === 0) return null;
+
+  // Bento layout: every third tile is a wide feature (spans two columns), so
+  // each row reads as feature + two small cards (2 + 1 + 1 across the 4-col
+  // grid). Tiles cleanly for the typical 3- or 6-post counts.
+  const cards: Card[] = posts.map((p, idx) => ({
+    idx,
+    title: p.title,
+    category: p.category,
+    tags: p.tags ?? [],
+    href: p.href,
+    imageSrc: p.imageSrc,
+    imageAlt: p.imageAlt,
+    featured: idx % 3 === 0,
+  }));
+
+  // Split into rows of three (feature + two small) and alternate the layout so
+  // the bento zig-zags: row 1 leads with the feature tile on the left (feature
+  // + small + small → 2 + 1 + 1), while row 2 centers the feature between the
+  // two small cards (small + feature + small → 1 + 2 + 1). Both arrangements
+  // span the full 4-column grid with no explicit placement.
+  const orderedCards: Card[] = Array.from(
+    { length: Math.ceil(cards.length / 3) },
+    (_, row) => cards.slice(row * 3, row * 3 + 3),
+  ).flatMap((group, row) =>
+    row % 2 === 1 && group.length === 3
+      ? [group[1], group[0], group[2]]
+      : group,
+  );
+
   return (
     <section
       data-nav-theme="light"
@@ -116,11 +96,11 @@ export default function BlogSection({
 
       {/* Bento grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-5 auto-rows-auto md:auto-rows-[32rem] lg:auto-rows-[42rem]">
-        {CARDS.map((card, idx) =>
+        {orderedCards.map((card) =>
           card.featured ? (
-            <FeatureCard key={idx} card={card} />
+            <FeatureCard key={card.idx} card={card} />
           ) : (
-            <SmallCard key={idx} card={card} />
+            <SmallCard key={card.idx} card={card} />
           )
         )}
       </div>
@@ -134,12 +114,15 @@ function FeatureCard({ card }: { card: Card }) {
       href={card.href}
       className="group relative block overflow-hidden rounded-2xl md:rounded-3xl bg-primary-500 md:col-span-2 row-span-1 aspect-4/3 md:aspect-auto md:h-full focus-visible:outline-none"
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={card.imageSrc}
-        alt={card.imageAlt ?? ""}
-        className="absolute inset-0 h-full w-full object-cover"
-      />
+      {card.imageSrc ? (
+        <Image
+          src={card.imageSrc}
+          alt={card.imageAlt ?? ""}
+          fill
+          sizes="(min-width: 768px) 50vw, 100vw"
+          className="object-cover"
+        />
+      ) : null}
       <div className="absolute inset-0 bg-linear-to-t from-black/75 via-black/15 to-black/25" />
       <div className="relative flex h-full flex-col justify-between p-5 md:p-6 lg:p-7">
         <div className="flex flex-wrap gap-2">
@@ -177,12 +160,15 @@ function SmallCard({ card }: { card: Card }) {
         ))}
       </div>
       <div className="relative mt-5 md:mt-6 aspect-square overflow-hidden rounded-2xl bg-primary-500/5">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={card.imageSrc}
-          alt={card.imageAlt ?? ""}
-          className="absolute inset-0 h-full w-full object-cover"
-        />
+        {card.imageSrc ? (
+          <Image
+            src={card.imageSrc}
+            alt={card.imageAlt ?? ""}
+            fill
+            sizes="(min-width: 768px) 25vw, 100vw"
+            className="object-cover"
+          />
+        ) : null}
       </div>
       <div className="mt-auto pt-6 md:pt-8 flex items-end justify-between gap-3">
         <h3 className="text-lg md:text-xl font-medium text-primary-500 leading-snug">

@@ -40,13 +40,12 @@ export const sectorNode = defineType({
     defineField({
       name: "title",
       title: "Title",
-      type: "string",
+      type: "internationalizedArrayString",
     }),
     defineField({
       name: "description",
       title: "Description",
-      type: "text",
-      rows: 3,
+      type: "internationalizedArrayText",
     }),
     defineField({
       name: "media",
@@ -117,7 +116,7 @@ export const sectorNode = defineType({
   ],
   preview: {
     select: {
-      title: "title",
+      title: "title.0.value",
       subtitle: "num",
       media: "media.image.asset",
       kind: "media.kind",

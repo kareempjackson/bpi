@@ -7,6 +7,7 @@ import Logo from "./Logo";
 import LanguageToggle from "./LanguageToggle";
 import type { MenuConfig } from "./Menu";
 import MenuLauncher from "./MenuLauncher";
+import SearchLauncher from "./SearchLauncher";
 import { hasLocale, localizedHref, toLocale } from "@/app/lib/locale";
 
 /** Strip a leading `/en|/es|…` segment so route comparisons stay locale-agnostic. */
@@ -37,6 +38,31 @@ const FALLBACK_BG = "#eafbf1"; // matches bg-error-25 in globals.css
  * hydration. Update this list when adding heroes to new routes.
  */
 const HERO_PATHS = new Set<string>(["/"]);
+
+/**
+ * Hero background colour per route (locale-stripped path). The live sampler
+ * only reads the section under the nav *after* the first paint, so on a hard
+ * load — or the moment a client-side navigation commits — the nav would briefly
+ * show the light fallback before correcting itself. That reads as the nav
+ * flashing the wrong colour over a dark hero. Seeding the initial / reset
+ * background from this map makes the very first paint match the hero beneath
+ * it. Routes not listed fall back to the light page background. `dark` drives
+ * the text/icon contrast flip. Keep these in sync with each page's hero bg
+ * (`#01190d` = `bg-error-950`).
+ */
+const HERO_NAV_BG: Record<string, { bg: string; dark: boolean }> = {
+  "/careers": { bg: "#01190d", dark: true },
+  "/about": { bg: "#01190d", dark: true },
+  "/initiatives": { bg: "#01190d", dark: true },
+  "/reports": { bg: "#01190d", dark: true },
+  "/investors": { bg: "#01190d", dark: true },
+  "/priorities": { bg: "#0B2F64", dark: true },
+};
+
+/** Initial nav background + contrast for a route, before the live sampler runs. */
+function initialNavTheme(routePath: string): { bg: string; dark: boolean } {
+  return HERO_NAV_BG[routePath] ?? { bg: FALLBACK_BG, dark: false };
+}
 
 /** Parse `rgb()` / `rgba()` into [r, g, b, a]. */
 function parseRgb(input: string): [number, number, number, number] | null {
@@ -108,6 +134,9 @@ export default function StickyTopNav({
   // will see on hydration: hidden over hero pages, visible on non-hero
   // pages. No state flip, no flash.
   const initialHasHero = HERO_PATHS.has(routePath);
+  // Seed the nav colour from the route's known hero bg so the first paint
+  // (SSR + hydration) matches the section underneath, not the light fallback.
+  const initialTheme = initialNavTheme(routePath);
   // `ready` gates the transition classes until the initial state has
   // settled (first detect pass). Without this gate the colour change
   // from the fallback bg to the sampled bg would animate visibly on the
@@ -116,12 +145,12 @@ export default function StickyTopNav({
   const [visible, setVisible] = useState(!initialHasHero);
   const [hasHero, setHasHero] = useState(initialHasHero);
   const [overHero, setOverHero] = useState(initialHasHero);
-  const [bg, setBg] = useState<string>(FALLBACK_BG);
-  const [isDark, setIsDark] = useState(false);
+  const [bg, setBg] = useState<string>(initialTheme.bg);
+  const [isDark, setIsDark] = useState(initialTheme.dark);
   const visibleRef = useRef(!initialHasHero);
   const overHeroRef = useRef(initialHasHero);
-  const bgRef = useRef<string>(FALLBACK_BG);
-  const isDarkRef = useRef<boolean>(false);
+  const bgRef = useRef<string>(initialTheme.bg);
+  const isDarkRef = useRef<boolean>(initialTheme.dark);
   const lastYRef = useRef(0);
   const surfaceRef = useRef<HTMLDivElement>(null);
 
@@ -135,12 +164,14 @@ export default function StickyTopNav({
   const [renderedPath, setRenderedPath] = useState(pathname);
   if (renderedPath !== pathname) {
     setRenderedPath(pathname);
-    const nextHasHero = HERO_PATHS.has(stripLocale(pathname));
+    const nextRoutePath = stripLocale(pathname);
+    const nextHasHero = HERO_PATHS.has(nextRoutePath);
+    const nextTheme = initialNavTheme(nextRoutePath);
     setHasHero(nextHasHero);
     setVisible(!nextHasHero);
     setOverHero(nextHasHero);
-    setBg(FALLBACK_BG);
-    setIsDark(false);
+    setBg(nextTheme.bg);
+    setIsDark(nextTheme.dark);
     // Pause CSS transitions for the brief window between this reset
     // and the dynamic detect pass — otherwise the nav visibly animates
     // its colour/translate from the old route's values to the new
@@ -162,10 +193,13 @@ export default function StickyTopNav({
       setVisible(true);
       visibleRef.current = true;
     }
-    // Keep tracking refs in sync with the route-change state reset.
+    // Keep tracking refs in sync with the route-change state reset — seed
+    // from the route's known hero bg so the sampler refines from the right
+    // baseline instead of snapping up from the light fallback.
+    const routeTheme = initialNavTheme(stripLocale(pathname));
     overHeroRef.current = heroExists;
-    bgRef.current = FALLBACK_BG;
-    isDarkRef.current = false;
+    bgRef.current = routeTheme.bg;
+    isDarkRef.current = routeTheme.dark;
 
     let raf = 0;
     lastYRef.current = window.scrollY;
@@ -439,25 +473,7 @@ export default function StickyTopNav({
           </nav>
 
           <div className="flex items-center gap-3.5 lg:gap-4 shrink-0">
-            <button
-              type="button"
-              aria-label="Search"
-              className="group/search hidden md:inline-flex items-center justify-center transition-all duration-300 ease-[var(--ease-premium)] hover:opacity-70 hover:scale-110 active:scale-95 motion-reduce:transform-none focus-visible:outline-none focus-visible:opacity-100"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="w-4.25 h-4.25"
-                aria-hidden
-              >
-                <circle cx="11" cy="11" r="7" />
-                <path d="m20 20-3.5-3.5" />
-              </svg>
-            </button>
+            <SearchLauncher className="hidden md:inline-flex" />
 
             <LanguageToggle className="hidden md:inline-block" />
 

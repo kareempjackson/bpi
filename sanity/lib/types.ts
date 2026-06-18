@@ -6,7 +6,7 @@
  * `"videoUrl": video.asset->url`).
  */
 export type SanityImage = {
-  kind?: "image" | "video" | null;
+  kind?: "image" | "video" | "audio" | null;
   asset?:
     | {
         _type?: string;
@@ -18,12 +18,14 @@ export type SanityImage = {
       }
     | null;
   videoUrl?: string | null;
+  audioUrl?: string | null;
   alt: string;
 };
 
 export type ResolvedMedia =
   | { kind: "image"; src: string; alt: string; poster?: undefined }
-  | { kind: "video"; src: string; poster?: string; alt: string };
+  | { kind: "video"; src: string; poster?: string; alt: string }
+  | { kind: "audio"; src: string; poster?: string; alt: string };
 
 export type Cta = {
   label: string;
@@ -106,13 +108,17 @@ export type MenuMedia = {
 
 export type MenuSubLink = {
   label: string;
-  href: string;
+  // Resolved in GROQ from either a custom href or a referenced
+  // initiative/post/job; can be null if a reference is unresolved.
+  href: string | null;
   media?: MenuMedia | null;
 };
 
 export type MenuLink = {
   label: string;
-  href: string;
+  href?: string | null;
+  /** When true, the main link is non-clickable — only its sub-links work. */
+  disableLink?: boolean | null;
   media?: MenuMedia | null;
   subItems?: MenuSubLink[] | null;
 };
@@ -123,14 +129,10 @@ export type SiteSettings = {
   menuLegalLinks?: NavLink[] | null;
   menuSocialLinks?: SocialLink[] | null;
   menuBackground?: MenuMedia | null;
-  showFooterPartners?: boolean | null;
-  footerPartners?: FooterPartner[] | null;
-};
-
-export type FooterPartner = {
-  name: string;
-  logoUrl?: string | null;
-  href?: string | null;
+  footerTagline?: string;
+  footerNavGroups?: { title: string; links: { label: string; href: string }[] }[];
+  footerLegalLinks?: { label: string; href: string; disabled?: boolean }[];
+  footerRights?: string;
 };
 
 export type SocialLink = {
@@ -174,6 +176,7 @@ export type Initiative = {
   title: string;
   slug: string;
   subtitle?: string | null;
+  tag?: string | null;
   excerpt: string;
   publishedAt: string;
   featured?: boolean | null;
@@ -190,6 +193,18 @@ export type Initiative = {
 /** Full initiative including the rich-text `body` for /initiatives/[slug]. */
 export type InitiativeDetail = Initiative & {
   body?: PortableTextBlock[] | null;
+  pageColor?: string | null;
+  showQuote?: boolean | null;
+  quoteSupporting?: string | null;
+  quoteText?: string | null;
+  quoteAttribution?: string | null;
+  quoteImage?: SanityImage | null;
+  whyMattersHeading?: string | null;
+  whyMattersBody?: string | null;
+  whyMattersImage?: SanityImage | null;
+  impactHeading?: string | null;
+  impactBody?: string | null;
+  impactStats?: { value?: string | null; label?: string | null }[] | null;
 };
 
 export type PostSummary = {
@@ -208,12 +223,111 @@ export type InitiativePost = PostSummary & {
   initiativeTileAccent?: boolean | null;
 };
 
+// ── Events ──────────────────────────────────────────────────────────────────
+export type EventTicketTier = {
+  name: string;
+  kind: "free" | "paid";
+  price?: number | null;
+  /** Capacity for this tier; absent = unlimited. Only used by the Eventbrite sync. */
+  quantityTotal?: number | null;
+};
+
+/** Event as projected for the /events grid (see EVENTS_QUERY). */
+export type EventSummary = {
+  _id: string;
+  title: string;
+  slug: string;
+  summary?: string | null;
+  startAt: string;
+  endAt?: string | null;
+  timezone?: string | null;
+  featured?: boolean | null;
+  currency?: string | null;
+  image?: SanityImage | null;
+  /** Set once the event syncs to Eventbrite; absent until then. */
+  eventbriteId?: string | null;
+  eventbriteUrl?: string | null;
+  tickets?: EventTicketTier[] | null;
+};
+
+/** Full event for the /events/[slug] detail page — adds the rich
+    description + location fields and per-tier capacity. */
+export type EventDetail = EventSummary & {
+  description?: PortableTextBlock[] | null;
+  locationType?: "online" | "venue" | null;
+  venueName?: string | null;
+  venueAddress?: string | null;
+};
+
+// ── Blog ──────────────────────────────────────────────────────────────────
+export type ContentType = "article" | "news" | "resource" | "report";
+
+export type TagRef = {
+  title: string;
+  slug: string;
+  color?: string | null;
+};
+
+/** Blog post as projected for the /blog index cards + featured hero. */
+export type BlogPost = {
+  _id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  publishedAt: string;
+  contentType: ContentType;
+  tags?: TagRef[] | null;
+  wideTile?: boolean | null;
+  coverImage?: SanityImage | null;
+  externalLink?: string | null;
+};
+
+export type BlogAttachment = {
+  label: string;
+  url?: string | null;
+  filename?: string | null;
+  size?: number | null;
+};
+
+/** Full post for /blog/[slug] — adds the rich body + downloadable files. */
+export type BlogPostDetail = BlogPost & {
+  body?: PortableTextBlock[] | null;
+  attachments?: BlogAttachment[] | null;
+};
+
+/**
+ * A modular page block (Call to action / Careers) from a page's `pageSections`
+ * list. One shape covers both block types; fields a given block lacks are null.
+ */
+export type PageSection = {
+  _type: "ctaSection" | "careersSection";
+  _key: string;
+  eyebrow?: string | null;
+  heading?: string | null;
+  lead?: string | null;
+  body?: string | null;
+  primaryCta?: Cta;
+  secondaryCta?: Cta;
+  media?: SanityImage | null;
+  tone?: string | null;
+};
+
+export type BlogPage = {
+  pageSections?: PageSection[] | null;
+  heading?: string | null;
+  intro?: string | null;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  featuredPost?: BlogPost | null;
+};
+
 export type FutureStat = {
   value: string;
   body: string;
 };
 
 export type InitiativesPage = {
+  pageSections?: PageSection[] | null;
   seoTitle: string;
   seoDescription: string;
 
@@ -229,8 +343,10 @@ export type InitiativesPage = {
   workInMotionBg?: string | null;
   workInMotionPrimaryCta?: Cta | null;
   workInMotionSecondaryCta?: Cta | null;
+  workInMotionImage?: SanityImage | null;
 
   featuredInitiative?: Initiative | null;
+  featuredStatBody?: string | null;
   featuredSupportingInitiatives?: Initiative[] | null;
 
   showMotionStories?: boolean | null;
@@ -252,6 +368,11 @@ export type InitiativesPage = {
   otherWorksGreenBg?: string | null;
   otherWorksTopRightImages?: SanityImage[] | null;
   otherWorksBottomLeftImage?: SanityImage | null;
+  otherWorksInitiatives?: Initiative[] | null;
+  otherWorksFeaturedTitle?: string | null;
+  otherWorksFeaturedImage?: SanityImage | null;
+  otherWorksFeaturedHref?: string | null;
+  otherWorksViewAllHref?: string | null;
 
   buildingFutureHeading?: string | null;
   buildingFutureBody?: string | null;
@@ -260,6 +381,7 @@ export type InitiativesPage = {
 };
 
 export type HomePage = {
+  pageSections?: PageSection[] | null;
   seoTitle: string;
   seoDescription: string;
 
@@ -301,6 +423,14 @@ export type HomePage = {
 
   blogHeading: string;
   blogShowCount: number;
+
+  careersEyebrow?: string | null;
+  careersHeading?: string | null;
+  careersLead?: string | null;
+  careersBody?: string | null;
+  careersImage?: SanityImage | null;
+  careersPrimaryCta?: Cta | null;
+  careersSecondaryCta?: Cta | null;
 
   buildingHeadlineLine1: string;
   buildingHeadlineLine2: string;
@@ -352,10 +482,12 @@ export type Job = JobSummary & {
 };
 
 export type CareersPage = {
+  pageSections?: PageSection[] | null;
   seoTitle: string;
   seoDescription: string;
 
   heroHeadlineLine1: string;
+  heroHeadlineHighlight?: string | null;
   heroDescription: string;
   heroImage: SanityImage;
 
@@ -378,6 +510,7 @@ export type CareersPage = {
 };
 
 export type ContactPage = {
+  pageSections?: PageSection[] | null;
   seoTitle: string;
   seoDescription: string;
 
@@ -393,6 +526,7 @@ export type ContactPage = {
 };
 
 export type AboutPage = {
+  pageSections?: PageSection[] | null;
   seoTitle: string;
   seoDescription: string;
 
@@ -408,14 +542,10 @@ export type AboutPage = {
   visionBg?: string | null;
   pillars: Pillar[];
 
-  differenceLeftImage?: SanityImage | null;
-  differenceRightImage?: SanityImage | null;
+  differenceEyebrow?: string | null;
   differenceHeading?: string | null;
   differenceBody?: string | null;
-  differencePrimaryCta?: Cta | null;
-  differenceSecondaryCta?: Cta | null;
-  differenceOuterBg?: string | null;
-  differenceInnerBg?: string | null;
+  differenceTagline?: string | null;
 
   missionHeading: string;
   missionDescription: string;
@@ -439,4 +569,49 @@ export type AboutPage = {
   leadershipContactDescription: string;
   leadershipContactPrimaryCta: Cta;
   leadershipContactSecondaryCta: Cta;
+};
+
+// ── Investor / Partner portal ────────────────────────────────────────────────
+
+export type PortalRole = "investor" | "partner";
+export type PortalStatus = "pending" | "active" | "disabled";
+
+/** Auth-critical projection — what the session/DAL needs to gate access. */
+export type PortalUser = {
+  _id: string;
+  name?: string | null;
+  email: string;
+  organization?: string | null;
+  roles: PortalRole[];
+  status: PortalStatus;
+};
+
+/** A gated file/video/dataset stored in the PRIVATE R2 bucket. */
+export type PortalFile = {
+  key?: string | null;
+  originalFilename?: string | null;
+  contentType?: string | null;
+  size?: number | null;
+};
+
+export type PortalResource = {
+  _id: string;
+  title: string;
+  description?: string | null;
+  kind: "file" | "video" | "dataset";
+  audiences: PortalRole[];
+  file?: PortalFile | null;
+};
+
+/** Card-level projection for the dashboard listing. */
+export type PortalPageSummary = {
+  _id: string;
+  title: string;
+  slug: string;
+  summary?: string | null;
+  audiences: PortalRole[];
+};
+
+export type PortalPageDetail = PortalPageSummary & {
+  body?: PortableTextBlock[] | null;
 };

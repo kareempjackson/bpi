@@ -4,22 +4,23 @@ import { useEffect, useRef } from "react";
 import Logo from "./Logo";
 
 /**
- * Site-wide custom cursor — keeps the native pointer by default and swaps in
- * the BPI molecular logo mark only while the pointer is hovering a selectable
- * element (links, buttons, inputs, anything with a pointer affordance).
- * Tracks the mouse via direct DOM writes (no React re-render) and uses
- * `mix-blend-mode: difference` so the white mark stays legible over any
+ * Custom cursor — keeps the native pointer everywhere by default and swaps in
+ * the BPI molecular logo mark only while the pointer is over an element that
+ * opts in via `data-cursor="icon"` (currently just the home-page sector
+ * nodes). Tracks the mouse via direct DOM writes (no React re-render) and
+ * uses `mix-blend-mode: difference` so the white mark stays legible over any
  * background.
  *
  * Only activates on devices with a fine pointer (real mouse). On touch /
  * coarse-pointer devices it renders nothing and leaves the native cursor
- * untouched — and the `cursor: none` rule is only applied while hovering an
- * interactive element, so the regular mouse is used everywhere else.
+ * untouched — and the `cursor: none` rule is only applied while over an
+ * opted-in element, so the regular mouse is used everywhere else.
  */
 
-// What counts as "selectable" — show the logo mark over these.
-const INTERACTIVE_SELECTOR =
-  'a, button, [role="button"], [role="link"], input, textarea, select, label, summary, [onclick], [data-cursor="icon"]';
+// Only show the logo mark over elements explicitly opted in with
+// `data-cursor="icon"` (currently the home-page sector nodes). Everything
+// else keeps the regular native cursor.
+const INTERACTIVE_SELECTOR = '[data-cursor="icon"]';
 
 export default function CustomCursor() {
   const cursorRef = useRef<HTMLDivElement>(null);

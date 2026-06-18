@@ -19,8 +19,16 @@ type Props = {
   menuConfig?: MenuConfig;
 };
 
+// Warm the menu chunk so the first open doesn't flash while the bundle loads.
+const preloadMenu = () => {
+  void import("./Menu");
+};
+
 export default function MenuLauncher({ size = 120, menuConfig }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  // Once opened, keep <Menu> mounted so it can play its exit animation
+  // (and so the chunk stays warm) instead of unmounting on close.
+  const [hasOpened, setHasOpened] = useState(false);
   const pathname = usePathname();
 
   // Close the menu whenever the route changes. Synchronises menu state
@@ -50,16 +58,25 @@ export default function MenuLauncher({ size = 120, menuConfig }: Props) {
 
   return (
     <>
-      {!isOpen ? (
-        <HamburgerMenu
-          size={size}
-          aria-expanded={isOpen}
-          onClick={() => setIsOpen(true)}
-        />
-      ) : null}
-      {/* Only mount the menu after the first open — defers ~500 lines of
-          client code + its video stage until the user actually opens it. */}
-      {isOpen ? (
+      {/* Always mounted + tagged `data-page-header` so it fades out smoothly
+          with the rest of the header chrome when the menu opens, instead of
+          vanishing abruptly. Hidden from AT / tab order while open. */}
+      <HamburgerMenu
+        size={size}
+        data-page-header
+        aria-expanded={isOpen}
+        aria-hidden={isOpen || undefined}
+        tabIndex={isOpen ? -1 : undefined}
+        onClick={() => {
+          setHasOpened(true);
+          setIsOpen(true);
+        }}
+        onMouseEnter={preloadMenu}
+        onFocus={preloadMenu}
+      />
+      {/* Mounted lazily on first open (defers ~500 lines + the video stage),
+          then kept mounted so the overlay can animate its exit. */}
+      {hasOpened ? (
         <Menu
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}

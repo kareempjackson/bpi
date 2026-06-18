@@ -5,14 +5,13 @@ import Image from "next/image";
 import ArrowRight from "@/app/components/ArrowRight";
 import Button from "@/app/components/Button";
 import CtaLink from "@/app/components/CtaLink";
+import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
 import Logo from "@/app/components/Logo";
 import LazyVideo from "@/app/components/LazyVideo";
 import MediaImage from "@/app/components/MediaImage";
-import AboutShape from "@/app/components/shapes/AboutShape";
+import PageSections from "@/app/components/PageSections";
 import LeaderShape from "@/app/components/shapes/LeaderShape";
-import UnionShape from "@/app/components/shapes/UnionShape";
 import MissionShape from "@/app/components/shapes/MissionShape";
-import VisionShape from "@/app/components/shapes/VisionShape";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
 import { resolveImage, resolveMedia } from "@/sanity/lib/image";
 import {
@@ -35,21 +34,44 @@ import MissionCarousel from "./MissionCarousel";
 
 export const revalidate = 3600;
 
-async function getAboutPage(): Promise<AboutPage | null> {
-  return loadQuery<AboutPage | null>(ABOUT_PAGE_QUERY, { tags: [TAG.aboutPage] });
+/**
+ * Split a headline into its first sentence (rendered white) and the
+ * remainder (rendered green) — the "We're not a traditional agency. / We're
+ * a market creator." treatment. Falls back to all-white when there's no
+ * sentence break.
+ */
+function splitHeadline(headline: string): { lead: string; rest: string } {
+  const match = headline.match(/^([\s\S]*?[.!?])\s+([\s\S]*)$/);
+  if (!match) return { lead: headline, rest: "" };
+  return { lead: match[1], rest: match[2] };
 }
 
-async function getLatestInitiatives(limit: number): Promise<InitiativeDoc[]> {
+async function getAboutPage(lang: string): Promise<AboutPage | null> {
+  return loadQuery<AboutPage | null>(ABOUT_PAGE_QUERY, {
+    params: { lang },
+    tags: [TAG.aboutPage],
+  });
+}
+
+async function getLatestInitiatives(
+  lang: string,
+  limit: number,
+): Promise<InitiativeDoc[]> {
   if (limit <= 0) return [];
   const data = await loadQuery<InitiativeDoc[] | null>(LATEST_INITIATIVES_QUERY, {
-    params: { limit },
+    params: { lang, limit },
     tags: [TAG.initiative],
   });
   return data ?? [];
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const data = await getAboutPage();
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  const data = await getAboutPage(lang);
   return {
     title: data?.seoTitle ?? "About BPI | Barbados Pharmaceutical Inc.",
     description:
@@ -58,28 +80,40 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function AboutPage() {
-  const data = await getAboutPage();
+export default async function AboutPage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+  const data = await getAboutPage(lang);
 
   if (!data) {
     return <EmptyState />;
   }
 
   const initiatives = await getLatestInitiatives(
+    lang,
     data.initiativesShowCount ?? 4,
   );
 
   const heroMedia = resolveMedia(data.heroImage, { width: 1600 });
-  const heroImageSrc =
-    heroMedia?.kind === "image" ? heroMedia.src : heroMedia?.poster;
-  const heroVideoSrc =
-    heroMedia?.kind === "video" ? heroMedia.src : undefined;
+  const { lead: heroLead, rest: heroRest } = splitHeadline(
+    data.heroHeadline ?? "",
+  );
   const bannerMedia = resolveMedia(data.bannerImage, { width: 2000 });
 
   const initiativesForPanel: Initiative[] = initiatives.flatMap(
     (item): Initiative[] => {
       const img = resolveImage(item.coverImage, { width: 600 });
       if (!img) return [];
+      // Link rules mirror the rest of the site: externalLink wins; otherwise
+      // an internal detail page unless the editor turned it off.
+      const href = item.externalLink
+        ? item.externalLink
+        : item.hasDetailPage === false
+          ? undefined
+          : `/initiatives/${item.slug}`;
       const out: Initiative = {
         title: item.title,
         description: item.excerpt,
@@ -87,72 +121,88 @@ export default async function AboutPage() {
         imageAlt: img.alt,
       };
       if (item.subtitle) out.subtitle = item.subtitle;
+      if (href) out.href = href;
       return [out];
     },
   );
 
   return (
     <main className="bg-error-25">
-      <section className="px-5 md:px-20 lg:px-32 pt-6 md:pt-10 lg:pt-12 pb-24 md:pb-14 lg:pb-20">
-        <div className="mx-auto max-w-page relative">
+      <section
+        data-nav-theme="dark"
+        data-cursor="icon"
+        className="relative flex flex-col overflow-hidden bg-error-950 px-6 md:px-12 lg:px-20 xl:px-28 pt-14 md:pt-16 lg:pt-16 pb-12 md:pb-16 lg:pb-20 lg:min-h-[96dvh]"
+      >
+        {/* Interactive rounded-tile grid backdrop — tiles light up on hover; the BPI logo mark replaces the cursor (via the global CustomCursor, data-cursor="icon"). */}
+        <GridHoverBackdrop />
+
+        <div className="relative mx-auto grid w-full max-w-page flex-1 grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 min-h-0 items-stretch">
+          {/* Left — description + CTA (top), two-tone headline (bottom). */}
+          <div className="order-2 lg:order-1 flex flex-col min-h-0">
+            <div
+              data-reveal-stagger
+              className="flex flex-col gap-6 max-w-md"
+            >
+              {data.heroSubheading ? (
+                <p className="text-base md:text-lg text-white/75 leading-relaxed">
+                  {data.heroSubheading}
+                </p>
+              ) : null}
+              <CtaLink
+                href={data.heroCta?.href ?? "/contact"}
+                className="inline-flex w-fit items-center rounded-round bg-error-500 px-6 py-2.5 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-[var(--ease-premium)] hover:bg-error-400"
+              >
+                {data.heroCta?.label ?? "Partner With BPI"}
+              </CtaLink>
+            </div>
+
+            <h1
+              data-reveal-stagger
+              className="mt-10 lg:mt-auto lg:pt-12 font-display text-[clamp(2.5rem,5.5vw,5rem)] font-bold leading-[0.95] tracking-[-0.03em] max-w-3xl"
+            >
+              <span className="text-white">{heroLead}</span>
+              {heroRest ? (
+                <>
+                  {" "}
+                  <span className="text-error-500">{heroRest}</span>
+                </>
+              ) : null}
+            </h1>
+          </div>
+
+          {/* Right — tall portrait image. */}
           {heroMedia ? (
-            <div data-reveal="scale">
-              <UnionShape
-                size={1200}
-                imageSrc={heroImageSrc}
-                videoSrc={heroVideoSrc}
-                imageAlt={heroMedia.alt}
-                imagePosition="xMidYMin slice"
-                imageOffsetY={-40}
-                className="w-full h-auto"
-              />
+            <div className="order-1 lg:order-2 w-full min-h-0 lg:h-full">
+              <div
+                data-reveal="scale"
+                className="relative w-full aspect-3/4 lg:aspect-auto lg:h-full overflow-hidden rounded-2xl bg-white/5"
+              >
+                <MediaImage
+                  media={heroMedia}
+                  sizes="(min-width: 1024px) 50vw, 100vw"
+                  preload
+                  eager
+                />
+              </div>
             </div>
           ) : null}
-
-          <div
-            className="absolute left-0 w-[58%] md:w-[62%] lg:w-[68%] pt-2 md:pt-4 lg:pt-6 pr-3 md:pr-6 lg:pr-12"
-            style={{ top: "60%" }}
-          >
-            <h1
-              className="hero-anim font-display text-xl md:text-display-md lg:text-display-lg font-bold text-primary-500 leading-[1.15] md:leading-[1.05] tracking-tight md:max-w-3xl lg:max-w-4xl text-balance whitespace-pre-line"
-              style={{ "--anim-delay": "0s" } as CSSProperties}
-            >
-              {data.heroHeadline}
-            </h1>
-            <p
-              className="hero-anim mt-3 md:mt-4 text-sm md:text-lg lg:text-xl text-primary-500/75 leading-relaxed md:max-w-xl lg:max-w-2xl"
-              style={{ "--anim-delay": "0.12s" } as CSSProperties}
-            >
-              {data.heroSubheading}
-            </p>
-            {data.heroCta ? (
-              <div
-                className="hero-anim mt-4 lg:mt-5 flex flex-wrap items-center gap-3"
-                style={{ "--anim-delay": "0.24s" } as CSSProperties}
-              >
-                <CtaLink href={data.heroCta.href} className="inline-flex">
-                  <Button variant="primary" size="sm">
-                    {data.heroCta.label}
-                  </Button>
-                </CtaLink>
-              </div>
-            ) : null}
-          </div>
         </div>
       </section>
 
-      <section className="px-5 md:px-20 lg:px-32 pt-12 md:pt-12 lg:pt-16 pb-12 md:pb-10 lg:pb-14">
-        <div
-          data-reveal-stagger
-          className="mx-auto max-w-page rounded-lg px-5 py-10 md:px-8 md:py-16 lg:px-12 lg:py-24"
-          style={{ backgroundColor: data.visionBg ?? "#CAF1FF" }}
-        >
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5 md:gap-8 mb-8 md:mb-10 lg:mb-12">
+      <section
+        data-nav-theme="light"
+        className="bg-error-25 px-6 md:px-12 lg:px-20 xl:px-28 pt-12 md:pt-16 lg:pt-20 pb-12 md:pb-16 lg:pb-24"
+      >
+        <div className="mx-auto max-w-page">
+          <div
+            data-reveal-stagger
+            className="flex flex-col md:flex-row md:items-start md:justify-between gap-5 md:gap-8 mb-10 md:mb-12 lg:mb-14"
+          >
             <div className="max-w-lg">
-              <h2 className="font-display text-lg md:text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
+              <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-primary-500 leading-tight tracking-[-0.01em]">
                 {data.visionHeading}
               </h2>
-              <p className="mt-2 text-xs md:text-sm lg:text-base text-primary-500/75 leading-relaxed">
+              <p className="mt-3 text-sm lg:text-base text-primary-500/70 leading-relaxed">
                 {data.visionDescription}
               </p>
             </div>
@@ -164,7 +214,7 @@ export default async function AboutPage() {
 
           <div
             data-reveal-stagger
-            className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 lg:gap-8"
+            className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 lg:gap-8 items-stretch"
           >
             {data.pillars?.map((pillar, idx) => (
               <PillarCard key={pillar.eyebrow + idx} pillar={pillar} />
@@ -199,6 +249,25 @@ export default async function AboutPage() {
         </div>
       </section>
 
+      {/* Full-width video/media banner — sits directly above the numbers. */}
+      {bannerMedia ? (
+        <section className="px-5 md:px-20 lg:px-32 pt-8 lg:pt-10 pb-8 lg:pb-10">
+          <div className="mx-auto max-w-page">
+            <div
+              data-reveal="scale"
+              className="relative aspect-3/1 md:aspect-2/1 rounded-lg overflow-hidden"
+            >
+              <div
+                data-parallax="0.06"
+                className="absolute inset-x-0 top-[-12%] bottom-[-12%]"
+              >
+                <MediaImage media={bannerMedia} sizes="100vw" eager />
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       <section className="px-5 md:px-20 lg:px-32 pt-12 md:pt-12 lg:pt-16 pb-12 md:pb-12 lg:pb-16">
         <div className="mx-auto max-w-page">
           <div data-reveal-stagger className="max-w-3xl mb-8 lg:mb-8">
@@ -221,34 +290,16 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      {bannerMedia ? (
-        <section className="px-5 md:px-20 lg:px-32 pt-8 lg:pt-10 pb-8 lg:pb-10">
-          <div className="mx-auto max-w-page">
-            <div
-              data-reveal="scale"
-              className="relative aspect-3/1 md:aspect-2/1 rounded-lg overflow-hidden"
-            >
-              <div
-                data-parallax="0.06"
-                className="absolute inset-x-0 top-[-12%] bottom-[-12%]"
-              >
-                <MediaImage media={bannerMedia} sizes="100vw" />
-              </div>
-            </div>
-          </div>
-        </section>
-      ) : null}
-
-      <section className="px-5 md:px-20 lg:px-32 pt-12 md:pt-10 lg:pt-14 pb-14 md:pb-14 lg:pb-20">
+      <section className="pt-12 md:pt-10 lg:pt-14 pb-14 md:pb-14 lg:pb-20">
         <div
           data-reveal-stagger
-          className="mx-auto max-w-page rounded-lg bg-white px-5 py-12 md:px-8 md:py-16 lg:px-12 lg:py-24"
+          className="bg-[#13362A] px-5 py-12 md:px-8 md:py-16 lg:px-12 lg:py-24"
         >
           <div className="mb-8 lg:mb-8">
-            <p className="text-[10px] lg:text-xs font-bold tracking-[0.14em] text-primary-500/70 uppercase">
+            <p className="text-[10px] lg:text-xs font-bold tracking-[0.14em] text-white/60 uppercase">
               {data.initiativesEyebrow}
             </p>
-            <h2 className="mt-2 font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
+            <h2 className="mt-2 font-display text-display-xs lg:text-display-sm font-semibold text-white leading-[1.1] tracking-tight">
               {data.initiativesHeading}
             </h2>
           </div>
@@ -258,35 +309,32 @@ export default async function AboutPage() {
       </section>
 
       <section className="px-5 md:px-20 lg:px-32 pt-12 md:pt-10 lg:pt-14 pb-14 md:pb-14 lg:pb-20">
-        <div
-          className="mx-auto max-w-page rounded-lg px-5 py-10 md:px-8 md:py-16 lg:px-12 lg:py-24"
-          style={{ backgroundColor: data.leadershipBg ?? "#CAF1FF" }}
-        >
-          <div data-reveal-stagger className="mx-auto max-w-5xl xl:max-w-6xl">
-            <div className="max-w-md mb-8 lg:mb-8">
-              <h2 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
-                {data.leadershipHeading}
-              </h2>
-              <p className="mt-3 text-sm lg:text-base text-primary-500/75 leading-relaxed">
-                {data.leadershipDescription}
-              </p>
-            </div>
+        <div data-reveal-stagger className="mx-auto max-w-page">
+          <div className="max-w-md mb-8 lg:mb-10">
+            <h2 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
+              {data.leadershipHeading}
+            </h2>
+            <p className="mt-3 text-sm lg:text-base text-primary-500/75 leading-relaxed">
+              {data.leadershipDescription}
+            </p>
+          </div>
 
-            <div
-              data-reveal-stagger
-              className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-3 lg:gap-4"
-            >
-              {data.leaders?.map((leader, idx) => (
-                <LeaderCard
-                  key={leader.name + leader.role + idx}
-                  leader={leader}
-                  index={idx}
-                />
-              ))}
-            </div>
+          <div
+            data-reveal-stagger
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-3 lg:gap-4"
+          >
+            {data.leaders?.map((leader, idx) => (
+              <LeaderCard
+                key={leader.name + leader.role + idx}
+                leader={leader}
+                index={idx}
+              />
+            ))}
           </div>
         </div>
       </section>
+
+      <PageSections sections={data.pageSections} />
     </main>
   );
 }
@@ -308,91 +356,98 @@ function CtaButton({
   );
 }
 
-// "The Difference We Make" — Sanity-driven section that sits between the
-// Vision / Pillars block and the Mission carousel on the About page.
-// Images, copy, both CTAs, and the outer / inner background colours are
-// all editable from the About-page document in Studio.
+// Turn a single-line heading into a two-step staircase by dropping the last
+// two words onto a second line (e.g. "The Difference We Make" →
+// ["The Difference", "We Make"]). Headings of two words or fewer stay on one
+// line. Used only when the stored heading has no explicit line break.
+function staircaseFromFlat(heading: string): string[] {
+  const words = heading.trim().split(/\s+/);
+  if (words.length <= 2) return [heading];
+  return [
+    words.slice(0, -2).join(" "),
+    words.slice(-2).join(" "),
+  ];
+}
+
+// Split the trailing sentence off a paragraph: `lead` is everything up to and
+// including the final sentence-ending period, `trailing` is the last sentence.
+// Falls back to the whole text as `lead` when there's no internal break.
+function splitTrailingSentence(text: string): { lead: string; trailing: string } {
+  const trimmed = text.trim();
+  const idx = trimmed.lastIndexOf(". ");
+  if (idx === -1) return { lead: trimmed, trailing: "" };
+  return {
+    lead: trimmed.slice(0, idx + 1).trim(),
+    trailing: trimmed.slice(idx + 2).trim(),
+  };
+}
+
+// "The Difference We Make" — a simple, image-free two-column statement that
+// sits between the Vision / Pillars block and the Mission carousel on the
+// About page. Eyebrow + heading on the left, body copy (with an optional
+// tagline below a divider) on the right. All editable from Studio.
 function DifferenceWeMakeSection({ data }: { data: AboutPage }) {
-  const leftImage = resolveImage(data.differenceLeftImage, { width: 1400 });
-  const rightImage = resolveImage(data.differenceRightImage, { width: 1200 });
-  const heading = data.differenceHeading ?? "The Difference We Make";
-  const body = data.differenceBody ?? "";
-  const outerBg = data.differenceOuterBg ?? "#CAF1FF";
-  const innerBg = data.differenceInnerBg ?? "#E5FFF2";
+  const eyebrow = data.differenceEyebrow ?? "What We Are Building";
+  const heading = data.differenceHeading ?? "The Difference\nWe Make";
+  const rawBody = data.differenceBody ?? "";
+  const rawTagline = data.differenceTagline ?? "";
 
   // Hide the section entirely if there's no content to render yet — keeps
   // the page graceful when the document hasn't been populated.
-  if (!leftImage && !rightImage && !body) return null;
+  if (!rawBody && !rawTagline) return null;
+
+  // The heading is laid out as a staircase: the first line hugs the left
+  // edge, every line after it is pushed to the right. Authors set the break
+  // points with newlines in Studio; if the stored value has none, we drop
+  // the last two words to the second line so older flat content still reads
+  // as a staircase (e.g. "The Difference" / "We Make").
+  const headingLines = heading.includes("\n")
+    ? heading.split("\n")
+    : staircaseFromFlat(heading);
+
+  // Body / tagline. When no explicit tagline is authored, peel the final
+  // sentence off the body so it renders as the smaller line below the
+  // divider — matching the design without requiring a content edit.
+  let body = rawBody;
+  let tagline = rawTagline;
+  if (!tagline && body) {
+    const split = splitTrailingSentence(body);
+    body = split.lead;
+    tagline = split.trailing;
+  }
 
   return (
-    <section className="px-5 md:px-20 lg:px-32 pt-12 md:pt-12 lg:pt-16 pb-12 md:pb-12 lg:pb-16">
-      <div
-        className="mx-auto max-w-page rounded-3xl px-5 md:px-8 lg:px-12 pt-5 md:pt-8 lg:pt-12 pb-6 md:pb-10 lg:pb-14"
-        style={{ backgroundColor: outerBg }}
-      >
-        {/* Paired image strip. AboutShape's natural aspect is ~1.59:1, so
-            sizing the first column to 1.59fr and the second to 1fr makes
-            both images render at the same height while the right image
-            stays a perfect square. */}
-        {(leftImage || rightImage) && (
-          <div
-            data-reveal-stagger
-            className="grid grid-cols-1 md:grid-cols-[1.59fr_1fr] gap-4 md:gap-5"
-          >
-            {leftImage ? (
-              <div>
-                <AboutShape
-                  size={668}
-                  imageSrc={leftImage.src}
-                  imageAlt={leftImage.alt}
-                  className="w-full h-auto block"
-                />
-              </div>
-            ) : (
-              <div />
-            )}
-            {rightImage ? (
-              <div className="relative aspect-square rounded-2xl lg:rounded-3xl overflow-hidden">
-                <Image
-                  src={rightImage.src}
-                  alt={rightImage.alt}
-                  fill
-                  sizes="(min-width: 768px) 28vw, 100vw"
-                  className="object-cover"
-                />
-              </div>
-            ) : (
-              <div />
-            )}
-          </div>
-        )}
-
-        {/* Inset statement card */}
-        <div
-          data-reveal-stagger
-          className="mt-6 md:mt-8 lg:mt-10 rounded-2xl lg:rounded-3xl px-5 md:px-10 lg:px-14 py-8 md:py-12 lg:py-16"
-          style={{ backgroundColor: innerBg }}
-        >
-          <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-primary-500 leading-tight tracking-[-0.01em]">
-            {heading}
+    <section className="my-12 md:my-16 lg:my-24 px-5 md:px-20 lg:px-32 pt-12 md:pt-12 lg:pt-16 pb-12 md:pb-12 lg:pb-16">
+      <div className="mx-auto max-w-page grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-20 items-start">
+        <div data-reveal-stagger className="max-w-sm">
+          {eyebrow ? (
+            <p className="text-[10px] lg:text-xs font-bold tracking-[0.14em] text-primary-500/70 uppercase">
+              {eyebrow}
+            </p>
+          ) : null}
+          <h2 className="mt-3 font-display text-display-md lg:text-display-lg font-extrabold text-primary-500 leading-[1.05] tracking-tight">
+            {headingLines.map((line, i) => (
+              <span
+                key={i}
+                className={`block ${i === 0 ? "text-left" : "text-right pr-16 lg:pr-28 mt-2 lg:mt-3"}`}
+              >
+                {line}
+              </span>
+            ))}
           </h2>
+        </div>
+
+        <div data-reveal-stagger>
           {body ? (
-            <p className="mt-4 lg:mt-5 text-sm md:text-base lg:text-lg text-primary-500/85 leading-relaxed max-w-4xl whitespace-pre-line">
+            <p className="text-sm md:text-base lg:text-lg text-primary-500/85 leading-relaxed whitespace-pre-line">
               {body}
             </p>
           ) : null}
-          {(data.differencePrimaryCta || data.differenceSecondaryCta) && (
-            <div className="mt-6 lg:mt-8 pt-5 lg:pt-6 border-t border-primary-500/15 flex flex-wrap items-center gap-2 md:gap-3">
-              <CtaButton
-                cta={data.differencePrimaryCta ?? null}
-                variant="primary"
-              />
-              <CtaButton
-                cta={data.differenceSecondaryCta ?? null}
-                variant="tertiary"
-              />
-            </div>
-          )}
+          {tagline ? (
+            <p className="mt-6 lg:mt-8 pt-5 lg:pt-6 border-t border-primary-500/15 text-sm lg:text-base text-primary-500/70 leading-relaxed whitespace-pre-line">
+              {tagline}
+            </p>
+          ) : null}
         </div>
       </div>
     </section>
@@ -523,7 +578,7 @@ function MissionCardItem({ card }: { card: MissionCardData }) {
   const videoSrc = media?.kind === "video" ? media.src : undefined;
   return (
     <div
-      className="rounded-lg p-5 md:p-8 lg:p-12 flex items-stretch gap-5 md:gap-8 lg:gap-12 w-[84vw] md:w-[78vw] lg:w-[74vw] xl:w-[66vw] shrink-0 min-h-80 md:min-h-112 lg:min-h-128"
+      className="rounded-lg px-5 py-4 md:px-6 md:py-5 lg:px-8 lg:py-6 flex items-stretch gap-5 md:gap-8 lg:gap-12 w-[80vw] md:w-[62vw] lg:w-[54vw] xl:w-[48vw] shrink-0 min-h-64 md:min-h-80 lg:min-h-96"
       style={{ backgroundColor: card.bg ?? "#CAF1FF" }}
     >
       <div className="flex flex-col justify-between gap-4 md:gap-5 flex-1 min-w-0">
@@ -568,7 +623,7 @@ function MissionCardItem({ card }: { card: MissionCardData }) {
             imageSrc={img.src}
             videoSrc={videoSrc}
             imageAlt={img.alt}
-            className="w-full max-w-40 md:max-w-md lg:max-w-lg h-auto"
+            className="w-auto h-auto max-h-64 md:max-h-80 lg:max-h-96"
           />
         </div>
       ) : null}
@@ -599,34 +654,44 @@ function PillarCard({ pillar }: { pillar: PillarData }) {
   const videoSrc = media?.kind === "video" ? media.src : undefined;
   const hasMedia = !!media;
 
+  const mediaBlock = hasMedia ? (
+    <div
+      data-reveal="scale"
+      className="relative aspect-4/3 rounded-xl overflow-hidden bg-black/10"
+    >
+      {videoSrc ? (
+        <LazyVideo
+          src={videoSrc}
+          poster={posterSrc}
+          ariaLabel={media!.alt || undefined}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      ) : (
+        <Image
+          src={posterSrc}
+          alt={media!.alt}
+          fill
+          sizes="(min-width: 768px) 30vw, 90vw"
+          className="object-cover"
+        />
+      )}
+    </div>
+  ) : null;
+
+  // Highlighted card — dark green, image on top, copy beneath. Slightly
+  // taller than its neighbours for emphasis.
   if (pillar.highlight) {
     return (
       <div
-        className="rounded-2xl overflow-hidden flex flex-col min-h-120 md:min-h-140 lg:min-h-160"
-        style={{ backgroundColor: pillar.bg ?? "#ffffff" }}
+        className="rounded-2xl overflow-hidden flex flex-col h-full min-h-120 md:min-h-136 lg:min-h-152 p-5 md:p-6 lg:p-7"
+        style={{ backgroundColor: pillar.bg ?? "#042D2B" }}
       >
-        {hasMedia ? (
-          <div data-reveal="scale" className="p-5 md:p-6 lg:p-7">
-            <VisionShape
-              size={320}
-              imageSrc={posterSrc}
-              videoSrc={videoSrc}
-              imageAlt={media!.alt}
-              className="w-full h-auto"
-            />
-          </div>
-        ) : null}
-        <div
-          className={`${
-            hasMedia
-              ? "-mt-8 md:-mt-12 lg:-mt-16 pl-8 md:pl-10 lg:pl-12 pr-5 md:pr-6 lg:pr-7 pb-6 md:pb-7 lg:pb-8 max-w-[62%]"
-              : "px-5 md:px-6 lg:px-7 py-6 md:py-7 lg:py-8 mt-auto mb-auto"
-          } flex flex-col gap-3 md:gap-4`}
-        >
-          <span className="text-[11px] md:text-xs lg:text-sm font-bold tracking-[0.14em] text-primary-500 uppercase leading-tight">
+        {mediaBlock}
+        <div className="mt-auto pt-10 md:pt-12 lg:pt-14 flex flex-col gap-3">
+          <h3 className="font-display text-lg lg:text-xl font-bold tracking-[0.02em] text-white uppercase leading-snug">
             {pillar.eyebrow}
-          </span>
-          <p className="whitespace-pre-line text-sm md:text-base lg:text-lg text-primary-500/80 leading-relaxed">
+          </h3>
+          <p className="whitespace-pre-line text-sm lg:text-base text-white/70 leading-relaxed">
             {pillar.description}
           </p>
         </div>
@@ -634,43 +699,22 @@ function PillarCard({ pillar }: { pillar: PillarData }) {
     );
   }
 
+  // Standard card — white, heading + copy on top, image beneath.
   return (
     <div
-      className="rounded-2xl overflow-hidden flex flex-col min-h-120 md:min-h-140 lg:min-h-160"
-      style={{ backgroundColor: pillar.bg ?? "#ffffff" }}
+      className="rounded-2xl overflow-hidden flex flex-col h-full min-h-120 md:min-h-136 lg:min-h-152 bg-white p-5 md:p-6 lg:p-7"
+      style={pillar.bg && pillar.bg !== "#ffffff" ? { backgroundColor: pillar.bg } : undefined}
     >
-      <div className="px-5 md:px-6 lg:px-7 pt-6 md:pt-7 lg:pt-8 flex flex-col gap-3 md:gap-4">
-        <span className="text-[11px] md:text-xs lg:text-sm font-bold tracking-[0.14em] text-primary-500 uppercase">
+      <div className="flex flex-col gap-3 px-1 pt-2">
+        <h3 className="font-display text-lg lg:text-xl font-bold tracking-[0.02em] text-primary-500 uppercase leading-snug">
           {pillar.eyebrow}
-        </span>
-        <p className="text-sm md:text-base lg:text-lg text-primary-500/80 leading-relaxed">
+        </h3>
+        <p className="text-sm lg:text-base text-primary-500/70 leading-relaxed">
           {pillar.description}
         </p>
       </div>
       {hasMedia ? (
-        <div className="px-5 md:px-6 lg:px-7 pt-4 md:pt-5 lg:pt-6 pb-5 md:pb-6 lg:pb-7 mt-auto">
-          <div
-            data-reveal="scale"
-            className="relative aspect-5/4 rounded-lg overflow-hidden"
-          >
-            {videoSrc ? (
-              <LazyVideo
-                src={videoSrc}
-                poster={posterSrc}
-                ariaLabel={media!.alt || undefined}
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-            ) : (
-              <Image
-                src={posterSrc}
-                alt={media!.alt}
-                fill
-                sizes="(min-width: 768px) 30vw, 90vw"
-                className="object-cover"
-              />
-            )}
-          </div>
-        </div>
+        <div className="mt-auto pt-10 md:pt-12">{mediaBlock}</div>
       ) : null}
     </div>
   );

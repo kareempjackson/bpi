@@ -1,4 +1,4 @@
-import { defineField, defineType } from "sanity";
+import { defineArrayMember, defineField, defineType } from "sanity";
 
 export const post = defineType({
   name: "post",
@@ -8,8 +8,7 @@ export const post = defineType({
     defineField({
       name: "title",
       title: "Title",
-      type: "string",
-      validation: (Rule) => Rule.required(),
+      type: "internationalizedArrayString",
     }),
     defineField({
       name: "slug",
@@ -23,11 +22,9 @@ export const post = defineType({
     defineField({
       name: "excerpt",
       title: "Excerpt",
-      type: "text",
-      rows: 3,
+      type: "internationalizedArrayText",
       description:
         "Short summary shown on the home page card. Keep it under ~200 chars.",
-      validation: (Rule) => Rule.required().max(240),
     }),
     defineField({
       name: "publishedAt",
@@ -35,6 +32,40 @@ export const post = defineType({
       type: "datetime",
       validation: (Rule) => Rule.required(),
       initialValue: () => new Date().toISOString(),
+    }),
+    defineField({
+      name: "contentType",
+      title: "Content type",
+      type: "string",
+      description:
+        "Drives the blog filters, the card style, and how the post opens.",
+      options: {
+        list: [
+          { title: "Article (written by BPI)", value: "article" },
+          { title: "News / external article about BPI", value: "news" },
+          { title: "Resource", value: "resource" },
+          { title: "Report", value: "report" },
+        ],
+        layout: "radio",
+      },
+      initialValue: "article",
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: "tags",
+      title: "Tags",
+      type: "array",
+      of: [{ type: "reference", to: [{ type: "tag" }], weak: true }],
+      description:
+        "Topical tags shown as pills on the card and used by the blog filters.",
+    }),
+    defineField({
+      name: "wideTile",
+      title: "Full-width feature tile",
+      type: "boolean",
+      description:
+        "Render this post as a full-width, image-led feature card in the blog grid (instead of a standard column card).",
+      initialValue: false,
     }),
     defineField({
       name: "coverImage",
@@ -46,7 +77,7 @@ export const post = defineType({
       title: "External link (optional)",
       type: "url",
       description:
-        "If set, clicking the post links here instead of /blog/{slug}.",
+        "Mainly for News: if set, clicking the post links to this source instead of opening an on-site /blog/{slug} page.",
     }),
     defineField({
       name: "showInInitiatives",
@@ -59,7 +90,7 @@ export const post = defineType({
     defineField({
       name: "initiativeEyebrow",
       title: "Initiatives eyebrow (optional)",
-      type: "string",
+      type: "internationalizedArrayString",
       description:
         "Label shown above the post title in the Motion Stories tile (e.g. \"Alliance\", \"Research & Development\"). Falls back to the first 24 characters of the title.",
       hidden: ({ parent }) => !parent?.showInInitiatives,
@@ -93,12 +124,40 @@ export const post = defineType({
     defineField({
       name: "body",
       title: "Body",
+      type: "internationalizedArrayPortableText",
+      description:
+        "On-site page body (article copy, or the description shown above the downloads on resource/report pages). Not shown on the card.",
+    }),
+    defineField({
+      name: "attachments",
+      title: "Downloadable documents",
       type: "array",
+      description:
+        "Files offered for download on resource & report pages (PDF, DOCX, slides, etc.).",
       of: [
-        { type: "block" },
-        { type: "image", options: { hotspot: true } },
+        defineArrayMember({
+          type: "object",
+          name: "attachment",
+          fields: [
+            defineField({
+              name: "label",
+              title: "Label",
+              type: "internationalizedArrayString",
+            }),
+            defineField({
+              name: "file",
+              title: "File",
+              type: "file",
+              validation: (Rule) => Rule.required(),
+            }),
+          ],
+          preview: {
+            select: { title: "label.0.value", subtitle: "file.asset.originalFilename" },
+          },
+        }),
       ],
-      description: "Full article body (used by /blog/{slug}, not the card).",
+      hidden: ({ parent }) =>
+        parent?.contentType !== "resource" && parent?.contentType !== "report",
     }),
   ],
   orderings: [
@@ -109,7 +168,7 @@ export const post = defineType({
     },
   ],
   preview: {
-    select: { title: "title", subtitle: "publishedAt", media: "coverImage.asset" },
+    select: { title: "title.0.value", subtitle: "publishedAt", media: "coverImage.asset" },
     prepare: ({ title, subtitle, media }) => ({
       title,
       subtitle: subtitle

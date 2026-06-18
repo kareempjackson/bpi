@@ -35,16 +35,28 @@ export function resolveMenuConfig(
   const links: ResolvedMenuLink[] | undefined =
     settings.menuLinks && settings.menuLinks.length
       ? settings.menuLinks.map((l) => {
-          const out: ResolvedMenuLink = { label: l.label, href: l.href };
+          const out: ResolvedMenuLink = { label: l.label };
+          // A disabled main link carries no href — only its sub-links are
+          // clickable, so the editor never has to enter a link for it.
+          if (l.disableLink) out.disableLink = true;
+          else if (l.href) out.href = l.href;
           const media = resolveMenuMedia(l.media);
           if (media) out.media = media;
           if (l.subItems && l.subItems.length) {
-            out.subItems = l.subItems.map((s): ResolvedSubMenuLink => {
-              const sub: ResolvedSubMenuLink = { label: s.label, href: s.href };
-              const subMedia = resolveMenuMedia(s.media);
-              if (subMedia) sub.media = subMedia;
-              return sub;
-            });
+            // Drop any sub-link whose href didn't resolve (e.g. a reference
+            // that was removed) so the menu never renders a dead link.
+            const resolved = l.subItems
+              .filter((s): s is typeof s & { href: string } => !!s.href)
+              .map((s): ResolvedSubMenuLink => {
+                const sub: ResolvedSubMenuLink = {
+                  label: s.label,
+                  href: s.href,
+                };
+                const subMedia = resolveMenuMedia(s.media);
+                if (subMedia) sub.media = subMedia;
+                return sub;
+              });
+            if (resolved.length) out.subItems = resolved;
           }
           return out;
         })

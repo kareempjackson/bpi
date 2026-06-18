@@ -1,9 +1,25 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useParams } from "next/navigation";
+
+import { hasLocale, localizedHref, toLocale } from "@/app/lib/locale";
+
+/** Strip a leading `/en|/es|…` segment so route comparisons are locale-agnostic. */
+function stripLocale(pathname: string): string {
+  const segs = pathname.split("/");
+  if (hasLocale(segs[1])) segs.splice(1, 1);
+  const stripped = segs.join("/");
+  return stripped === "" ? "/" : stripped;
+}
 
 export type MenuMedia =
   | { type: "video"; src: string }
@@ -17,7 +33,9 @@ export type SubMenuLink = {
 
 export type MenuLink = {
   label: string;
-  href: string;
+  href?: string;
+  /** When true, the main link is non-clickable — only its sub-links work. */
+  disableLink?: boolean;
   subItems?: SubMenuLink[];
   media?: MenuMedia;
 };
@@ -100,14 +118,23 @@ export default function Menu({
   defaultMedia,
 }: Props) {
   const pathname = usePathname();
+  const params = useParams();
+  const lang = toLocale(params?.lang as string | string[] | undefined);
+  // Compare against the locale-stripped path so `/en`, `/es/about`, etc.
+  // resolve like `/`, `/about` — otherwise the home link never matches on
+  // locale-prefixed routes.
+  const routePath = stripLocale(pathname ?? "/");
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [hoveredSubIndex, setHoveredSubIndex] = useState<number | null>(null);
+  // Mount/animation lifecycle so the overlay can fade + slide on both open
+  // and close instead of popping in/out (which read as a glitch).
+  const [render, setRender] = useState(isOpen);
+  const [entered, setEntered] = useState(false);
 
   // Resolve which link in the list matches the current route. Longest-prefix
   // match so /initiatives/foo still highlights "Initiatives". Root "/" only
   // matches itself.
   const currentIndex = useMemo(() => {
-    if (!pathname) return -1;
     let bestIdx = -1;
     let bestLen = -1;
     links.forEach((link, i) => {
@@ -115,15 +142,15 @@ export default function Menu({
       if (!h) return;
       const matches =
         h === "/"
-          ? pathname === "/"
-          : pathname === h || pathname.startsWith(h + "/");
+          ? routePath === "/"
+          : routePath === h || routePath.startsWith(h + "/");
       if (matches && h.length > bestLen) {
         bestIdx = i;
         bestLen = h.length;
       }
     });
     return bestIdx;
-  }, [pathname, links]);
+  }, [routePath, links]);
 
   // hoveredIndex wins when the user is actively pointing at a link; otherwise
   // fall back to whichever link matches the current page. That way the panel
@@ -140,22 +167,68 @@ export default function Menu({
   const showSub = subItems.length > 0;
   const hoveredSubItem =
     hoveredSubIndex !== null ? subItems[hoveredSubIndex] : null;
+
+  // Dynamic sub-panel width — measure the natural width of the content
+  // (which is laid out at `max-content`, so it reflects the longest link
+  // plus padding regardless of the panel's animated width) and expand the
+  // panel to exactly that. The width still transitions smoothly because we
+  // animate to an explicit pixel value rather than a keyword.
+  const subContentRef = useRef<HTMLDivElement>(null);
+  const [subWidth, setSubWidth] = useState(0);
+  useLayoutEffect(() => {
+    const el = subContentRef.current;
+    if (!el) return;
+    const measure = () => setSubWidth(el.offsetWidth);
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [effectiveItem, subItems.length]);
   const activeMedia: MenuMedia | null =
     hoveredSubItem?.media ?? effectiveItem?.media ?? defaultMedia ?? null;
 
+  // Drive the enter/exit animation. On open: mount, then flip `entered` on
+  // the next frame so the transition runs from the start state. On close:
+  // clear `entered` (animate out) and unmount once the transition finishes.
+  useEffect(() => {
+    if (isOpen) {
+      setRender(true);
+      const raf = requestAnimationFrame(() =>
+        requestAnimationFrame(() => setEntered(true)),
+      );
+      return () => cancelAnimationFrame(raf);
+    }
+    setEntered(false);
+    const t = window.setTimeout(() => setRender(false), 480);
+    return () => window.clearTimeout(t);
+  }, [isOpen]);
+
+  // While the overlay is mounted (incl. the exit animation): lock body
+  // scroll and arm the header-chrome fade transition (`menu-animating`).
+  // Reset unconditionally — never restore a captured "prev"; a bfcache
+  // snapshot mid-open could otherwise leave the page unscrollable on Back.
+  useEffect(() => {
+    if (!render) return;
+    document.body.style.overflow = "hidden";
+    document.body.classList.add("menu-animating");
+    return () => {
+      document.body.style.overflow = "";
+      document.body.classList.remove("menu-animating");
+    };
+  }, [render]);
+
+  // `menu-open` drives the actual fade target. Added while open, removed on
+  // close so the chrome fades back in (the transition stays armed via
+  // `menu-animating` until the overlay finishes animating out and unmounts).
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
-    document.body.style.overflow = "hidden";
     document.body.classList.add("menu-open");
     window.addEventListener("keydown", onKey);
-    // Reset unconditionally — never restore a captured "prev". If the
-    // page is preserved into bfcache mid-open, restoring to a captured
-    // "hidden" is what leaves the page unscrollable on browser-back.
     return () => {
-      document.body.style.overflow = "";
       document.body.classList.remove("menu-open");
       window.removeEventListener("keydown", onKey);
     };
@@ -172,7 +245,7 @@ export default function Menu({
     setHoveredSubIndex(null);
   }, [hoveredIndex]);
 
-  if (!isOpen) return null;
+  if (!render) return null;
   if (typeof document === "undefined") return null;
 
   return createPortal(
@@ -180,9 +253,17 @@ export default function Menu({
       role="dialog"
       aria-modal="true"
       aria-label="Site menu"
-      className="fixed inset-0 z-50 flex p-3 lg:p-4 bg-error-25"
+      className={`fixed inset-0 z-50 flex p-3 lg:p-4 bg-error-25 transition-opacity duration-300 ease-[var(--ease-premium)] motion-reduce:transition-none ${
+        entered ? "opacity-100" : "opacity-0"
+      }`}
     >
-      <div className="relative flex-1 rounded-lg overflow-hidden flex min-h-0">
+      <div
+        className={`relative flex-1 rounded-lg overflow-hidden flex min-h-0 transition-[transform,opacity] duration-450 ease-[var(--ease-premium)] motion-reduce:transition-none ${
+          entered
+            ? "opacity-100 translate-y-0 scale-100"
+            : "opacity-0 translate-y-3 scale-[0.99]"
+        }`}
+      >
         {/* Combined main + sub-menu region */}
         <div
           className="flex-1 flex"
@@ -203,31 +284,46 @@ export default function Menu({
                   const isActive = effectiveIndex === i;
                   const isCurrent = currentIndex === i;
                   const isLast = i === links.length - 1;
+                  // A disabled (or href-less) parent link isn't clickable — it
+                  // only reveals its sub-links on hover.
+                  const clickable = !link.disableLink && !!link.href;
+                  const baseClass =
+                    "block font-display text-display-sm lg:text-display-md font-bold py-5 lg:py-6 transition-colors";
                   return (
                     <li
-                      key={link.href}
+                      key={`${link.label}-${i}`}
                       className={`border-white/15 ${i === 0 ? "border-t" : ""} ${isLast ? "" : "border-b"}`}
                       onMouseEnter={() => setHoveredIndex(i)}
                     >
-                      <Link
-                        href={link.href}
-                        onClick={onClose}
-                        aria-current={isCurrent ? "page" : undefined}
-                        className={`block font-display text-display-sm lg:text-display-md font-bold py-5 lg:py-6 transition-colors ${
-                          isActive
-                            ? "text-error-500"
-                            : "text-white hover:opacity-70"
-                        }`}
-                      >
-                        {link.label}
-                      </Link>
+                      {clickable ? (
+                        <Link
+                          href={localizedHref(lang, link.href)}
+                          onClick={onClose}
+                          aria-current={isCurrent ? "page" : undefined}
+                          className={`${baseClass} ${
+                            isActive
+                              ? "text-error-500"
+                              : "text-white hover:opacity-70"
+                          }`}
+                        >
+                          {link.label}
+                        </Link>
+                      ) : (
+                        <span
+                          className={`${baseClass} cursor-default select-none ${
+                            isActive ? "text-error-500" : "text-white"
+                          }`}
+                        >
+                          {link.label}
+                        </span>
+                      )}
                     </li>
                   );
                 })}
               </ul>
             </nav>
 
-            {/* Footer: legal links + social */}
+            {/* Footer: legal links + social + portal access */}
             <div className="mt-10 pt-6 border-t border-white/15 flex flex-wrap items-center justify-between gap-4">
               <ul className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-white/80">
                 {legalLinks.map((link) => (
@@ -242,31 +338,46 @@ export default function Menu({
                   </li>
                 ))}
               </ul>
-              <ul className="flex items-center gap-5 text-white">
-                {socialLinks.map((s, i) => (
-                  <li key={`${s.name}-${i}`}>
-                    <a
-                      href={s.href}
-                      aria-label={s.label ?? s.name}
-                      className="inline-flex items-center justify-center hover:opacity-70 transition-opacity"
-                    >
-                      <SocialIcon name={s.name} />
-                    </a>
-                  </li>
-                ))}
-              </ul>
+              <div className="flex items-center gap-6">
+                <ul className="flex items-center gap-5 text-white">
+                  {socialLinks.map((s, i) => (
+                    <li key={`${s.name}-${i}`}>
+                      <a
+                        href={s.href}
+                        aria-label={s.label ?? s.name}
+                        className="inline-flex items-center justify-center hover:opacity-70 transition-opacity"
+                      >
+                        <SocialIcon name={s.name} />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+                {/* Investor & partner portal sign-in — sits to the right of
+                    the social ("connect") icons. */}
+                <Link
+                  href={localizedHref(lang, "/portal/login")}
+                  onClick={onClose}
+                  className="inline-flex items-center border-l border-white/15 pl-6 text-sm font-semibold text-error-500 transition-opacity hover:opacity-80"
+                >
+                  Portal
+                </Link>
+              </div>
             </div>
           </div>
 
-          {/* Sub-menu panel — shown when hovered item has subItems */}
+          {/* Sub-menu panel — shown when hovered item has subItems. Width is
+              measured from the content (longest link) so it conforms to the
+              text, with a max cap so an unusually long label can't dominate. */}
           <div
+            style={{ width: showSub ? subWidth : 0 }}
             className={`hidden md:flex flex-col justify-center transition-[width,opacity] duration-300 ${
-              showSub
-                ? "w-[22%] xl:w-[24%] opacity-100"
-                : "w-0 opacity-0 pointer-events-none"
+              showSub ? "opacity-100" : "opacity-0 pointer-events-none"
             } overflow-hidden bg-warning-25`}
           >
-            <div className="px-8 lg:px-12 py-10 lg:py-14 flex-1 flex flex-col justify-center">
+            <div
+              ref={subContentRef}
+              className="w-max max-w-[34vw] px-8 lg:px-12 py-10 lg:py-14 flex-1 flex flex-col justify-center"
+            >
               <p className="text-[11px] font-bold tracking-[0.18em] text-primary-500 uppercase mb-8 lg:mb-10">
                 {effectiveItem?.label ?? ""}
               </p>
@@ -277,9 +388,9 @@ export default function Menu({
                     onMouseEnter={() => setHoveredSubIndex(j)}
                   >
                     <Link
-                      href={sub.href}
+                      href={localizedHref(lang, sub.href)}
                       onClick={onClose}
-                      className={`font-display text-lg lg:text-xl transition-colors ${
+                      className={`block whitespace-nowrap font-display text-lg lg:text-xl transition-colors ${
                         hoveredSubIndex === j
                           ? "text-error-700"
                           : "text-primary-500 hover:opacity-60"
@@ -363,7 +474,6 @@ export default function Menu({
                 r="17"
                 stroke="currentColor"
                 strokeWidth="1"
-                strokeDasharray="3 3"
               />
             </svg>
             <svg

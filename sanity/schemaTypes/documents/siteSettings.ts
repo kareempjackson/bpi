@@ -19,29 +19,6 @@ export const siteSettings = defineType({
         "Shared by the hero notch nav (where they render in caps) and the global sticky top nav (where they render in title case). Disabled links are shown but unclickable in both.",
       type: "array",
       of: [defineArrayMember({ type: "navLink" })],
-      initialValue: [
-        {
-          _type: "navLink",
-          _key: "nav-about",
-          label: "About",
-          href: "/about",
-          disabled: false,
-        },
-        {
-          _type: "navLink",
-          _key: "nav-ecosystem",
-          label: "Ecosystem",
-          href: "#ecosystem",
-          disabled: true,
-        },
-        {
-          _type: "navLink",
-          _key: "nav-initiatives",
-          label: "Initiatives",
-          href: "#initiative",
-          disabled: false,
-        },
-      ],
       validation: (Rule) => Rule.min(1),
     }),
 
@@ -54,39 +31,6 @@ export const siteSettings = defineType({
         "Big links in the full-screen menu (the one launched by the hamburger). Hovering a link can reveal sub-links and swap the right-hand media panel.",
       type: "array",
       of: [defineArrayMember({ type: "menuLink" })],
-      initialValue: [
-        { _type: "menuLink", _key: "ml-home", label: "Home", href: "/" },
-        {
-          _type: "menuLink",
-          _key: "ml-about",
-          label: "About BPI",
-          href: "/about",
-        },
-        {
-          _type: "menuLink",
-          _key: "ml-initiatives",
-          label: "Initiatives",
-          href: "/initiatives",
-        },
-        {
-          _type: "menuLink",
-          _key: "ml-news",
-          label: "News & Media",
-          href: "/news",
-        },
-        {
-          _type: "menuLink",
-          _key: "ml-careers",
-          label: "Careers",
-          href: "/careers",
-        },
-        {
-          _type: "menuLink",
-          _key: "ml-contact",
-          label: "Contact",
-          href: "/contact",
-        },
-      ],
       validation: (Rule) => Rule.min(1),
     }),
     defineField({
@@ -97,22 +41,6 @@ export const siteSettings = defineType({
         "Shown at the bottom-left of the menu (Terms of Use, Media Assets, etc).",
       type: "array",
       of: [defineArrayMember({ type: "navLink" })],
-      initialValue: [
-        {
-          _type: "navLink",
-          _key: "lg-terms",
-          label: "Terms of Use",
-          href: "/terms",
-          disabled: false,
-        },
-        {
-          _type: "navLink",
-          _key: "lg-media",
-          label: "Media Assets",
-          href: "/media-assets",
-          disabled: false,
-        },
-      ],
     }),
     defineField({
       name: "menuSocialLinks",
@@ -122,22 +50,6 @@ export const siteSettings = defineType({
         "Shown at the bottom-right of the menu. Add LinkedIn, X, Instagram, YouTube as needed.",
       type: "array",
       of: [defineArrayMember({ type: "socialLink" })],
-      initialValue: [
-        {
-          _type: "socialLink",
-          _key: "sm-linkedin",
-          kind: "LinkedIn",
-          href: "#",
-        },
-        { _type: "socialLink", _key: "sm-x", kind: "X", href: "#" },
-        {
-          _type: "socialLink",
-          _key: "sm-instagram",
-          kind: "Instagram",
-          href: "https://www.instagram.com/barbadospharmainc",
-        },
-        { _type: "socialLink", _key: "sm-youtube", kind: "YouTube", href: "#" },
-      ],
     }),
     defineField({
       name: "menuBackground",
@@ -150,56 +62,81 @@ export const siteSettings = defineType({
 
     // ──────────────────────────────────────────────────────────── Footer ──
     defineField({
-      name: "showFooterPartners",
-      title: "Show partner marquee in footer",
-      type: "boolean",
+      name: "footerTagline",
+      title: "Footer tagline",
       group: "footer",
       description:
-        "Toggle to hide the auto-scrolling partner marquee in the footer. When OFF the entire partner row is removed.",
-      initialValue: true,
+        "Short line of copy shown in the footer (e.g. beside or beneath the logo).",
+      type: "internationalizedArrayString",
     }),
     defineField({
-      name: "footerPartners",
-      title: "Footer partner logos (marquee)",
+      name: "footerNavGroups",
+      title: "Footer navigation columns",
       group: "footer",
       description:
-        "Logos shown in the auto-scrolling partner marquee in the footer. PNG/SVG with a transparent background works best; logos are rendered at ~32–40px tall and tinted to white at 60% opacity to sit on the dark footer.",
+        "Columns of links shown in the footer. Each column has a heading and its own list of links.",
       type: "array",
       of: [
         defineArrayMember({
           type: "object",
-          name: "partner",
-          title: "Partner",
+          name: "footerNavGroup",
+          title: "Column",
           fields: [
             defineField({
-              name: "name",
-              title: "Partner name",
-              type: "string",
-              description: "Used for the image alt text and accessibility.",
-              validation: (Rule) => Rule.required(),
+              name: "title",
+              title: "Column heading",
+              type: "internationalizedArrayString",
             }),
             defineField({
-              name: "logo",
-              title: "Logo",
-              type: "image",
-              options: { hotspot: false },
-              validation: (Rule) => Rule.required(),
-            }),
-            defineField({
-              name: "href",
-              title: "Link (optional)",
-              type: "url",
-              description:
-                "If provided, the logo links to this URL in a new tab.",
-              validation: (Rule) =>
-                Rule.uri({ scheme: ["http", "https", "mailto", "tel"] }),
+              name: "links",
+              title: "Links",
+              type: "array",
+              of: [
+                defineArrayMember({
+                  type: "object",
+                  name: "footerNavLink",
+                  title: "Link",
+                  fields: [
+                    defineField({
+                      name: "label",
+                      title: "Label",
+                      type: "internationalizedArrayString",
+                    }),
+                    defineField({
+                      name: "href",
+                      title: "Link",
+                      type: "string",
+                    }),
+                  ],
+                  preview: {
+                    select: { title: "label.0.value", subtitle: "href" },
+                  },
+                }),
+              ],
             }),
           ],
           preview: {
-            select: { title: "name", media: "logo" },
+            select: { title: "title.0.value" },
           },
         }),
       ],
+    }),
+    defineField({
+      name: "footerLegalLinks",
+      title: "Footer legal links",
+      group: "footer",
+      description:
+        "Legal / utility links shown in the footer (Privacy Policy, Terms of Use, etc).",
+      type: "array",
+      of: [defineArrayMember({ type: "navLink" })],
+    }),
+    defineField({
+      name: "footerRights",
+      title: "Copyright / rights line",
+      group: "footer",
+      description:
+        'The rights line at the bottom of the footer (e.g. "All rights reserved").',
+      type: "internationalizedArrayString",
     }),
   ],
   preview: {

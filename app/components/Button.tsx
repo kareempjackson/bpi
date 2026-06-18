@@ -25,17 +25,17 @@ const ICON_SIZES: Record<IconSize, string> = {
 
 function variantClasses(variant: Variant, onDark: boolean): string {
   if (onDark && variant === "tertiary") {
-    return "border border-dashed border-white/60 bg-transparent text-white hover:bg-white/10 hover:border-white/80";
+    return "border border-white/60 bg-transparent text-white hover:bg-white/10 hover:border-white/80";
   }
   switch (variant) {
     case "primary":
-      return "border border-dashed border-primary-500/45 bg-error-500 text-primary-500 hover:bg-error-400 hover:border-primary-500/70";
+      return "bg-error-500 text-primary-500 hover:bg-error-400";
     case "secondary":
       return "border border-gray-200 bg-white text-primary-500 hover:bg-gray-50 hover:border-gray-300";
     case "tertiary":
-      return "border border-dashed border-primary-500/60 bg-transparent text-primary-500 hover:bg-primary-500/5 hover:border-primary-500/90";
+      return "border border-primary-500/60 bg-transparent text-primary-500 hover:bg-primary-500/5 hover:border-primary-500/90";
     case "tertiary-light":
-      return "border border-dashed border-primary-500/30 bg-transparent text-primary-500 hover:border-primary-500/50 hover:bg-primary-500/5";
+      return "border border-primary-500/30 bg-transparent text-primary-500 hover:border-primary-500/50 hover:bg-primary-500/5";
   }
 }
 

@@ -7,6 +7,7 @@ const SINGLETON_IDS = new Set<string>([
   "initiativesPage",
   "contactPage",
   "careersPage",
+  "blogPage",
 ]);
 
 export const structure: StructureResolver = (S) =>
@@ -52,10 +53,38 @@ export const structure: StructureResolver = (S) =>
         .child(
           S.document().schemaType("careersPage").documentId("careersPage"),
         ),
+      S.listItem()
+        .title("Blog page")
+        .id("blogPage")
+        .child(S.document().schemaType("blogPage").documentId("blogPage")),
       S.divider(),
       S.documentTypeListItem("initiative").title("Initiatives"),
+      S.documentTypeListItem("event").title("Events"),
       S.documentTypeListItem("job").title("Jobs"),
       S.documentTypeListItem("post").title("Posts"),
+      S.documentTypeListItem("tag").title("Tags"),
+      S.divider(),
+      // ── Investor / Partner portal ──────────────────────────────────────
+      S.listItem()
+        .title("Portal — Access requests")
+        .id("portalRequests")
+        .child(
+          S.documentList()
+            .title("Access requests (pending)")
+            .filter('_type == "portalUser" && status == "pending"')
+            .defaultOrdering([{ field: "requestedAt", direction: "desc" }]),
+        ),
+      S.listItem()
+        .title("Portal — Users")
+        .id("portalUsers")
+        .child(
+          S.documentList()
+            .title("Portal users")
+            .filter('_type == "portalUser" && status != "pending"')
+            .defaultOrdering([{ field: "name", direction: "asc" }]),
+        ),
+      S.documentTypeListItem("portalPage").title("Portal — Pages"),
+      S.documentTypeListItem("portalResource").title("Portal — Resources"),
       S.divider(),
       S.documentTypeListItem("contactSubmission").title("Contact submissions"),
       S.documentTypeListItem("newsletterSubscription").title(
@@ -67,10 +96,15 @@ export const structure: StructureResolver = (S) =>
         return (
           !SINGLETON_IDS.has(id) &&
           id !== "post" &&
+          id !== "tag" &&
           id !== "initiative" &&
+          id !== "event" &&
           id !== "job" &&
           id !== "contactSubmission" &&
-          id !== "newsletterSubscription"
+          id !== "newsletterSubscription" &&
+          id !== "portalUser" &&
+          id !== "portalPage" &&
+          id !== "portalResource"
         );
       }),
     ]);

@@ -2,12 +2,14 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import CtaLink from "./CtaLink";
 import LanguageToggle from "./LanguageToggle";
 import Logo from "./Logo";
 import type { MenuConfig } from "./Menu";
 import MenuLauncher from "./MenuLauncher";
+import SearchLauncher from "./SearchLauncher";
 
 const DEFAULT_HEADLINE = "Building the Caribbean's pharmaceutical gateway.";
 const DEFAULT_BODY =
@@ -69,6 +71,8 @@ export type HeroSectionProps = {
   imageSrc?: string;
   imageAlt?: string;
   ctaHref?: string;
+  /** Label for each slide's CTA button. Defaults to "Learn More". */
+  ctaLabel?: string;
   /**
    * Slides. When two or more are supplied the hero becomes an auto-advancing
    * slider with progress segments (bottom-left). When omitted, the top-level
@@ -122,7 +126,7 @@ function computeHeroGeo(cardW: number): HeroGeo {
     R: 36,
     nr: 22,
     nh: 76,
-    notchW: Math.min(Math.max(cardW * 0.34, 560), 600),
+    notchW: Math.min(Math.max(cardW * 0.34, 480), 520),
   };
 }
 
@@ -203,6 +207,7 @@ export default function HeroSection({
   imageSrc,
   imageAlt = "",
   ctaHref,
+  ctaLabel = "Learn More",
   slides: slidesProp,
   feature,
   navLinks = DEFAULT_NAV_LINKS,
@@ -246,6 +251,22 @@ export default function HeroSection({
   // Bézier path because desktop Safari's CSS `clip-path: path()`
   // mis-renders the arc commands.
   const [isDesktopSafari, setIsDesktopSafari] = useState(false);
+
+  // Once the one-shot entrance animations have played, strip the
+  // `.hero-anim` / `.hero-anim-fade` classes. Their `animation: … forwards`
+  // would otherwise keep holding opacity, outranking the menu-overlay fade
+  // (and causing a snap/replay when the menu opens or closes). After
+  // stripping, the elements simply rest at their final opacity.
+  useEffect(() => {
+    const root = sectionRef.current;
+    if (!root) return;
+    const t = window.setTimeout(() => {
+      root
+        .querySelectorAll<HTMLElement>(".hero-anim, .hero-anim-fade")
+        .forEach((el) => el.classList.remove("hero-anim", "hero-anim-fade"));
+    }, 2200);
+    return () => window.clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     const mqDesktop = window.matchMedia("(min-width: 768px)");
@@ -487,7 +508,7 @@ export default function HeroSection({
                       src={activeSlide.imageSrc!}
                       alt={activeSlide.imageAlt ?? ""}
                       fill
-                      priority={safeActive === 0}
+                      preload={safeActive === 0}
                       sizes="100vw"
                       quality={90}
                       className="hero-video object-cover"
@@ -566,18 +587,18 @@ export default function HeroSection({
 
             <div
               ref={navLinksRef}
-              className="absolute z-30 hidden md:flex items-center justify-end gap-6 lg:gap-9 will-change-[opacity,transform]"
+              className="absolute z-30 hidden md:flex items-center justify-end gap-8 lg:gap-12 will-change-[opacity,transform]"
               style={{
-                // Sit flush to the card's right edge so the menu blob's
-                // right side lines up with the hero video's right edge
-                // (previously inset by the notch radius).
+                // Slightly inset from the card's right edge so the whole nav
+                // cluster sits a touch left, trimming the empty space on the
+                // left of the notch shelf.
                 right: 0,
                 top: 0,
                 height: "var(--hero-notch-h)",
                 maxWidth: "var(--hero-notch-w)",
               }}
             >
-              <nav data-page-header className="flex items-center gap-6 lg:gap-9 text-[13px] lg:text-[13.5px] font-semibold uppercase tracking-[0.14em] text-black whitespace-nowrap">
+              <nav data-page-header className="flex items-center gap-8 lg:gap-12 translate-x-3 lg:translate-x-5 font-sans text-[12px] leading-[16.8px] font-semibold uppercase tracking-[-0.24px] text-center text-black whitespace-nowrap">
                 {NAV_LINKS.map((link, i) =>
                   link.disabled ? (
                     <div
@@ -618,21 +639,33 @@ export default function HeroSection({
                   )
                 )}
               </nav>
+              {/* Search + language form one tight utility pair, sitting a full
+                  cluster-gap away from the nav links on the left and the menu
+                  on the right. */}
               <div
                 data-nav-item
                 data-page-header
-                className="will-change-[opacity,transform] text-black"
+                className="flex items-center gap-3.5 will-change-[opacity,transform] text-black"
               >
+                <div
+                  className="hero-anim-fade"
+                  style={{ "--anim-delay": "0.48s" } as CSSProperties}
+                >
+                  <SearchLauncher className="inline-flex [&_svg]:w-3.75 [&_svg]:h-3.75" />
+                </div>
                 <div
                   className="hero-anim-fade"
                   style={{ "--anim-delay": "0.5s" } as CSSProperties}
                 >
-                  <LanguageToggle className="text-[13px] lg:text-[13.5px] tracking-[0.14em]" />
+                  <LanguageToggle className="text-[12px] tracking-[-0.24px]" />
                 </div>
               </div>
+              {/* Negative left margin pulls the links + EN cluster rightward
+                  (its right edge stays pinned to the notch), opening a little
+                  breathing room on the left of the first nav item. */}
               <div
                 data-nav-item
-                className="will-change-[opacity,transform]"
+                className="-ml-4 lg:-ml-6 mr-3 lg:mr-4 will-change-[opacity,transform]"
               >
                 <div
                   className="hero-anim-fade"
@@ -644,7 +677,7 @@ export default function HeroSection({
             </div>
 
             <div
-              className="absolute top-0 right-0 z-30 md:hidden hero-anim-fade"
+              className="absolute top-0 right-2 z-30 md:hidden hero-anim-fade"
               style={{ "--anim-delay": "0.45s" } as CSSProperties}
             >
               <MenuLauncher size={104} menuConfig={menuConfig} />
@@ -665,37 +698,43 @@ export default function HeroSection({
                 >
                   {activeSlide.headline}
                 </h1>
-                {activeSlide.body ? (
-                  <p
-                    className="hero-anim mt-7 lg:mt-9 text-lg lg:text-xl text-white/70 max-w-md leading-[1.6]"
+                <div className="mt-7 lg:mt-9 flex items-center justify-start gap-6 lg:gap-8">
+                  {activeSlide.body ? (
+                    <p
+                      className="hero-anim text-lg lg:text-xl text-white/70 max-w-md leading-[1.6]"
+                      style={
+                        { "--anim-delay": safeActive === 0 ? "0.78s" : "0.12s" } as CSSProperties
+                      }
+                    >
+                      {activeSlide.body}
+                    </p>
+                  ) : (
+                    <span />
+                  )}
+                  <div
+                    className="hero-anim shrink-0"
                     style={
-                      { "--anim-delay": safeActive === 0 ? "0.78s" : "0.12s" } as CSSProperties
+                      { "--anim-delay": safeActive === 0 ? "0.9s" : "0.18s" } as CSSProperties
                     }
                   >
-                    {activeSlide.body}
-                  </p>
-                ) : null}
-                <div
-                  className="hero-anim mt-8 lg:mt-10"
-                  style={
-                    { "--anim-delay": safeActive === 0 ? "0.9s" : "0.18s" } as CSSProperties
-                  }
-                >
-                  {activeSlide.ctaHref ? (
-                    <CtaLink
-                      href={activeSlide.ctaHref}
-                      className="inline-flex items-center rounded-round bg-error-500 px-5 py-2 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-[var(--ease-premium)] hover:bg-error-400"
-                    >
-                      Learn More
-                    </CtaLink>
-                  ) : (
-                    <button
-                      type="button"
-                      className="inline-flex items-center rounded-round bg-error-500 px-5 py-2 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-[var(--ease-premium)] hover:bg-error-400"
-                    >
-                      Learn More
-                    </button>
-                  )}
+                    {activeSlide.ctaHref ? (
+                      <CtaLink
+                        href={activeSlide.ctaHref}
+                        aria-label={ctaLabel}
+                        className="group inline-flex size-14 items-center justify-center rounded-full bg-error-500 text-primary-500 transition-colors duration-300 ease-[var(--ease-premium)] hover:bg-error-400"
+                      >
+                        <ArrowGlyph />
+                      </CtaLink>
+                    ) : (
+                      <button
+                        type="button"
+                        aria-label={ctaLabel}
+                        className="group inline-flex size-14 items-center justify-center rounded-full bg-error-500 text-primary-500 transition-colors duration-300 ease-[var(--ease-premium)] hover:bg-error-400"
+                      >
+                        <ArrowGlyph />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -719,14 +758,14 @@ export default function HeroSection({
                       above the active segment (segment width + the 0.625rem
                       `gap-2.5`). The inner keyed div handles the crossfade. */}
                   <div
-                    className="w-20 lg:w-24 transition-transform duration-700 ease-[var(--ease-emphasized)] motion-reduce:transition-none"
+                    className="w-18 transition-transform duration-700 ease-[var(--ease-emphasized)] motion-reduce:transition-none"
                     style={{
                       transform: `translateX(calc(${safeActive} * (100% + 0.625rem)))`,
                     }}
                   >
                     <div
                       key={safeActive}
-                      className="hero-slide-media relative w-full aspect-5/3 overflow-hidden rounded-xs ring-[1.5px] ring-error-500"
+                      className="hero-slide-media relative h-[42.58px] w-full overflow-hidden rounded-xs border border-error-500"
                     >
                       {activeSlide.thumbnailSrc ?? activeSlide.imageSrc ? (
                         <Image
@@ -749,9 +788,9 @@ export default function HeroSection({
                         onClick={() => setActive(i)}
                         aria-label={`Go to slide ${i + 1}`}
                         aria-current={i === safeActive}
-                        className="group flex h-3 w-20 lg:w-24 items-center focus-visible:outline-none"
+                        className="group flex h-3 w-18 items-center focus-visible:outline-none"
                       >
-                        <span className="relative block h-px w-full overflow-hidden rounded-full bg-white/35 transition-colors group-hover:bg-white/55">
+                        <span className="relative block h-0.5 w-full overflow-hidden rounded-full bg-white/35 transition-colors group-hover:bg-white/55">
                           <span
                             className="absolute inset-0 origin-left rounded-full bg-error-500"
                             style={
@@ -796,6 +835,24 @@ export default function HeroSection({
   );
 }
 
+/** Right-pointing arrow used inside the round hero CTA button. */
+function ArrowGlyph() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-5 w-5 transition-transform duration-300 ease-[var(--ease-premium)] group-hover:translate-x-0.5 motion-reduce:transform-none"
+      aria-hidden
+    >
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
+  );
+}
+
 function FeatureCard({
   eyebrow,
   label,
@@ -811,65 +868,176 @@ function FeatureCard({
   posterSrc?: string;
   posterAlt?: string;
 }) {
-  const inner = (
+  const [videoOpen, setVideoOpen] = useState(false);
+  const hasVideo = !!videoSrc;
+
+  const className =
+    "hero-anim-fade group hidden sm:flex h-[95.28px] w-[296.66px] items-stretch gap-3 rounded-[4.8px] border border-error-500/55 bg-error-500/15 p-3 backdrop-blur-md transition-colors hover:border-error-500/90";
+  const style = { "--anim-delay": "1.05s" } as CSSProperties;
+
+  // The text block links to the feature's page (when an href is set).
+  const text = (
+    <div className="flex flex-col justify-between py-1">
+      <span className="text-xs font-medium uppercase tracking-[0.14em] text-error-500/80">
+        {eyebrow}
+      </span>
+      <span className="font-display text-base lg:text-lg font-semibold leading-tight text-error-500">
+        {label}
+      </span>
+    </div>
+  );
+  const textEl = href ? (
+    <CtaLink
+      href={href}
+      className="flex min-w-0 flex-1"
+      aria-label={`${eyebrow}: ${label}`}
+    >
+      {text}
+    </CtaLink>
+  ) : (
+    <div className="flex min-w-0 flex-1">{text}</div>
+  );
+
+  // The thumbnail acts as the play button — opens the video in a lightbox.
+  const thumbClass =
+    "relative h-full w-[126px] shrink-0 overflow-hidden rounded-xs bg-black/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error-500/70";
+  const thumbInner = (
     <>
-      <div className="flex flex-col justify-between py-1">
-        <span className="text-xs font-medium uppercase tracking-[0.14em] text-error-500/80">
-          {eyebrow}
-        </span>
-        <span className="font-display text-base lg:text-lg font-semibold leading-tight text-error-500">
-          {label}
-        </span>
-      </div>
-      <div className="relative h-14 w-24 shrink-0 overflow-hidden rounded-xs bg-black/30">
-        {videoSrc ? (
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="metadata"
-            poster={posterSrc}
-            disableRemotePlayback
-            disablePictureInPicture
-            className="absolute inset-0 h-full w-full object-cover"
-          >
-            <source src={videoSrc} />
-          </video>
-        ) : posterSrc ? (
-          <Image
-            src={posterSrc}
-            alt={posterAlt ?? ""}
-            fill
-            sizes="96px"
-            className="object-cover"
-          />
-        ) : null}
-        <span className="absolute inset-0 flex items-center justify-center">
-          <span className="flex size-7 items-center justify-center rounded-full bg-black/45 backdrop-blur-sm">
-            <svg viewBox="0 0 24 24" className="ml-0.5 h-3.5 w-3.5 fill-white" aria-hidden>
-              <path d="M8 5v14l11-7z" />
-            </svg>
-          </span>
-        </span>
-      </div>
+      {videoSrc ? (
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          poster={posterSrc}
+          disableRemotePlayback
+          disablePictureInPicture
+          className="absolute inset-0 h-full w-full object-cover"
+        >
+          <source src={videoSrc} />
+        </video>
+      ) : posterSrc ? (
+        <Image
+          src={posterSrc}
+          alt={posterAlt ?? ""}
+          fill
+          sizes="192px"
+          className="object-cover"
+        />
+      ) : null}
+      {/* Bare green play triangle, anchored bottom-left. */}
+      <span className="absolute bottom-2 left-2">
+        <svg
+          viewBox="0 0 24 24"
+          className="h-6 w-6 fill-error-500 drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)] transition-transform duration-300 ease-[var(--ease-premium)] group-hover:scale-110 motion-reduce:transform-none"
+          aria-hidden
+        >
+          <path d="M8 5v14l11-7z" />
+        </svg>
+      </span>
     </>
   );
 
-  const className =
-    "hero-anim-fade group hidden sm:flex items-stretch gap-5 rounded-md border border-error-500/55 bg-black/20 p-3 backdrop-blur-md transition-colors hover:border-error-500/90";
-  const style = { "--anim-delay": "1.05s" } as CSSProperties;
-
-  if (href) {
-    return (
-      <CtaLink href={href} className={className} style={style} aria-label={`${eyebrow}: ${label}`}>
-        {inner}
-      </CtaLink>
-    );
-  }
   return (
-    <div className={className} style={style}>
-      {inner}
-    </div>
+    <>
+      <div className={className} style={style}>
+        {textEl}
+        {hasVideo ? (
+          <button
+            type="button"
+            onClick={() => setVideoOpen(true)}
+            aria-label={`Play ${label} video`}
+            className={thumbClass}
+          >
+            {thumbInner}
+          </button>
+        ) : (
+          <div className={thumbClass}>{thumbInner}</div>
+        )}
+      </div>
+
+      {videoOpen && videoSrc ? (
+        <VideoLightbox
+          src={videoSrc}
+          poster={posterSrc}
+          onClose={() => setVideoOpen(false)}
+        />
+      ) : null}
+    </>
+  );
+}
+
+/**
+ * Full-screen video player popup. Plays with sound + native controls,
+ * closes on backdrop click / Escape / the close button, and locks page
+ * scroll while open.
+ */
+function VideoLightbox({
+  src,
+  poster,
+  onClose,
+}: {
+  src: string;
+  poster?: string;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
+
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Video player"
+      onClick={onClose}
+      className="fixed inset-0 z-100 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 sm:p-8"
+      style={{ animation: "hero-fade 220ms var(--ease-premium)" }}
+    >
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Close video"
+        className="absolute top-5 right-5 z-10 inline-flex size-11 items-center justify-center rounded-full border border-white/30 text-white transition-colors duration-200 hover:bg-white/10"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          className="h-5 w-5"
+          aria-hidden
+        >
+          <path d="M5 5l14 14M19 5L5 19" />
+        </svg>
+      </button>
+      <div
+        className="relative w-full max-w-5xl aspect-video"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+        <video
+          src={src}
+          poster={poster}
+          controls
+          autoPlay
+          playsInline
+          className="absolute inset-0 h-full w-full rounded-xs bg-black object-contain"
+        />
+      </div>
+    </div>,
+    document.body,
   );
 }

@@ -3,8 +3,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 
-import Button from "@/app/components/Button";
-
 const INPUT_CLASS =
   "peer w-full rounded-round border border-transparent bg-white px-5 py-3 text-sm text-primary-500 placeholder-transparent outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 disabled:opacity-60";
 const FLOATING_LABEL_CLASS =
@@ -121,9 +119,13 @@ export default function ContactForm({ submitLabel }: { submitLabel: string }) {
       </fieldset>
 
       <div className="mt-2 flex items-center gap-4">
-        <Button variant="primary" type="submit" disabled={submitting}>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="inline-flex items-center rounded-round bg-primary-500 px-8 py-3 text-sm font-semibold text-white transition-colors duration-300 ease-(--ease-premium) hover:bg-primary-600 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500/40"
+        >
           {submitting ? "Sending…" : submitLabel}
-        </Button>
+        </button>
         {status.kind === "success" ? (
           <p
             role="status"

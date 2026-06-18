@@ -16,40 +16,36 @@ export const careersPage = defineType({
     defineField({
       name: "seoTitle",
       title: "Page title (browser tab & SEO)",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "seo",
-      initialValue: "Careers — BPI",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "seoDescription",
       title: "Meta description",
-      type: "text",
-      rows: 3,
+      type: "internationalizedArrayText",
       group: "seo",
-      initialValue:
-        "We are hiring. Join the team building the Caribbean's pharmaceutical gateway.",
-      validation: (Rule) => Rule.required(),
     }),
 
     // ─────────────────────────────────────────────────────────────── Hero ──
     defineField({
       name: "heroHeadlineLine1",
-      title: "Headline",
-      type: "string",
+      title: "Headline (white)",
+      type: "internationalizedArrayString",
       group: "hero",
-      initialValue: "We are hiring. Be Part of our Mission",
-      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: "heroHeadlineHighlight",
+      title: "Headline highlight (green)",
+      description:
+        'Accent line shown in green beside the hero image — e.g. "Be Part of our Mission".',
+      type: "internationalizedArrayString",
+      group: "hero",
     }),
     defineField({
       name: "heroDescription",
       title: "Description",
-      type: "text",
-      rows: 4,
+      type: "internationalizedArrayText",
       group: "hero",
-      initialValue:
-        "Be Part of our Mission. We are looking for passionate people to join us on our mission. We value you and the work we can do together.",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "heroImage",
@@ -63,20 +59,14 @@ export const careersPage = defineType({
     defineField({
       name: "whyHeading",
       title: "Heading",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "why",
-      initialValue: "Why work with us?",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "whyIntro",
       title: "Intro paragraph",
-      type: "text",
-      rows: 3,
+      type: "internationalizedArrayText",
       group: "why",
-      initialValue:
-        "Our approach to innovation and growth is guided by clear priorities that shape impact and direction. Built to strengthen systems, people, and long-term success.",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "whyImage",
@@ -97,45 +87,23 @@ export const careersPage = defineType({
             defineField({
               name: "heading",
               title: "Heading",
-              type: "string",
-              validation: (Rule) => Rule.required(),
+              type: "internationalizedArrayString",
             }),
             defineField({
               name: "body",
               title: "Body",
-              type: "text",
-              rows: 4,
-              validation: (Rule) => Rule.required(),
+              type: "internationalizedArrayText",
             }),
           ],
-          preview: { select: { title: "heading", subtitle: "body" } },
+          preview: { select: { title: "heading.0.value", subtitle: "body.0.value" } },
         }),
-      ],
-      initialValue: [
-        {
-          _key: "wb-1",
-          heading: "Building the Future of Healthcare Together",
-          body: "At Barbados Pharmaceuticals Inc. (BPI), we believe innovation in healthcare starts with people who are passionate about making a difference. Joining our team means becoming part of a mission-driven organization committed to advancing pharmaceutical excellence, improving lives, and shaping the future of healthcare across the Caribbean and beyond.",
-        },
-        {
-          _key: "wb-2",
-          heading: "A Culture of Growth & Innovation",
-          body: "We foster an environment where talent is nurtured, ideas are valued, and continuous learning is encouraged. From research and development to manufacturing, operations, and corporate leadership, every role at BPI contributes to meaningful impact and industry progress.",
-        },
-        {
-          _key: "wb-3",
-          heading: "Purpose-Driven Opportunities",
-          body: "At BPI, your work goes beyond business — it supports healthier communities, stronger healthcare systems, and greater access to quality pharmaceutical solutions. We are building a future powered by integrity, collaboration, and innovation.",
-        },
       ],
     }),
     defineField({
       name: "whyBulletsHeading",
       title: "Bullets heading",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "why",
-      initialValue: "What You'll Find at BPI",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "whyBullets",
@@ -156,34 +124,26 @@ export const careersPage = defineType({
     defineField({
       name: "jobsHeading",
       title: "Heading",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "jobs",
-      initialValue: "Jobs",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "jobsDescription",
       title: "Description",
-      type: "text",
-      rows: 3,
+      type: "internationalizedArrayText",
       group: "jobs",
-      initialValue:
-        "Our approach to innovation and growth is guided by clear priorities that shape impact and direction. Built to strengthen systems, people, and long-term success.",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "jobsSearchPlaceholder",
       title: "Search placeholder",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "jobs",
-      initialValue: "Search",
     }),
     defineField({
       name: "jobsFindButtonLabel",
       title: "Find-job button label (leave blank to hide)",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "jobs",
-      initialValue: "Find Job",
     }),
     defineField({
       name: "jobsBg",
@@ -197,21 +157,14 @@ export const careersPage = defineType({
     defineField({
       name: "equalOpportunityParagraph1",
       title: "Paragraph 1",
-      type: "text",
-      rows: 4,
+      type: "internationalizedArrayText",
       group: "legal",
-      initialValue:
-        "Barbados Pharmaceuticals Inc. (BPI) is an equal opportunity employer committed to creating an inclusive and diverse workplace. We celebrate diversity and are dedicated to providing fair employment opportunities to all qualified applicants regardless of background, identity, or personal circumstances.",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "equalOpportunityParagraph2",
       title: "Paragraph 2",
-      type: "text",
-      rows: 4,
+      type: "internationalizedArrayText",
       group: "legal",
-      initialValue:
-        "At BPI, we believe innovation thrives when different perspectives, experiences, and ideas come together to shape the future of healthcare.",
     }),
     defineField({
       name: "equalOpportunityBg",
@@ -219,6 +172,17 @@ export const careersPage = defineType({
       type: "hexColor",
       group: "legal",
       initialValue: "#CAF1FF",
+    }),
+    defineField({
+      name: "pageSections",
+      title: "Page sections",
+      description:
+        "Add and reorder modular sections (Call to Action, Careers) shown at the bottom of this page. Each can have its own copy, links, and image or video.",
+      type: "array",
+      of: [
+        defineArrayMember({ type: "ctaSection" }),
+        defineArrayMember({ type: "careersSection" }),
+      ],
     }),
   ],
   preview: {

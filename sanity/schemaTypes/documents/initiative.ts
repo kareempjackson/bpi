@@ -1,4 +1,4 @@
-import { defineField, defineType } from "sanity";
+import { defineArrayMember, defineField, defineType } from "sanity";
 
 export const initiative = defineType({
   name: "initiative",
@@ -8,8 +8,7 @@ export const initiative = defineType({
     defineField({
       name: "title",
       title: "Title",
-      type: "string",
-      validation: (Rule) => Rule.required(),
+      type: "internationalizedArrayString",
     }),
     defineField({
       name: "slug",
@@ -23,16 +22,21 @@ export const initiative = defineType({
     defineField({
       name: "subtitle",
       title: "Subtitle (shown on the About page list)",
-      type: "string",
+      type: "internationalizedArrayString",
+    }),
+    defineField({
+      name: "tag",
+      title: "Tag / label",
+      type: "internationalizedArrayString",
+      description:
+        "Short custom label shown as the eyebrow on the initiative card (e.g. \"Initiative\", \"Partnership\", \"Research\").",
     }),
     defineField({
       name: "excerpt",
       title: "Excerpt / description",
-      type: "text",
-      rows: 3,
+      type: "internationalizedArrayText",
       description:
         "Short summary shown on the home and about page rows. Keep it under ~240 chars.",
-      validation: (Rule) => Rule.required().max(280),
     }),
     defineField({
       name: "publishedAt",
@@ -80,13 +84,108 @@ export const initiative = defineType({
     defineField({
       name: "body",
       title: "Body",
-      type: "array",
-      of: [
-        { type: "block" },
-        { type: "image", options: { hotspot: true } },
-      ],
+      type: "internationalizedArrayPortableText",
       description:
         "Full detail content shown on the /initiatives/{slug} page. Only used when Has detail page is ON.",
+    }),
+    defineField({
+      name: "pageColor",
+      title: "Detail page colour",
+      type: "hexColor",
+      description:
+        "Base colour for the whole detail page (hero, section bands, footer). Lighter shades are derived automatically. Pick a deep colour for best contrast with the white text. Defaults to navy blue.",
+      initialValue: "#0B2F64",
+    }),
+
+    // ─────────────────────────────────────────────────── Quote section ──
+    defineField({
+      name: "showQuote",
+      title: "Show quote section",
+      type: "boolean",
+      description:
+        "Toggle the pull-quote section (with portrait) on the detail page.",
+      initialValue: false,
+    }),
+    defineField({
+      name: "quoteSupporting",
+      title: "Quote — supporting paragraph",
+      type: "internationalizedArrayText",
+      description: "Small intro text shown top-left of the quote section.",
+    }),
+    defineField({
+      name: "quoteText",
+      title: "Quote — pull quote",
+      type: "internationalizedArrayText",
+      description:
+        "The large quote. Wrap the phrase you want highlighted white in **double asterisks**, e.g. \"Barbados sees **Nigeria as a strategic partner** in advancing…\".",
+    }),
+    defineField({
+      name: "quoteAttribution",
+      title: "Quote — attribution",
+      type: "internationalizedArrayString",
+      description: 'e.g. "Barbados’ Senior Minister of Health Dr Jerome Walcott".',
+    }),
+    defineField({
+      name: "quoteImage",
+      title: "Quote — portrait image",
+      type: "imageWithAlt",
+    }),
+
+    // ────────────────────────────────────────────────── Why It Matters ──
+    defineField({
+      name: "whyMattersHeading",
+      title: "Why It Matters — heading",
+      type: "internationalizedArrayString",
+    }),
+    defineField({
+      name: "whyMattersBody",
+      title: "Why It Matters — body",
+      type: "internationalizedArrayText",
+    }),
+    defineField({
+      name: "whyMattersImage",
+      title: "Why It Matters — image",
+      type: "imageWithAlt",
+    }),
+
+    // ──────────────────────────────────────────── Further Projected Impact ──
+    defineField({
+      name: "impactHeading",
+      title: "Projected Impact — heading",
+      type: "internationalizedArrayString",
+    }),
+    defineField({
+      name: "impactBody",
+      title: "Projected Impact — body",
+      type: "internationalizedArrayText",
+    }),
+    defineField({
+      name: "impactStats",
+      title: "Projected Impact — stat cards",
+      type: "array",
+      description:
+        "Up to ~4 cards. Card colours cycle automatically (white, light blue, green).",
+      of: [
+        defineArrayMember({
+          type: "object",
+          name: "impactStat",
+          fields: [
+            defineField({
+              name: "value",
+              title: "Value (e.g. \"USD $29 Million\", \"200+\")",
+              type: "internationalizedArrayString",
+            }),
+            defineField({
+              name: "label",
+              title: "Label",
+              type: "internationalizedArrayString",
+            }),
+          ],
+          preview: {
+            select: { title: "value.0.value", subtitle: "label.0.value" },
+          },
+        }),
+      ],
     }),
   ],
   orderings: [
@@ -114,7 +213,7 @@ export const initiative = defineType({
   ],
   preview: {
     select: {
-      title: "title",
+      title: "title.0.value",
       subtitle: "publishedAt",
       featured: "featured",
       media: "coverImage.asset",

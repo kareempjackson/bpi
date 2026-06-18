@@ -1,18 +1,33 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useMemo, useState } from "react";
+
+import {
+  checkoutTriggerId,
+  useEventbriteCheckout,
+} from "@/app/components/EventbriteCheckout";
 
 export type EventItem = {
   id: string;
   title: string;
   /** Display date, e.g. "THU, JUN 18 • 9:00 AM". */
   date: string;
-  /** Availability badge, e.g. "Almost Full". */
+  /** Availability badge, e.g. "Almost Full" or "Free". */
   status?: string;
   /** Time bucket used by the filter chips. */
   when: "today" | "week" | "month";
-  /** Tailwind classes for the placeholder poster gradient. */
+  /** Tailwind classes for the poster gradient — fallback when no image. */
   accent: string;
+  /** Real event artwork (Sanity). Falls back to `accent` when absent. */
+  imageUrl?: string;
+  /** Eventbrite event id — drives the embedded checkout widget. */
+  eventbriteId?: string;
+  /** Public Eventbrite URL — deep-link fallback for the Register button. */
+  eventbriteUrl?: string;
+  /** On-site detail page path, e.g. "/events/my-event". */
+  href?: string;
 };
 
 type Filter = { key: string; label: string; match?: EventItem["when"] };
@@ -120,23 +135,66 @@ export function EventCard({
   event: EventItem;
   featured?: boolean;
 }) {
-  return (
-    <article className="group flex flex-col gap-3">
-      <div
-        className={`relative overflow-hidden rounded-2xl ${event.accent} ${
-          featured ? "aspect-video lg:aspect-21/9" : "aspect-4/3"
-        }`}
-      >
-        {featured ? (
-          <span className="absolute left-4 top-4 z-10 inline-flex items-center rounded-round bg-error-500/90 px-3.5 py-1.5 text-xs font-semibold text-primary-500 backdrop-blur-sm">
-            Feature
-          </span>
-        ) : null}
+  // Bind this card's Register button to Eventbrite's embedded checkout. No-op
+  // until the event has synced to Eventbrite (no id yet) — the button then
+  // falls back to a plain link.
+  useEventbriteCheckout(event.eventbriteId ? [event.eventbriteId] : []);
+
+  const canRegister = Boolean(event.eventbriteId || event.eventbriteUrl);
+
+  const poster = (
+    <div
+      className={`relative overflow-hidden rounded-2xl ${event.accent} ${
+        featured ? "aspect-video lg:aspect-21/9" : "aspect-4/3"
+      }`}
+    >
+      {featured ? (
+        <span className="absolute left-4 top-4 z-10 inline-flex items-center rounded-round bg-error-500/90 px-3.5 py-1.5 text-xs font-semibold text-primary-500 backdrop-blur-sm">
+          Feature
+        </span>
+      ) : null}
+      {event.imageUrl ? (
+        <Image
+          src={event.imageUrl}
+          alt={event.title}
+          fill
+          sizes={
+            featured
+              ? "100vw"
+              : "(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+          }
+          className="object-cover transition-transform duration-500 ease-[var(--ease-premium)] group-hover:scale-[1.04] motion-reduce:transform-none"
+        />
+      ) : (
         <span
           aria-hidden
           className="absolute inset-0 transition-transform duration-500 ease-[var(--ease-premium)] group-hover:scale-[1.04] motion-reduce:transform-none"
         />
-      </div>
+      )}
+    </div>
+  );
+
+  const heading = (
+    <h3
+      className={`font-bold text-primary-500 uppercase leading-snug tracking-[0.01em] ${
+        featured
+          ? "text-lg md:text-xl lg:text-2xl max-w-2xl"
+          : "text-xs lg:text-[13px]"
+      }`}
+    >
+      {event.title}
+    </h3>
+  );
+
+  return (
+    <article className="group flex flex-col gap-3">
+      {event.href ? (
+        <Link href={event.href} aria-label={event.title} className="block">
+          {poster}
+        </Link>
+      ) : (
+        poster
+      )}
 
       {event.status ? (
         <span className="inline-flex w-fit items-center rounded-round bg-error-200 px-3 py-1 text-xs font-semibold text-primary-500">
@@ -152,13 +210,33 @@ export function EventCard({
         {event.date}
       </p>
 
-      <h3
-        className={`font-bold text-primary-500 uppercase leading-snug tracking-[0.01em] ${
-          featured ? "text-lg md:text-xl lg:text-2xl max-w-2xl" : "text-xs lg:text-[13px]"
-        }`}
-      >
-        {event.title}
-      </h3>
+      {event.href ? (
+        <Link href={event.href} className="hov-underline w-fit">
+          {heading}
+        </Link>
+      ) : (
+        heading
+      )}
+
+      {canRegister ? (
+        <a
+          id={
+            event.eventbriteId
+              ? checkoutTriggerId(event.eventbriteId)
+              : undefined
+          }
+          href={event.eventbriteUrl ?? "#"}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`mt-1 inline-flex w-fit items-center rounded-round bg-error-500 font-semibold text-primary-500 transition-all duration-300 ease-[var(--ease-premium)] hover:bg-error-400 active:scale-[0.98] motion-reduce:transform-none ${
+            featured
+              ? "px-6 py-2.5 text-sm lg:text-base"
+              : "px-5 py-2 text-xs lg:text-sm"
+          }`}
+        >
+          Register
+        </a>
+      ) : null}
     </article>
   );
 }

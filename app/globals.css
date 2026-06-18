@@ -173,12 +173,26 @@ body {
   text-wrap: balance;
 }
 
-/* ─── Hide page-level header chrome while the menu overlay is open ─ */
+/* ─── Hide page-level header chrome while the menu overlay is open ─
+   The fade is a TRANSITION, armed only while the menu is opening/closing
+   (`menu-animating`). Because scroll is locked while the menu is up, this
+   never competes with the hero's scroll-driven inline opacity. The hero's
+   one-shot entrance classes are stripped once they finish (see
+   HeroSection), so no `forwards` animation outranks this fade. `visibility`
+   is transitioned too: hide waits the full duration (element stays visible
+   through the fade-out) while show is immediate (so the fade-in is seen). */
+body.menu-animating [data-page-header] {
+  transition:
+    opacity 320ms var(--ease-premium),
+    visibility 320ms var(--ease-premium) !important;
+}
 body.menu-open [data-page-header] {
-  opacity: 0;
+  opacity: 0 !important;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 180ms var(--ease-standard);
+  /* Suppress any still-running hero entrance animation so it can't hold
+     opacity and override the fade if the menu is opened right after load. */
+  animation: none !important;
 }
 
 /* ─── Lenis smooth scroll baseline ───────────────────────────── */

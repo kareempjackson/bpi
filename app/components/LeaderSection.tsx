@@ -83,7 +83,7 @@ export default function LeaderSection({
                 src={portraitImageSrc}
                 alt={portraitImageAlt}
                 fill
-                priority
+                preload
                 sizes="(min-width: 1024px) 56vw, 90vw"
                 className="object-cover"
                 style={{ objectPosition: "center top" }}
@@ -126,7 +126,7 @@ export default function LeaderSection({
                     key={s.kind}
                     href={s.href}
                     aria-label={s.label ?? s.kind}
-                    className="inline-flex items-center justify-center size-9 rounded-full border border-dashed border-primary-500/40 text-primary-500/70 hover:border-primary-500/75 hover:text-primary-500 transition-colors"
+                    className="inline-flex items-center justify-center size-9 rounded-full border border-primary-500/40 text-primary-500/70 hover:border-primary-500/75 hover:text-primary-500 transition-colors"
                   >
                     <SocialIcon kind={s.kind} />
                   </a>

@@ -1,17 +1,12 @@
-import type { CSSProperties } from "react";
+import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 
 import ArrowCircle from "@/app/components/ArrowCircle";
-import Button from "@/app/components/Button";
 import CtaLink from "@/app/components/CtaLink";
+import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
 import Logo from "@/app/components/Logo";
-import IncentivesShape, {
-  INCENTIVES_NOTCH,
-} from "@/app/components/shapes/IncentivesShape";
-import InitiativeLeftShape from "@/app/components/shapes/InitiativeLeftShape";
-import InitiativeRightShape from "@/app/components/shapes/InitiativeRightShape";
+import PageSections from "@/app/components/PageSections";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
 import { resolveImage } from "@/sanity/lib/image";
 import {
@@ -19,7 +14,6 @@ import {
   INITIATIVE_POSTS_QUERY,
 } from "@/sanity/lib/queries";
 import type {
-  Cta,
   FutureStat,
   Initiative,
   InitiativePost,
@@ -28,23 +22,54 @@ import type {
 
 export const revalidate = 3600;
 
-async function getInitiativesPage(): Promise<InitiativesPage | null> {
+/**
+ * Split the hero headline so the first two and last two words render light
+ * green and the middle stays white — e.g. "Contributing to | Caribbean |
+ * health security". Degrades gracefully for short headlines (≤4 words just
+ * colours the ends, no white middle).
+ */
+function splitHeadlineEnds(headline: string): {
+  start: string;
+  middle: string;
+  end: string;
+} {
+  const words = headline.trim().split(/\s+/).filter(Boolean);
+  const n = words.length;
+  const startCount = Math.min(2, n);
+  const endCount = Math.min(2, Math.max(0, n - startCount));
+  return {
+    start: words.slice(0, startCount).join(" "),
+    middle: words.slice(startCount, n - endCount).join(" "),
+    end: endCount ? words.slice(n - endCount).join(" ") : "",
+  };
+}
+
+async function getInitiativesPage(lang: string): Promise<InitiativesPage | null> {
   return loadQuery<InitiativesPage | null>(INITIATIVES_PAGE_QUERY, {
+    params: { lang },
     tags: [TAG.initiativesPage],
   });
 }
 
-async function getInitiativePosts(limit: number): Promise<InitiativePost[]> {
+async function getInitiativePosts(
+  lang: string,
+  limit: number,
+): Promise<InitiativePost[]> {
   if (limit <= 0) return [];
   const data = await loadQuery<InitiativePost[] | null>(INITIATIVE_POSTS_QUERY, {
-    params: { limit },
+    params: { lang, limit },
     tags: [TAG.initiative],
   });
   return data ?? [];
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const page = await getInitiativesPage();
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  const page = await getInitiativesPage(lang);
   return {
     title: page?.seoTitle ?? "Initiatives — BPI",
     description:
@@ -53,10 +78,18 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function InitiativesPage() {
-  const page = await getInitiativesPage();
+export default async function InitiativesPage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+  const page = await getInitiativesPage(lang);
   const featured = page?.featuredInitiative ?? null;
-  const posts = await getInitiativePosts(page?.motionStoriesShowCount ?? 6);
+  const posts = await getInitiativePosts(
+    lang,
+    page?.motionStoriesShowCount ?? 6,
+  );
 
   return (
     <main className="bg-error-25">
@@ -66,6 +99,7 @@ export default async function InitiativesPage() {
       <MotionStoriesSection page={page} posts={posts} />
       <OtherWorksSection page={page} />
       <BuildingFutureSection page={page} />
+      <PageSections sections={page?.pageSections} />
     </main>
   );
 }
@@ -73,7 +107,7 @@ export default async function InitiativesPage() {
 // ─────────────────────────────────────────────────────────── Hero ──
 
 function HeroHeader({ page }: { page: InitiativesPage | null }) {
-  const heroImage = resolveImage(page?.heroImage, { width: 1600 });
+  const heroImage = resolveImage(page?.heroImage, { width: 1800 });
   const imageSrc = heroImage?.src;
   const imageAlt = heroImage?.alt ?? "";
   const headline = page?.heroHeadline ?? "Pushing from investment to impact.";
@@ -85,64 +119,95 @@ function HeroHeader({ page }: { page: InitiativesPage | null }) {
     href: "/contact",
   };
   const secondary = page?.heroSecondaryCta ?? {
-    label: "Our Ecosystem",
+    label: "Explore Our Impact",
     href: "/#ecosystem",
   };
+  const {
+    start: headlineStart,
+    middle: headlineMiddle,
+    end: headlineEnd,
+  } = splitHeadlineEnds(headline);
 
   return (
-    <section className="px-5 md:px-20 lg:px-32 pt-6 md:pt-10 lg:pt-12 pb-14 md:pb-20 lg:pb-24">
-      <div className="mx-auto max-w-page">
-        <div className="relative">
-          <div data-reveal="scale">
-            <IncentivesShape
-              size={1200}
-              imageSrc={imageSrc}
-              imageAlt={imageAlt}
-              className="w-full h-auto"
-            />
-          </div>
+    <section
+      data-nav-theme="dark"
+      data-cursor="icon"
+      className="relative overflow-hidden bg-error-950 px-6 md:px-12 lg:px-20 xl:px-28 pt-20 md:pt-24 lg:pt-20 pb-6 md:pb-7 lg:pb-7 lg:h-dvh lg:flex lg:flex-col"
+    >
+      {/* Interactive rounded-tile grid backdrop — tiles light up on hover; the BPI logo mark replaces the cursor (via the global CustomCursor, data-cursor="icon"). */}
+      <GridHoverBackdrop />
 
-          {/* Content card docked into the IncentivesShape notch at
-              every breakpoint. On mobile the card anchors to the TOP
-              of the notch (just below the image edge) instead of
-              vertically centering, so the headline never overlaps the
-              photo above. Any overflow is allowed to extend below the
-              SVG into the section's bottom padding. */}
-          <div
-            className="absolute"
-            style={{
-              left: `${INCENTIVES_NOTCH.leftPct}%`,
-              top: `${INCENTIVES_NOTCH.topPct}%`,
-              right: 0,
-              bottom: 0,
-            }}
-          >
+      <div className="relative mx-auto w-full max-w-page lg:flex lg:flex-1 lg:flex-col lg:min-h-0">
+        {/* Two-tone headline — first sentence white, remainder green. Width
+            capped so it breaks onto two lines. */}
+        <h1
+          data-reveal-stagger
+          className="shrink-0 font-display text-[clamp(2.25rem,4vw,3.75rem)] font-bold leading-[1.04] tracking-[-0.03em] max-w-2xl"
+        >
+          <span className="text-error-300">{headlineStart}</span>
+          {headlineMiddle ? (
+            <>
+              {" "}
+              <span className="text-white">{headlineMiddle}</span>
+            </>
+          ) : null}
+          {headlineEnd ? (
+            <>
+              {" "}
+              <span className="text-error-300">{headlineEnd}</span>
+            </>
+          ) : null}
+        </h1>
+
+        {/* Full-width hero image. Outer wrapper takes ALL the leftover column
+            height (flex-1) so the image is as large as possible; inner fills
+            it (h-full) with no aspect ratio on desktop. Fixed ratio below lg
+            where the page scrolls. */}
+        {imageSrc ? (
+          <div className="mt-4 md:mt-5 w-full lg:flex-1 lg:min-h-0 lg:max-h-[54dvh]">
             <div
-              data-reveal="fade"
-              className="h-full flex flex-col justify-start md:justify-center pt-3 sm:pt-4 md:pt-0 pl-3 sm:pl-5 md:pl-7 lg:pl-10 xl:pl-12 pr-2 sm:pr-3 md:pr-4 lg:pr-6 pb-0 md:py-5 lg:py-7"
+              data-reveal="scale"
+              className="relative w-full max-lg:aspect-video lg:h-full overflow-hidden rounded-2xl lg:rounded-3xl bg-white/5"
             >
-              <h1
-                className="hero-anim font-display text-[11px] sm:text-sm md:text-2xl lg:text-display-sm xl:text-display-md font-bold text-primary-500 leading-[1.08] tracking-[-0.015em]"
-                style={{ "--anim-delay": "0s" } as CSSProperties}
-              >
-                {headline}
-              </h1>
-              {body ? (
-                <p
-                  className="hero-anim hidden md:block mt-2 md:mt-3 lg:mt-4 text-sm md:text-base lg:text-lg text-primary-500/70 leading-relaxed max-w-md"
-                  style={{ "--anim-delay": "0.12s" } as CSSProperties}
-                >
-                  {body}
-                </p>
-              ) : null}
-              <div
-                className="hero-anim mt-3 sm:mt-3.5 md:mt-4 lg:mt-6 flex flex-wrap items-center gap-1.5 sm:gap-2 md:gap-2.5 lg:gap-3"
-                style={{ "--anim-delay": "0.24s" } as CSSProperties}
-              >
-                <CtaPrimary cta={primary} />
-                <CtaTertiary cta={secondary} />
-              </div>
+              <Image
+                src={imageSrc}
+                alt={imageAlt}
+                fill
+                sizes="100vw"
+                priority
+                className="object-cover"
+              />
             </div>
+          </div>
+        ) : null}
+
+        {/* Body (left) + CTAs (right) below the image. */}
+        <div
+          data-reveal-stagger
+          className="shrink-0 mt-7 md:mt-9 lg:mt-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between"
+        >
+          {body ? (
+            <p className="max-w-lg text-base md:text-lg text-white/70 leading-relaxed">
+              {body}
+            </p>
+          ) : null}
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            {primary ? (
+              <CtaLink
+                href={primary.href}
+                className="inline-flex w-fit items-center rounded-round bg-error-500 px-5 py-2 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-(--ease-premium) hover:bg-error-400"
+              >
+                {primary.label}
+              </CtaLink>
+            ) : null}
+            {secondary ? (
+              <CtaLink
+                href={secondary.href}
+                className="inline-flex w-fit items-center rounded-round border border-white/60 bg-transparent px-5 py-2 text-sm font-semibold text-white transition-colors duration-300 ease-(--ease-premium) hover:border-white/80 hover:bg-white/10"
+              >
+                {secondary.label}
+              </CtaLink>
+            ) : null}
           </div>
         </div>
       </div>
@@ -156,11 +221,11 @@ function WorkInMotion({ page }: { page: InitiativesPage | null }) {
   // Editor can hide the whole section via the `showWorkInMotion` toggle.
   // Defaults to true so existing pages keep rendering.
   if (page && page.showWorkInMotion === false) return null;
-  const heading = page?.workInMotionHeading ?? "Work in Motion";
+  const heading = page?.workInMotionHeading ?? "The BPI Work in Motion";
   const body =
     page?.workInMotionBody ??
     "BPI develops catalytic projects across pharmaceutical manufacturing, supply chain, regulatory development, and regional trade. Each project is structured from concept to bankability to execution, with the partnerships, financing, and government alignment to make it last.";
-  const bg = page?.workInMotionBg ?? "#CAF1FF";
+  const bg = page?.workInMotionBg ?? "#38FE9C";
   const primary = page?.workInMotionPrimaryCta ?? {
     label: "Partner With BPI",
     href: "/contact",
@@ -169,43 +234,97 @@ function WorkInMotion({ page }: { page: InitiativesPage | null }) {
     label: "Our Ecosystem",
     href: "/#ecosystem",
   };
+  const bannerImage = resolveImage(page?.workInMotionImage, { width: 2000 });
+
+  // Break the heading into ~two-word lines so each can be indented a step
+  // further than the last — the staggered, stepped treatment from the design.
+  const headingLines = heading
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .reduce<string[]>((lines, word, i) => {
+      if (i % 2 === 0) lines.push(word);
+      else lines[lines.length - 1] += ` ${word}`;
+      return lines;
+    }, []);
 
   return (
-    <section className="px-5 md:px-20 lg:px-32 pb-14 md:pb-20 lg:pb-24">
+    <section
+      data-nav-theme="light"
+      className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-28"
+      style={{ backgroundColor: bg }}
+    >
       <div
         data-reveal-stagger
-        className="mx-auto max-w-page rounded-2xl lg:rounded-[1.75rem] px-6 py-10 md:px-12 md:py-14 lg:px-16 lg:py-20"
-        style={{ backgroundColor: bg }}
+        className="mx-auto grid max-w-page grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start"
       >
-        <div className="max-w-2xl">
-          <h2 className="font-display text-2xl md:text-3xl lg:text-display-sm font-bold text-primary-500 leading-[1.1] tracking-[-0.015em]">
-            {heading}
-          </h2>
+        {/* Left — oversized heading, each line stepped further right. */}
+        <h2 className="font-display text-[clamp(2.5rem,5vw,4.5rem)] font-bold text-primary-500 leading-[0.98] tracking-[-0.03em]">
+          {headingLines.map((line, i) => (
+            <span
+              key={i}
+              className="block"
+              style={{ marginLeft: `${i * 2.5}rem` }}
+            >
+              {line}
+            </span>
+          ))}
+        </h2>
+
+        {/* Right — body + CTAs, dropped toward the lower half. */}
+        <div className="flex flex-col gap-8 lg:gap-10 lg:pt-16 xl:pt-24">
           {body ? (
-            <p className="mt-4 lg:mt-5 text-sm md:text-base lg:text-lg text-primary-500/75 leading-relaxed">
+            <p className="text-lg md:text-xl text-primary-500/90 leading-relaxed">
               {body}
             </p>
           ) : null}
-          <div className="mt-6 lg:mt-8 flex flex-wrap items-center gap-2.5 md:gap-3">
-            <CtaPrimary cta={primary} />
-            <CtaTertiary cta={secondary} />
+          <div className="flex flex-wrap items-center gap-3">
+            {primary ? (
+              <CtaLink
+                href={primary.href}
+                className="inline-flex w-fit items-center rounded-round bg-primary-500 px-6 py-2.5 text-sm font-semibold text-white transition-colors duration-300 ease-(--ease-premium) hover:bg-primary-600"
+              >
+                {primary.label}
+              </CtaLink>
+            ) : null}
+            {secondary ? (
+              <CtaLink
+                href={secondary.href}
+                className="inline-flex w-fit items-center rounded-round border border-primary-500 bg-transparent px-6 py-2.5 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-(--ease-premium) hover:bg-primary-500/5"
+              >
+                {secondary.label}
+              </CtaLink>
+            ) : null}
           </div>
         </div>
       </div>
+
+      {/* Wide banner image across the bottom of the section. */}
+      {bannerImage ? (
+        <div
+          data-reveal="scale"
+          className="mx-auto mt-12 md:mt-16 lg:mt-20 w-full max-w-page overflow-hidden rounded-2xl lg:rounded-3xl bg-primary-500/5"
+        >
+          <div className="relative aspect-video lg:aspect-2/1">
+            <Image
+              src={bannerImage.src}
+              alt={bannerImage.alt}
+              fill
+              sizes="100vw"
+              className="object-cover"
+            />
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
 
 // ─────────────────────────────────────────────── Featured spotlight ──
 
-// Background palette + watermark flag cycle through the supporting
-// cards by index, so editors only need to pick which initiatives appear
-// — the visual rhythm is handled here.
-const SUPPORTING_CARD_PALETTE: Array<{ bg: string; watermark: boolean }> = [
-  { bg: "#FFFFFF", watermark: false },
-  { bg: "#CAF1FF", watermark: false },
-  { bg: "#38FE9C", watermark: true },
-];
+// Uniform mint card; only the last of the (max three) supporting cards gets
+// the faint molecule watermark.
+const SUPPORTING_CARD_BG = "#A5F9D2";
 
 function FeaturedSpotlight({
   featured,
@@ -233,56 +352,79 @@ function FeaturedSpotlight({
     : undefined;
 
   return (
-    <section className="px-5 md:px-20 lg:px-32 pb-14 md:pb-20 lg:pb-24">
-      <div className="mx-auto max-w-page flex flex-col gap-8 lg:gap-10">
+    <section
+      data-nav-theme="light"
+      className="bg-error-25 px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-24"
+    >
+      <div className="mx-auto max-w-page flex flex-col gap-14 lg:gap-20">
         {featured ? (
-          <>
-            <div
-              data-reveal-stagger
-              className="flex flex-col gap-4 lg:gap-5 max-w-3xl"
-            >
-              <div className="text-xs lg:text-sm font-medium tracking-[0.18em] text-primary-500 uppercase">
-                Featured
-              </div>
-              <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-primary-500 leading-[1.1] tracking-[-0.01em]">
-                {featured.title}
-              </h2>
-              {featured.excerpt ? (
-                <p className="text-sm md:text-base text-primary-500/85 leading-relaxed max-w-2xl">
-                  {featured.excerpt}
-                </p>
-              ) : null}
-              <div className="mt-1 flex flex-wrap items-center gap-2.5 md:gap-3">
-                {detailHref ? (
-                  <CtaLink href={detailHref} className="inline-flex">
-                    <Button variant="primary" size="sm">
-                      Learn More
-                    </Button>
-                  </CtaLink>
-                ) : null}
-                <Link href="/contact" className="inline-flex">
-                  <Button variant="tertiary" size="sm">
-                    Partner With BPI
-                  </Button>
-                </Link>
-              </div>
+          <div data-reveal-stagger className="flex flex-col">
+            {/* Eyebrow */}
+            <div className="text-xs lg:text-sm font-medium tracking-[0.18em] text-primary-500 uppercase">
+              Featured
             </div>
 
-            {imageSrc ? (
-              <div
-                data-reveal="scale"
-                className="relative aspect-video md:aspect-2/1 lg:aspect-16/7 rounded-2xl lg:rounded-3xl overflow-hidden bg-primary-500"
-              >
-                <Image
-                  src={imageSrc}
-                  alt={imageAlt}
-                  fill
-                  sizes="(min-width: 1280px) 1200px, 100vw"
-                  className="object-cover"
-                />
+            {/* Two-tone headline — the part before the colon stays dark, the
+                remainder greys back. */}
+            <h2 className="mt-5 lg:mt-7 font-display text-[clamp(1.9rem,3.6vw,3.25rem)] font-bold leading-[1.08] tracking-[-0.02em] max-w-5xl">
+              <ColonTwoTone text={featured.title} />
+            </h2>
+
+            {/* Editorial body — note + portrait media on the left; statement,
+                stat note, and CTAs on the right. */}
+            <div className="mt-10 lg:mt-12 grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-10">
+              <div className="flex flex-col gap-8 lg:gap-12">
+                {featured.excerpt ? (
+                  <RuleNote className="lg:max-w-xs">
+                    {featured.excerpt}
+                  </RuleNote>
+                ) : null}
+                {imageSrc ? (
+                  <FeaturedMedia
+                    src={imageSrc}
+                    alt={imageAlt}
+                    href={detailHref}
+                  />
+                ) : null}
               </div>
-            ) : null}
-          </>
+
+              <div className="flex flex-col gap-10 lg:justify-between lg:pt-3">
+                {featured.subtitle ? (
+                  <p className="font-display text-[clamp(1.6rem,2.7vw,2.6rem)] font-medium leading-[1.18] tracking-[-0.01em] max-w-xl">
+                    <Emphasis text={featured.subtitle} />
+                  </p>
+                ) : null}
+
+                <div className="flex flex-col gap-7 lg:gap-9">
+                  {page?.featuredStatBody ? (
+                    <RuleNote className="lg:max-w-sm">
+                      {page.featuredStatBody}
+                    </RuleNote>
+                  ) : null}
+                  <div
+                    className={`flex flex-wrap items-center gap-3 ${
+                      page?.featuredStatBody ? "lg:pl-14" : ""
+                    }`}
+                  >
+                    {detailHref ? (
+                      <CtaLink
+                        href={detailHref}
+                        className="inline-flex w-fit items-center rounded-round bg-error-500 px-6 py-2.5 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-(--ease-premium) hover:bg-error-400"
+                      >
+                        Learn More
+                      </CtaLink>
+                    ) : null}
+                    <CtaLink
+                      href="/contact"
+                      className="inline-flex w-fit items-center rounded-round border border-primary-500 bg-transparent px-6 py-2.5 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-(--ease-premium) hover:bg-primary-500/5"
+                    >
+                      Partner With BPI
+                    </CtaLink>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         ) : null}
 
         {supporting.length > 0 ? (
@@ -290,20 +432,13 @@ function FeaturedSpotlight({
             data-reveal-stagger
             className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 lg:gap-6"
           >
-            {supporting.map((initiative, idx) => {
-              // Cycle the palette so the visual rhythm continues onto
-              // additional rows when there are more than three cards.
-              const palette =
-                SUPPORTING_CARD_PALETTE[idx % SUPPORTING_CARD_PALETTE.length];
-              return (
-                <SupportingInitiativeCard
-                  key={initiative._id}
-                  initiative={initiative}
-                  bg={palette.bg}
-                  watermark={palette.watermark}
-                />
-              );
-            })}
+            {supporting.slice(0, 3).map((initiative, idx, arr) => (
+              <SupportingInitiativeCard
+                key={initiative._id}
+                initiative={initiative}
+                watermark={idx === arr.length - 1}
+              />
+            ))}
           </div>
         ) : null}
       </div>
@@ -311,13 +446,108 @@ function FeaturedSpotlight({
   );
 }
 
+// Headline two-tone: text up to and including the first colon stays dark; the
+// remainder greys back. Falls back to all-dark when there's no colon.
+function ColonTwoTone({ text }: { text: string }) {
+  const i = text.indexOf(":");
+  if (i === -1) return <span className="text-primary-500">{text}</span>;
+  return (
+    <>
+      <span className="text-primary-500">{text.slice(0, i + 1)}</span>
+      <span className="text-primary-500/45">{text.slice(i + 1)}</span>
+    </>
+  );
+}
+
+// Statement emphasis: words wrapped in **double asterisks** render bold/dark,
+// everything else greys back — lets editors pick the highlighted phrase.
+function Emphasis({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(/\*\*(.+?)\*\*/g).map((part, i) =>
+        i % 2 === 1 ? (
+          <span key={i} className="font-bold text-primary-500">
+            {part}
+          </span>
+        ) : (
+          <span key={i} className="text-primary-500/45">
+            {part}
+          </span>
+        ),
+      )}
+    </>
+  );
+}
+
+// Small note prefixed by a short horizontal rule — the recurring annotation
+// motif beside the featured copy.
+function RuleNote({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`flex items-start gap-4 ${className}`}>
+      <span
+        aria-hidden
+        className="mt-2.5 h-px w-10 shrink-0 bg-primary-500/30"
+      />
+      <p className="text-sm text-primary-500/65 leading-relaxed">{children}</p>
+    </div>
+  );
+}
+
+// Portrait media tile with a play badge; links to the detail page when set.
+function FeaturedMedia({
+  src,
+  alt,
+  href,
+}: {
+  src: string;
+  alt: string;
+  href?: string;
+}) {
+  const cls =
+    "group/media relative block w-full max-w-md lg:mx-auto aspect-3/4 overflow-hidden rounded-2xl lg:rounded-3xl bg-primary-500";
+  const inner = (
+    <>
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes="(min-width: 1024px) 32vw, 90vw"
+        className="object-cover"
+      />
+      <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        <span className="flex size-16 items-center justify-center rounded-full bg-white/85 backdrop-blur-sm transition-transform duration-300 ease-(--ease-premium) group-hover/media:scale-105">
+          <svg
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden
+            className="ml-0.5 size-6 text-primary-500"
+          >
+            <path d="M8 5v14l11-7z" />
+          </svg>
+        </span>
+      </span>
+    </>
+  );
+  return href ? (
+    <CtaLink href={href} className={cls}>
+      {inner}
+    </CtaLink>
+  ) : (
+    <div className={cls}>{inner}</div>
+  );
+}
+
 function SupportingInitiativeCard({
   initiative,
-  bg,
   watermark,
 }: {
   initiative: Initiative;
-  bg: string;
   watermark: boolean;
 }) {
   // Same href rules as the home page: externalLink wins; otherwise an
@@ -327,9 +557,12 @@ function SupportingInitiativeCard({
     : initiative.hasDetailPage === false
       ? undefined
       : `/initiatives/${initiative.slug}`;
-  const eyebrow = initiative.subtitle ?? "Initiative";
+  // Custom per-initiative tag drives the eyebrow ("Initiative", "Partnership",
+  // "Research", …). Falls back to a generic label when none is set.
+  const eyebrow = initiative.tag ?? "Initiative";
+  const bg = SUPPORTING_CARD_BG;
   const className =
-    "relative overflow-hidden flex flex-col justify-between rounded-2xl lg:rounded-3xl px-5 md:px-6 lg:px-7 py-6 md:py-7 lg:py-8 min-h-65 md:min-h-75 lg:min-h-85";
+    "relative overflow-hidden flex flex-col justify-between rounded-2xl lg:rounded-3xl px-6 md:px-7 lg:px-8 py-7 md:py-8 lg:py-9 min-h-80 md:min-h-96 lg:min-h-112";
   const interactiveClassName = href
     ? " focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30"
     : "";
@@ -339,17 +572,17 @@ function SupportingInitiativeCard({
       {watermark ? (
         <Logo
           iconOnly
-          size={260}
+          size={300}
           aria-hidden
-          className="pointer-events-none absolute -bottom-10 -right-12 lg:-bottom-16 lg:-right-16 text-primary-500 opacity-[0.08]"
+          className="pointer-events-none absolute -bottom-12 -right-10 lg:-bottom-16 lg:-right-12 text-error-600/20"
         />
       ) : null}
 
-      <div className="relative flex flex-col gap-3">
-        <div className="text-xs font-medium tracking-[0.04em] text-primary-500/70">
+      <div className="relative flex flex-col gap-2.5">
+        <div className="text-sm font-medium tracking-[0.02em] text-primary-500/55">
           {eyebrow}
         </div>
-        <h3 className="font-display text-lg md:text-xl lg:text-2xl font-bold text-primary-500 leading-tight tracking-[-0.01em]">
+        <h3 className="font-display text-xl md:text-2xl lg:text-[1.7rem] font-bold text-primary-500 leading-[1.15] tracking-[-0.01em]">
           {initiative.title}
         </h3>
       </div>
@@ -542,133 +775,258 @@ function OtherWorksSection({ page }: { page: InitiativesPage | null }) {
   // Editor can hide the whole section via the `showOtherWorks` toggle.
   // Defaults to true so existing pages keep rendering.
   if (page && page.showOtherWorks === false) return null;
-  const eyebrow = page?.otherWorksEyebrow ?? "Initiatives";
-  const heading = page?.otherWorksHeading ?? "Other Works";
-  const body =
-    page?.otherWorksBody ??
-    "Our mission is to create a pharmaceutical ecosystem where every person in the Caribbean has access to healthy, innovative, and affordable medicines while building regional manufacturing excellence.";
-  const blueTitle =
-    page?.otherWorksBlueTitle ?? "Human Capital Development";
-  const blueBody =
-    page?.otherWorksBlueBody ??
-    "Building world-class pharmaceutical talent through education, training, and skills development programs";
-  const blueCta = page?.otherWorksBlueCta ?? {
-    label: "Learn More",
-    href: "/initiatives/human-capital",
-  };
-  const blueBg = page?.otherWorksBlueBg ?? "#CFE9FF";
-  const greenTitle =
-    page?.otherWorksGreenTitle ?? "Human Capital Development";
-  const greenBody =
-    page?.otherWorksGreenBody ??
-    "Building world-class pharmaceutical talent through education, training, and skills development programs";
-  const greenBg = page?.otherWorksGreenBg ?? "#A5F9D2";
-  const topRight = (page?.otherWorksTopRightImages ?? [])
-    .map((img) => resolveImage(img, { width: 800 }))
-    .filter((img): img is { src: string; alt: string } => !!img);
-  const bottomLeft = resolveImage(page?.otherWorksBottomLeftImage, {
-    width: 1200,
+  const eyebrow = page?.otherWorksEyebrow ?? "Barbados Pharmaceuticals Inc.";
+  const heading =
+    page?.otherWorksHeading ?? "Other Initiatives You Should Know at BPI";
+  const cards = page?.otherWorksInitiatives ?? [];
+  const featuredImg = resolveImage(page?.otherWorksFeaturedImage, {
+    width: 1600,
   });
+  const featuredTitle = page?.otherWorksFeaturedTitle ?? undefined;
+  const featuredHref = page?.otherWorksFeaturedHref ?? undefined;
+  const viewMoreHref = page?.otherWorksViewAllHref ?? "/initiatives";
 
-  const topRightSrcs = topRight;
-  const bottomLeftSrc = bottomLeft?.src;
-  const bottomLeftAlt = bottomLeft?.alt ?? "";
+  // Nothing configured yet — skip rather than render an empty dark band.
+  if (cards.length === 0 && !featuredImg) return null;
+
+  // Staggered, stepped heading lines; the middle line greens (e.g.
+  // "Other Initiatives" / "You Should" / "Know at BPI").
+  const lines = heading
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .reduce<string[]>((acc, word, i) => {
+      if (i % 2 === 0) acc.push(word);
+      else acc[acc.length - 1] += ` ${word}`;
+      return acc;
+    }, []);
+  const midIdx = Math.floor((lines.length - 1) / 2);
 
   return (
-    <section className="px-5 md:px-20 lg:px-32 pb-14 md:pb-20 lg:pb-24">
-      <div className="mx-auto max-w-page">
+    <section
+      data-nav-theme="dark"
+      className="bg-error-950 px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-28"
+    >
+      <div className="mx-auto grid max-w-page grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-14">
+        {/* Left — eyebrow + staggered, two-tone heading. Sticks while the
+            right-hand grid scrolls past (like the blog sidebar). */}
         <div
           data-reveal-stagger
-          className="flex flex-col gap-3 max-w-3xl mb-8 lg:mb-10"
+          className="lg:col-span-1 lg:pt-4 lg:sticky lg:top-24 lg:self-start"
         >
-          <div className="text-xs lg:text-sm font-medium tracking-[0.04em] text-primary-500/70">
-            {eyebrow}
-          </div>
-          <h2 className="font-display text-2xl md:text-3xl lg:text-display-sm font-bold text-primary-500 leading-[1.1] tracking-[-0.015em]">
-            {heading}
+          <div className="text-sm text-white/55">{eyebrow}</div>
+          <h2 className="mt-6 font-display text-[clamp(2rem,3.2vw,3rem)] font-bold leading-[1.05] tracking-[-0.03em]">
+            {lines.map((line, i) => (
+              <span
+                key={i}
+                className={`block ${
+                  i === midIdx ? "text-error-500" : "text-white"
+                }`}
+                style={{
+                  // Green middle line is flush-left; lines above step in a
+                  // little, lines below step out further — the zigzag stagger.
+                  marginLeft: `${
+                    i === midIdx
+                      ? 0
+                      : i < midIdx
+                        ? (midIdx - i) * 3
+                        : (i - midIdx) * 7
+                  }rem`,
+                }}
+              >
+                {line}
+              </span>
+            ))}
           </h2>
-          {body ? (
-            <p className="text-sm md:text-base text-primary-500/75 leading-relaxed max-w-2xl">
-              {body}
-            </p>
-          ) : null}
         </div>
 
+        {/* Right — mint card masonry + featured tile + View More. */}
         <div
           data-reveal-stagger
-          className="relative w-full aspect-1086/615"
+          className="lg:col-span-2 flex flex-col gap-6 lg:gap-7"
         >
-          <InitiativeLeftShape
-            size={645}
-            fill={blueBg}
-            className="absolute top-0 left-0 w-[59.4%] h-auto"
-          />
-          <InitiativeRightShape
-            size={645}
-            fill={greenBg}
-            className="absolute top-0 right-0 w-[59.4%] h-auto translate-x-[2%]"
-          />
-
-          <div className="absolute top-0 left-0 w-[40.6%] h-[51.6%] flex flex-col justify-center pl-4 pr-3 md:pl-7 md:pr-4 lg:pl-10 lg:pr-5">
-            <h3 className="font-display text-sm md:text-xl lg:text-2xl font-bold text-primary-500 leading-[1.15] tracking-[-0.01em]">
-              {blueTitle}
-            </h3>
-            <p className="mt-1.5 md:mt-2 lg:mt-3 text-[10px] md:text-xs lg:text-sm text-primary-500/80 leading-relaxed">
-              {blueBody}
-            </p>
-            {blueCta ? (
-              <div className="mt-2.5 md:mt-3.5 lg:mt-5">
-                <CtaLink href={blueCta.href} className="inline-flex">
-                  <Button variant="primary" size="sm">
-                    {blueCta.label}
-                  </Button>
-                </CtaLink>
-              </div>
-            ) : null}
-          </div>
-
-          <div className="absolute top-0 right-0 w-[59.4%] h-[48%] grid grid-cols-2 items-center gap-2 md:gap-3 lg:gap-4 px-4 md:px-7 lg:px-10 translate-x-[2%]">
-            {topRightSrcs.slice(0, 2).map((img, i) => (
-              <div
-                key={img.src + i}
-                className="relative aspect-4/3 rounded-lg lg:rounded-xl overflow-hidden"
-              >
-                <Image
-                  src={img.src}
-                  alt={img.alt}
-                  fill
-                  sizes="(min-width: 768px) 24vw, 40vw"
-                  className="object-cover"
+          {cards.length > 0 ? (
+            <div className="columns-1 md:columns-2 gap-5 lg:gap-6">
+              {cards.map((initiative, idx) => (
+                <OtherWorkCard
+                  key={initiative._id}
+                  initiative={initiative}
+                  // Every 5th card is the larger "feature" layout.
+                  variant={(idx + 1) % 5 === 0 ? "feature" : "compact"}
                 />
-              </div>
-            ))}
-          </div>
-
-          <div className="absolute bottom-0 left-0 w-[59.4%] h-[48.4%] p-2 md:p-3 lg:p-4">
-            <div className="relative w-full h-full rounded-lg lg:rounded-xl overflow-hidden">
-              {bottomLeftSrc ? (
-                <Image
-                  src={bottomLeftSrc}
-                  alt={bottomLeftAlt}
-                  fill
-                  sizes="(min-width: 768px) 60vw, 100vw"
-                  className="object-cover"
-                />
-              ) : null}
+              ))}
             </div>
-          </div>
+          ) : null}
 
-          <div className="absolute bottom-0 right-0 w-[40.6%] h-[48.4%] flex flex-col justify-center pl-4 pr-3 md:pl-7 md:pr-4 lg:pl-10 lg:pr-5 translate-x-[2%]">
-            <h3 className="font-display text-sm md:text-xl lg:text-2xl font-bold text-primary-500 leading-[1.15] tracking-[-0.01em]">
-              {greenTitle}
-            </h3>
-            <p className="mt-1.5 md:mt-2 lg:mt-3 text-[10px] md:text-xs lg:text-sm text-primary-500/80 leading-relaxed">
-              {greenBody}
-            </p>
-          </div>
+          {featuredImg ? (
+            <OtherWorksFeaturedTile
+              src={featuredImg.src}
+              alt={featuredImg.alt}
+              title={featuredTitle}
+              href={featuredHref}
+            />
+          ) : null}
+
+          {viewMoreHref ? (
+            <div className="flex justify-end">
+              <CtaLink
+                href={viewMoreHref}
+                className="inline-flex w-fit items-center rounded-round border border-white/50 px-6 py-2.5 text-sm font-semibold text-white transition-colors duration-300 ease-(--ease-premium) hover:border-white/80 hover:bg-white/10"
+              >
+                View More
+              </CtaLink>
+            </div>
+          ) : null}
         </div>
       </div>
     </section>
+  );
+}
+
+// Masonry card with two layouts:
+//   • "compact" — mint card; small square thumbnail tucked top-right beside
+//     the title, description anchored to the bottom.
+//   • "feature" — full-width dark media tile spanning both columns, with the
+//     title overlaid on the cover image (the every-5th break).
+function OtherWorkCard({
+  initiative,
+  variant,
+}: {
+  initiative: Initiative;
+  variant: "compact" | "feature";
+}) {
+  const href = initiative.externalLink
+    ? initiative.externalLink
+    : initiative.hasDetailPage === false
+      ? undefined
+      : `/initiatives/${initiative.slug}`;
+  const img = resolveImage(initiative.coverImage, {
+    width: variant === "feature" ? 1600 : 700,
+  });
+  const tag = initiative.tag ?? "Initiative";
+
+  // Full-width dark media tile (spans all masonry columns).
+  if (variant === "feature") {
+    const featCls =
+      "[column-span:all] mb-5 lg:mb-6 group/feat relative block overflow-hidden rounded-2xl lg:rounded-3xl aspect-video lg:aspect-2/1 bg-primary-500";
+    const featInner = (
+      <>
+        {img ? (
+          <Image
+            src={img.src}
+            alt={img.alt}
+            fill
+            sizes="(min-width: 1024px) 60vw, 100vw"
+            className="object-cover"
+          />
+        ) : null}
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent"
+        />
+        <p className="absolute left-6 right-6 bottom-6 md:left-8 md:bottom-8 font-display text-lg md:text-xl lg:text-2xl font-bold text-white leading-snug max-w-md">
+          {initiative.title}
+        </p>
+      </>
+    );
+    return href ? (
+      <CtaLink href={href} className={featCls}>
+        {featInner}
+      </CtaLink>
+    ) : (
+      <div className={featCls}>{featInner}</div>
+    );
+  }
+
+  // Compact mint card.
+  const cls =
+    "flex flex-col break-inside-avoid mb-5 lg:mb-6 rounded-2xl lg:rounded-3xl p-6 lg:p-7 min-h-96 lg:min-h-112";
+  const inner = (
+    <>
+      <div className="flex items-start justify-between gap-5">
+        <div className="flex flex-col gap-2">
+          <div className="text-sm font-medium tracking-[0.02em] text-primary-500/55">
+            {tag}
+          </div>
+          <h3 className="font-display text-xl lg:text-2xl font-bold text-primary-500 leading-[1.18] tracking-[-0.01em]">
+            {initiative.title}
+          </h3>
+        </div>
+        {img ? (
+          <div className="relative shrink-0 w-24 md:w-28 lg:w-36 aspect-square overflow-hidden rounded-xl lg:rounded-2xl bg-primary-500/5">
+            <Image
+              src={img.src}
+              alt={img.alt}
+              fill
+              sizes="160px"
+              className="object-cover"
+            />
+          </div>
+        ) : null}
+      </div>
+      {initiative.excerpt ? (
+        <p className="mt-auto pt-12 text-sm lg:text-[15px] text-primary-500/85 leading-relaxed">
+          {initiative.excerpt}
+        </p>
+      ) : null}
+    </>
+  );
+
+  return href ? (
+    <CtaLink
+      href={href}
+      className={`${cls} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30`}
+      style={{ backgroundColor: SUPPORTING_CARD_BG }}
+    >
+      {inner}
+    </CtaLink>
+  ) : (
+    <div className={cls} style={{ backgroundColor: SUPPORTING_CARD_BG }}>
+      {inner}
+    </div>
+  );
+}
+
+// Large dark media tile with a title overlay, shown below the cards.
+function OtherWorksFeaturedTile({
+  src,
+  alt,
+  title,
+  href,
+}: {
+  src: string;
+  alt: string;
+  title?: string;
+  href?: string;
+}) {
+  const cls =
+    "group/feat relative block overflow-hidden rounded-2xl lg:rounded-3xl aspect-video lg:aspect-2/1 bg-primary-500";
+  const inner = (
+    <>
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes="(min-width: 1024px) 60vw, 100vw"
+        className="object-cover"
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent"
+      />
+      {title ? (
+        <p className="absolute left-6 right-6 bottom-6 md:left-8 md:bottom-8 font-display text-lg md:text-xl lg:text-2xl font-bold text-white leading-snug max-w-md">
+          {title}
+        </p>
+      ) : null}
+    </>
+  );
+  return href ? (
+    <CtaLink href={href} className={cls}>
+      {inner}
+    </CtaLink>
+  ) : (
+    <div className={cls}>{inner}</div>
   );
 }
 
@@ -735,26 +1093,3 @@ function FutureStatCard({ stat, bg }: { stat: FutureStat; bg: string }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────── Utils ──
-
-function CtaPrimary({ cta }: { cta: Cta }) {
-  if (!cta) return null;
-  return (
-    <CtaLink href={cta.href} className="inline-flex">
-      <Button variant="primary" size="sm">
-        {cta.label}
-      </Button>
-    </CtaLink>
-  );
-}
-
-function CtaTertiary({ cta }: { cta: Cta }) {
-  if (!cta) return null;
-  return (
-    <CtaLink href={cta.href} className="inline-flex">
-      <Button variant="tertiary" size="sm">
-        {cta.label}
-      </Button>
-    </CtaLink>
-  );
-}

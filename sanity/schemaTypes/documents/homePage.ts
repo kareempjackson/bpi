@@ -15,6 +15,7 @@ export const homePage = defineType({
     { name: "why", title: "Why BPI" },
     { name: "initiatives", title: "Initiatives" },
     { name: "blog", title: "Blog" },
+    { name: "careers", title: "Careers" },
     { name: "building", title: "Building / Footer CTA" },
   ],
   fields: [
@@ -22,39 +23,28 @@ export const homePage = defineType({
     defineField({
       name: "seoTitle",
       title: "Page title (browser tab & SEO)",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "seo",
-      initialValue: "Barbados Pharmaceutical Inc",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "seoDescription",
       title: "Meta description",
-      type: "text",
-      rows: 3,
+      type: "internationalizedArrayText",
       group: "seo",
-      initialValue: "Barbados Pharmaceutical Inc",
-      validation: (Rule) => Rule.required(),
     }),
 
     // ─────────────────────────────────────────────────────────────── Hero ──
     defineField({
       name: "heroHeadline",
       title: "Headline",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "hero",
-      initialValue: "Building the Caribbean's pharmaceutical gateway.",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "heroBody",
       title: "Body",
-      type: "text",
-      rows: 4,
+      type: "internationalizedArrayText",
       group: "hero",
-      initialValue:
-        "97% of Caribbean medicines are imported. BPI is building the manufacturing capacity, supply chain, and regulatory infrastructure to change that.",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "heroCtaHref",
@@ -137,20 +127,19 @@ export const homePage = defineType({
             defineField({
               name: "headline",
               title: "Headline",
-              type: "string",
-              validation: (Rule) => Rule.required(),
+              type: "internationalizedArrayString",
             }),
             defineField({
               name: "body",
               title: "Body",
-              type: "text",
-              rows: 3,
+              type: "internationalizedArrayText",
             }),
             defineField({
-              name: "ctaHref",
+              name: "ctaLink",
               title: "CTA link (arrow button)",
-              type: "string",
-              description: "Destination for the arrow button beside the body.",
+              type: "pageLink",
+              description:
+                "Destination for the arrow button — a site page, a specific initiative / blog post / job, or a custom URL.",
             }),
             defineField({
               name: "background",
@@ -195,7 +184,7 @@ export const homePage = defineType({
             }),
           ],
           preview: {
-            select: { title: "headline", media: "thumbnail" },
+            select: { title: "headline.0.value", media: "thumbnail" },
           },
         }),
       ],
@@ -211,20 +200,21 @@ export const homePage = defineType({
         defineField({
           name: "label",
           title: "Title",
-          type: "string",
+          type: "internationalizedArrayString",
           description: 'e.g. "Who we are".',
         }),
         defineField({
           name: "eyebrow",
           title: "Eyebrow",
-          type: "string",
+          type: "internationalizedArrayString",
           description: 'Small label above the title. Defaults to "Feature".',
         }),
         defineField({
-          name: "href",
+          name: "link",
           title: "Link",
-          type: "string",
-          description: "Where the card links to.",
+          type: "pageLink",
+          description:
+            "Where the card links to — a site page, a specific initiative / blog post / job, or a custom URL.",
         }),
         externalVideoUrlField(false),
         defineField({
@@ -245,46 +235,32 @@ export const homePage = defineType({
     defineField({
       name: "leaderQuote",
       title: "Quote",
-      type: "text",
-      rows: 4,
+      type: "internationalizedArrayText",
       group: "leader",
-      initialValue:
-        "We are building the vehicle that protects our citizens and re-writes what we believe about ourselves.",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "leaderBody",
       title: "Body",
-      type: "text",
-      rows: 3,
+      type: "internationalizedArrayText",
       group: "leader",
-      initialValue:
-        "Barbados Pharmaceutical Inc. is building the gateway that connects Caribbean demand with global pharmaceutical expertise.",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "leaderName",
       title: "Name",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "leader",
-      initialValue: "Dr Cindi A. Lewis",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "leaderTitle",
       title: "Title",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "leader",
-      initialValue: "Deputy Chief Executive Officer",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "leaderOrg",
       title: "Organisation",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "leader",
-      initialValue: "Barbados Pharmaceutical Inc.",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "leaderQuoteImage",
@@ -318,20 +294,14 @@ export const homePage = defineType({
     defineField({
       name: "architectureHeading",
       title: "Heading",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "architecture",
-      initialValue: "Four Strategic Priorities",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "architectureDescription",
       title: "Description",
-      type: "text",
-      rows: 3,
+      type: "internationalizedArrayText",
       group: "architecture",
-      initialValue:
-        "Each one a deliberate step toward a Caribbean that manufactures, distributes, and regulates its own medicines.",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "architectureItems",
@@ -339,63 +309,20 @@ export const homePage = defineType({
       type: "array",
       group: "architecture",
       of: [defineArrayMember({ type: "priorityCard" })],
-      initialValue: [
-        {
-          _type: "priorityCard",
-          _key: "pc-investment",
-          title: "Attract & Facilitate Investment",
-          description:
-            "Giving global capital a clear pathway into the Caribbean pharmaceutical market.",
-          href: "/priorities/investment",
-          color: "#CAF1FF",
-        },
-        {
-          _type: "priorityCard",
-          _key: "pc-capacity",
-          title: "Build & Incubate Capacity",
-          description: "Moving strategic projects from concept to execution.",
-          href: "/priorities/capacity",
-          color: "#dde885",
-        },
-        {
-          _type: "priorityCard",
-          _key: "pc-supply",
-          title: "Strengthen Regional Supply Chains",
-          description:
-            "Building the trade corridors and distribution infrastructure the Caribbean depends on.",
-          href: "/priorities/supply-chains",
-          color: "#38fe9c",
-        },
-        {
-          _type: "priorityCard",
-          _key: "pc-ecosystem",
-          title: "Build the Ecosystem Foundations",
-          description:
-            "Developing the regulatory, workforce, and research foundations for a permanent sector.",
-          href: "/priorities/ecosystem",
-          color: "#b5d4e6",
-        },
-      ],
     }),
 
     // ──────────────────────────────────────────────────────────── Sectors ──
     defineField({
       name: "sectorsHeading",
       title: "Heading",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "sectors",
-      initialValue: "Shifting Trade Prowess in Favour of the Global South",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "sectorsBody",
       title: "Body",
-      type: "text",
-      rows: 3,
+      type: "internationalizedArrayText",
       group: "sectors",
-      initialValue:
-        "BPI is building across six sectors, each one a structural component of the Caribbean's pharmaceutical future.",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "sectorsNodes",
@@ -405,62 +332,6 @@ export const homePage = defineType({
       of: [defineArrayMember({ type: "sectorNode" })],
       description:
         "Each entry fills a fixed position in the molecule diagram (selected via the Slot dropdown). Up to 6 — only sectors whose Slot matches a position in the diagram will render.",
-      initialValue: [
-        {
-          _type: "sectorNode",
-          _key: "sn-01",
-          nodeId: "market-access",
-          num: "01",
-          title: "Market Access & Trade Development",
-          description:
-            "Opening pharmaceutical trade routes across CARICOM, Latin America, Africa, and the Global South.",
-        },
-        {
-          _type: "sectorNode",
-          _key: "sn-02",
-          nodeId: "workforce",
-          num: "02",
-          title: "Workforce & Talent Development",
-          description:
-            "Building the skilled workforce Caribbean pharmaceutical production depends on.",
-        },
-        {
-          _type: "sectorNode",
-          _key: "sn-03",
-          nodeId: "research-development",
-          num: "03",
-          title: "Research & Development",
-          description:
-            "Establishing Barbados as a credible site for pharmaceutical research and technology transfer.",
-        },
-        {
-          _type: "sectorNode",
-          _key: "sn-04",
-          nodeId: "innovation-technology",
-          num: "04",
-          title: "Innovation & Technology",
-          description:
-            "Creating the conditions for pharmaceutical innovation to take root and scale.",
-        },
-        {
-          _type: "sectorNode",
-          _key: "sn-05",
-          nodeId: "regulatory-policy",
-          num: "05",
-          title: "Regulatory Development & Policy",
-          description:
-            "Building the regulatory framework that gives investors and manufacturers confidence to commit.",
-        },
-        {
-          _type: "sectorNode",
-          _key: "sn-06",
-          nodeId: "investment-financing",
-          num: "06",
-          title: "Investment & Financing",
-          description:
-            "Connecting viable projects to the right capital at the right stage.",
-        },
-      ],
       validation: (Rule) => Rule.max(6),
     }),
 
@@ -468,30 +339,20 @@ export const homePage = defineType({
     defineField({
       name: "whyQuote",
       title: "Quote",
-      type: "text",
-      rows: 4,
+      type: "internationalizedArrayText",
       group: "why",
-      initialValue:
-        '"Perhaps the biggest game changer since we have come to office is addressing the issue of pharmaceutical equity and creating a platform for jobs, investment and earnings for a pharmaceutical industry in Barbados for the first time."',
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "whyAttribution",
       title: "Attribution",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "why",
-      initialValue: "Rt. Hon. Mia Amor Mottley, Prime Minister of Barbados",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "whyBody",
       title: "Body",
-      type: "text",
-      rows: 3,
+      type: "internationalizedArrayText",
       group: "why",
-      initialValue:
-        "BPI is the institution built to deliver on that mandate, reducing pharmaceutical import dependency and building health sovereignty across the Caribbean.",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "whyCta",
@@ -512,18 +373,14 @@ export const homePage = defineType({
     defineField({
       name: "initiativesEyebrow",
       title: "Eyebrow",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "initiatives",
-      initialValue: "WHAT WE'RE BUILDING",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "initiativesHeading",
       title: "Heading",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "initiatives",
-      initialValue: "Initiatives",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "initiativesViewAllHref",
@@ -554,10 +411,8 @@ export const homePage = defineType({
     defineField({
       name: "blogHeading",
       title: "Section heading",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "blog",
-      initialValue: "Latest from BPI",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "blogShowCount",
@@ -568,22 +423,64 @@ export const homePage = defineType({
       validation: (Rule) => Rule.min(0).max(12).integer(),
     }),
 
+    // ────────────────────────────────────────────────────────── Careers ──
+    defineField({
+      name: "careersEyebrow",
+      title: "Eyebrow",
+      type: "internationalizedArrayString",
+      group: "careers",
+    }),
+    defineField({
+      name: "careersHeading",
+      title: "Heading",
+      type: "internationalizedArrayString",
+      group: "careers",
+    }),
+    defineField({
+      name: "careersLead",
+      title: "Lead (large sub-heading)",
+      type: "internationalizedArrayText",
+      group: "careers",
+    }),
+    defineField({
+      name: "careersBody",
+      title: "Body",
+      type: "internationalizedArrayText",
+      group: "careers",
+    }),
+    defineField({
+      name: "careersImage",
+      title: "Image",
+      type: "imageWithAlt",
+      group: "careers",
+    }),
+    defineField({
+      name: "careersPrimaryCta",
+      title: "Primary CTA",
+      type: "cta",
+      group: "careers",
+      initialValue: { label: "View Jobs", href: "/careers" },
+    }),
+    defineField({
+      name: "careersSecondaryCta",
+      title: "Secondary CTA",
+      type: "cta",
+      group: "careers",
+      initialValue: { label: "Our initiatives", href: "/initiatives" },
+    }),
+
     // ───────────────────────────────────────────────────────── Building ──
     defineField({
       name: "buildingHeadlineLine1",
       title: "Headline (line 1)",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "building",
-      initialValue: "The gateway is open.",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "buildingHeadlineLine2",
       title: "Headline (line 2)",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "building",
-      initialValue: "Ready to build with us?",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "buildingImage",
@@ -605,6 +502,17 @@ export const homePage = defineType({
       type: "cta",
       group: "building",
       initialValue: { label: "Our initiatives", href: "/initiatives" },
+    }),
+    defineField({
+      name: "pageSections",
+      title: "Page sections",
+      description:
+        "Add and reorder modular sections (Call to Action, Careers) shown at the bottom of this page. Each can have its own copy, links, and image or video.",
+      type: "array",
+      of: [
+        defineArrayMember({ type: "ctaSection" }),
+        defineArrayMember({ type: "careersSection" }),
+      ],
     }),
   ],
   preview: {

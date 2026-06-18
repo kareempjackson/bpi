@@ -14,30 +14,22 @@ export const contactPage = defineType({
     defineField({
       name: "seoTitle",
       title: "Page title (browser tab & SEO)",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "seo",
-      initialValue: "Contact — BPI",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "seoDescription",
       title: "Meta description",
-      type: "text",
-      rows: 3,
+      type: "internationalizedArrayText",
       group: "seo",
-      initialValue:
-        "Ready to partner with Barbados Pharmaceutical Inc.? Get in touch.",
-      validation: (Rule) => Rule.required(),
     }),
 
     // ─────────────────────────────────────────────────────────────── Hero ──
     defineField({
       name: "heroHeading",
       title: "Heading",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "hero",
-      initialValue: "Ready to Partner with us?",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "heroImage",
@@ -85,28 +77,20 @@ export const contactPage = defineType({
     defineField({
       name: "formHeading",
       title: "Form heading",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "form",
-      initialValue: "Contact Us",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "formDescription",
       title: "Form description",
-      type: "text",
-      rows: 4,
+      type: "internationalizedArrayText",
       group: "form",
-      initialValue:
-        "Get in touch with BPI — we're here to answer your questions, support your journey, and help you connect with opportunities in pharmaceutical innovation and supply chain excellence.",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "formSubmitLabel",
       title: "Submit button label",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "form",
-      initialValue: "Get in touch",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "formBg",
@@ -121,6 +105,17 @@ export const contactPage = defineType({
       type: "imageWithAlt",
       group: "form",
       validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: "pageSections",
+      title: "Page sections",
+      description:
+        "Add and reorder modular sections (Call to Action, Careers) shown at the bottom of this page. Each can have its own copy, links, and image or video.",
+      type: "array",
+      of: [
+        defineArrayMember({ type: "ctaSection" }),
+        defineArrayMember({ type: "careersSection" }),
+      ],
     }),
   ],
   preview: {

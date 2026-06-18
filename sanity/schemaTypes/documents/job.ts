@@ -23,9 +23,8 @@ export const job = defineType({
     defineField({
       name: "title",
       title: "Title",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "overview",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "slug",
@@ -48,20 +47,16 @@ export const job = defineType({
     defineField({
       name: "location",
       title: "Location",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "overview",
       description: 'e.g. "On-site", "100% Remote", "Hybrid — Bridgetown".',
-      validation: (Rule) => Rule.required(),
-      initialValue: "On-site",
     }),
     defineField({
       name: "schedule",
       title: "Schedule",
-      type: "string",
+      type: "internationalizedArrayString",
       group: "overview",
       description: 'e.g. "Full-time", "Part-time", "Contract".',
-      validation: (Rule) => Rule.required(),
-      initialValue: "Full-time",
     }),
     defineField({
       name: "publishedAt",
@@ -84,29 +79,23 @@ export const job = defineType({
     defineField({
       name: "summary",
       title: "Summary (listing row)",
-      type: "text",
-      rows: 2,
+      type: "internationalizedArrayText",
       group: "details",
       description: "One-line teaser shown on the careers landing list.",
-      validation: (Rule) => Rule.required().max(220),
     }),
     defineField({
       name: "longSummary",
       title: "Long summary (detail page)",
-      type: "text",
-      rows: 5,
+      type: "internationalizedArrayText",
       group: "details",
       description: "Shown under \"Job Summary\" on the detail page.",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "description",
       title: "Description (detail page)",
-      type: "text",
-      rows: 5,
+      type: "internationalizedArrayText",
       group: "details",
       description: "Opening paragraph in the \"Job Description\" row.",
-      validation: (Rule) => Rule.required(),
     }),
 
     // ─────────────────────────────────────────────────────── Sections ──
@@ -118,32 +107,6 @@ export const job = defineType({
       type: "array",
       group: "lists",
       of: [defineArrayMember({ type: "jobSection" })],
-      initialValue: [
-        {
-          _type: "jobSection",
-          _key: "sec-responsibilities",
-          title: "Key Responsibilities",
-          content: [],
-        },
-        {
-          _type: "jobSection",
-          _key: "sec-min-qualifications",
-          title: "Minimum Qualifications",
-          content: [],
-        },
-        {
-          _type: "jobSection",
-          _key: "sec-pref-qualifications",
-          title: "Preferred Qualifications",
-          content: [],
-        },
-        {
-          _type: "jobSection",
-          _key: "sec-pay-benefits",
-          title: "Pay & Benefits",
-          content: [],
-        },
-      ],
       validation: (Rule) => Rule.min(1),
     }),
 
@@ -182,7 +145,7 @@ export const job = defineType({
   ],
   preview: {
     select: {
-      title: "title",
+      title: "title.0.value",
       category: "category",
       location: "location",
       active: "active",

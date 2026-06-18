@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import CtaLink from "./CtaLink";
 
 type ImageTile = { src?: string; alt?: string };
@@ -18,22 +20,13 @@ type Props = {
   primaryHref?: string;
   secondaryLabel?: string;
   secondaryHref?: string;
-  /** Partner wordmarks for the bottom marquee. */
-  partners?: string[];
+  /** "green" (default) or "blue" — recolors the section + inner panel. */
+  tone?: "green" | "blue";
 };
-
-const DEFAULT_PARTNERS = [
-  "Google+",
-  "Microsoft",
-  "MetalLB",
-  "LinkedIn",
-  "Instagram",
-  "Apple Pay",
-  "amazon",
-];
 
 export default function BuildingSection({
   imageSrc,
+  videoSrc,
   imageAlt = "",
   images,
   heading,
@@ -44,8 +37,9 @@ export default function BuildingSection({
   primaryHref = "/contact",
   secondaryLabel = "Our initiatives",
   secondaryHref = "/initiatives",
-  partners = DEFAULT_PARTNERS,
+  tone = "green",
 }: Props) {
+  const isBlue = tone === "blue";
   const title =
     heading ||
     [headlineLine1, headlineLine2].filter(Boolean).join(" ") ||
@@ -64,12 +58,9 @@ export default function BuildingSection({
     base.length ? base[i % base.length] : { src: undefined, alt: "" }
   );
 
-  // The marquee duplicates the list so the linear loop is seamless.
-  const looped = [...partners, ...partners];
-
   return (
-    <section data-nav-theme="light" className="bg-[#EAFBF1] px-5 sm:px-8 md:px-12 lg:px-20 xl:px-28 pt-12 md:pt-20 lg:pt-28 pb-12 md:pb-20 lg:pb-28">
-      <div className="rounded-2xl md:rounded-3xl bg-error-500 overflow-hidden px-6 md:px-12 lg:px-16 pt-10 md:pt-14 lg:pt-20 pb-8 md:pb-10 lg:pb-14">
+    <section data-nav-theme="light" className={`${isBlue ? "bg-[#E7F9FF]" : "bg-[#EAFBF1]"} px-5 sm:px-8 md:px-12 lg:px-20 xl:px-28 pt-12 md:pt-20 lg:pt-28 pb-12 md:pb-20 lg:pb-28`}>
+      <div className={`${isBlue ? "bg-warning-25" : "bg-error-500"} rounded-2xl md:rounded-3xl overflow-hidden px-6 md:px-12 lg:px-16 pt-10 md:pt-14 lg:pt-20 pb-8 md:pb-10 lg:pb-14`}>
         <div className="flex flex-col gap-12 md:gap-16 lg:gap-24">
           {/* Top: copy on the left, three images on the right */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12 items-center">
@@ -97,60 +88,48 @@ export default function BuildingSection({
               </div>
             </div>
 
-            {/* Right — three portrait tiles, progressively wider L→R */}
-            <div
-              data-reveal="scale"
-              className="grid grid-cols-[0.7fr_1fr_1.4fr] gap-3 md:gap-4 h-72 md:h-96 lg:h-112"
-            >
-              {tiles.map((tile, i) => (
-                <div
-                  key={i}
-                  className="relative h-full overflow-hidden rounded-2xl bg-primary-500/5"
-                >
-                  {tile.src ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={tile.src}
-                      alt={tile.alt ?? ""}
-                      className="absolute inset-0 h-full w-full object-cover"
-                    />
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Bottom: partners marquee */}
-          {partners.length > 0 ? (
-            <div className="flex flex-row items-center gap-5 md:gap-8 lg:gap-10">
-              <span className="shrink-0 text-[11px] md:text-xs font-semibold tracking-[0.18em] text-primary-500/50 uppercase">
-                Partners
-              </span>
+            {/* Right — a single video, or three portrait tiles (wider L→R) */}
+            {videoSrc ? (
               <div
-                className="relative overflow-hidden flex-1"
-                style={{
-                  maskImage:
-                    "linear-gradient(to right, transparent 0, black 5%, black 95%, transparent 100%)",
-                  WebkitMaskImage:
-                    "linear-gradient(to right, transparent 0, black 5%, black 95%, transparent 100%)",
-                }}
+                data-reveal="scale"
+                className="relative h-72 md:h-96 lg:h-112 overflow-hidden rounded-2xl bg-primary-500/5"
               >
-                <div
-                  className="flex w-max items-center gap-x-10 md:gap-x-14 lg:gap-x-20 motion-reduce:animate-none"
-                  style={{ animation: "partners-marquee 28s linear infinite" }}
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="metadata"
+                  poster={imageSrc}
+                  className="absolute inset-0 h-full w-full object-cover"
                 >
-                  {looped.map((name, idx) => (
-                    <span
-                      key={`${name}-${idx}`}
-                      className="shrink-0 whitespace-nowrap text-base md:text-lg lg:text-xl font-semibold tracking-tight text-primary-500/40"
-                    >
-                      {name}
-                    </span>
-                  ))}
-                </div>
+                  <source src={videoSrc} />
+                </video>
               </div>
-            </div>
-          ) : null}
+            ) : (
+              <div
+                data-reveal="scale"
+                className="grid grid-cols-[0.7fr_1fr_1.4fr] gap-3 md:gap-4 h-72 md:h-96 lg:h-112"
+              >
+                {tiles.map((tile, i) => (
+                  <div
+                    key={i}
+                    className="relative h-full overflow-hidden rounded-2xl bg-primary-500/5"
+                  >
+                    {tile.src ? (
+                      <Image
+                        src={tile.src}
+                        alt={tile.alt ?? ""}
+                        fill
+                        sizes="(min-width: 768px) 22vw, 33vw"
+                        className="object-cover"
+                      />
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>

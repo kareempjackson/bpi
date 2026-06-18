@@ -42,7 +42,7 @@ export default function LeaderLabel({
             <button
               type="button"
               onClick={() => setOpen(true)}
-              className="mt-3 inline-flex items-center rounded-round border border-dashed border-primary-500/60 bg-error-500 px-4 py-1.5 text-sm font-semibold text-primary-500 opacity-0 translate-y-1 transition-[opacity,transform,background-color] duration-500 ease-[var(--ease-premium)] delay-100 group-hover:opacity-100 group-hover:translate-y-0 focus-visible:opacity-100 focus-visible:translate-y-0 hover:bg-error-400 hover:border-primary-500/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 focus-visible:ring-offset-2 motion-reduce:transform-none"
+              className="mt-3 inline-flex items-center rounded-round bg-error-500 px-4 py-1.5 text-sm font-semibold text-primary-500 opacity-0 translate-y-1 transition-[opacity,transform,background-color] duration-500 ease-[var(--ease-premium)] delay-100 group-hover:opacity-100 group-hover:translate-y-0 focus-visible:opacity-100 focus-visible:translate-y-0 hover:bg-error-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 focus-visible:ring-offset-2 motion-reduce:transform-none"
             >
               View Profile
             </button>

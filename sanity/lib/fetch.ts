@@ -9,6 +9,13 @@ import { sanityFetch as liveFetch } from "./live";
 // (Sanity outage, deploy gap) nothing stays stale longer than this.
 const FALLBACK_REVALIDATE = 3600; // 1 hour
 
+// In local dev the publish webhook points at the deployed domain, so it never
+// reaches localhost — meaning cached reads would otherwise stay frozen for the
+// full hour after you edit content in Studio. So locally we skip the Data Cache
+// (`revalidate: 0`) and read straight from the live API (`useCdn: false`) so a
+// publish shows on the very next page refresh. Prod keeps the cached CDN read.
+const isDev = process.env.NODE_ENV === "development";
+
 /**
  * Cache tags, one per Sanity document `_type`. These must match the document
  * type names exactly — the publish webhook (`/api/revalidate`) calls
@@ -19,12 +26,17 @@ export const TAG = {
   homePage: "homePage",
   siteSettings: "siteSettings",
   post: "post",
+  tag: "tag",
+  blogPage: "blogPage",
   initiative: "initiative",
   initiativesPage: "initiativesPage",
   aboutPage: "aboutPage",
   contactPage: "contactPage",
   careersPage: "careersPage",
   job: "job",
+  event: "event",
+  portalPage: "portalPage",
+  portalResource: "portalResource",
 } as const;
 
 type LoadQueryOptions = {
@@ -52,12 +64,27 @@ export async function loadQuery<T>(
 ): Promise<T> {
   const { isEnabled: isDraft } = await draftMode();
 
+  // Every localized query references `$lang`. Default it to "en" so a call
+  // site that doesn't pass a locale (or a query that doesn't use it) never
+  // trips Sanity's "param referenced but not provided" error; real pages
+  // override `lang` with the active route locale.
+  const localizedParams = { lang: "en", ...params };
+
   if (isDraft) {
-    const { data } = await liveFetch({ query, params, stega });
+    const { data } = await liveFetch({ query, params: localizedParams, stega });
     return data as T;
   }
 
-  return client.fetch<T>(query, params, {
+  if (isDev) {
+    // Live API + no Data Cache → content edits appear on the next refresh.
+    return client
+      .withConfig({ useCdn: false })
+      .fetch<T>(query, localizedParams, {
+        next: { revalidate: 0 },
+      });
+  }
+
+  return client.fetch<T>(query, localizedParams, {
     next: { tags, revalidate: FALLBACK_REVALIDATE },
   });
 }

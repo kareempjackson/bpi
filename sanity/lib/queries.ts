@@ -1,14 +1,38 @@
 import { defineQuery } from "next-sanity";
 
+// Field-level i18n helper. Translatable fields are stored by the
+// internationalizedArray* plugin types as arrays of { _key, language, value }.
+// `loc(field)` collapses one back to a plain value for the active language
+// ($lang, guaranteed by the fetch layer), falling back to English. The output
+// key + shape are unchanged, so the frontend + TS types stay the same.
+const loc = (field: string) =>
+  `coalesce(${field}[language == $lang][0].value, ${field}[language == "en"][0].value)`;
+
 const IMAGE_PROJECTION = `{
   kind,
   asset,
   "videoUrl": coalesce(externalVideoUrl, video.asset->url),
-  alt
+  "audioUrl": coalesce(externalAudioUrl, audio.asset->url),
+  "alt": ${loc("alt")}
+}`;
+
+const TAGS_PROJECTION = `tags[]->{ "title": ${loc("title")}, "slug": slug.current, color }`;
+
+const BLOG_CARD_PROJECTION = `{
+  _id,
+  "title": ${loc("title")},
+  "slug": slug.current,
+  "excerpt": ${loc("excerpt")},
+  publishedAt,
+  contentType,
+  wideTile,
+  ${TAGS_PROJECTION},
+  coverImage${IMAGE_PROJECTION},
+  externalLink
 }`;
 
 const CTA_PROJECTION = `{
-  label,
+  "label": ${loc("label")},
   href
 }`;
 
@@ -18,50 +42,80 @@ const MENU_MEDIA_PROJECTION = `{
   "videoUrl": coalesce(externalVideoUrl, video.asset->url)
 }`;
 
+// Modular page blocks (Call to action / Careers) added to a page's
+// `pageSections` list. One projection serves both block types — fields a given
+// block doesn't have simply resolve to null.
+const PAGE_SECTIONS_PROJECTION = `pageSections[]{
+  _type,
+  _key,
+  "eyebrow": ${loc("eyebrow")},
+  "heading": ${loc("heading")},
+  "lead": ${loc("lead")},
+  "body": ${loc("body")},
+  primaryCta${CTA_PROJECTION},
+  secondaryCta${CTA_PROJECTION},
+  media${IMAGE_PROJECTION},
+  tone
+}`;
+
 export const SITE_SETTINGS_QUERY = defineQuery(`
   *[_type == "siteSettings"][0]{
     navLinks[]{
-      label,
+      "label": ${loc("label")},
       href,
       disabled
     },
     menuLinks[]{
-      label,
+      "label": ${loc("label")},
       href,
+      disableLink,
       media${MENU_MEDIA_PROJECTION},
       subItems[]{
-        label,
-        href,
-        media${MENU_MEDIA_PROJECTION}
+        "label": ${loc("label")},
+        media${MENU_MEDIA_PROJECTION},
+        "href": select(
+          linkType == "initiative" => coalesce(reference->externalLink, "/initiatives/" + reference->slug.current),
+          linkType == "post" => coalesce(reference->externalLink, "/blog/" + reference->slug.current),
+          linkType == "job" => "/careers/" + reference->slug.current,
+          href
+        )
       }
     },
     menuLegalLinks[]{
-      label,
+      "label": ${loc("label")},
       href,
       disabled
     },
     menuSocialLinks[]{
       kind,
       href,
-      label
+      "label": ${loc("label")}
     },
     menuBackground${MENU_MEDIA_PROJECTION},
-    showFooterPartners,
-    footerPartners[]{
-      name,
-      "logoUrl": logo.asset->url,
-      href
-    }
+    "footerTagline": ${loc("footerTagline")},
+    footerNavGroups[]{
+      "title": ${loc("title")},
+      links[]{
+        "label": ${loc("label")},
+        href
+      }
+    },
+    footerLegalLinks[]{
+      "label": ${loc("label")},
+      href,
+      disabled
+    },
+    "footerRights": ${loc("footerRights")}
   }
 `);
 
 export const HOME_PAGE_QUERY = defineQuery(`
   *[_type == "homePage"][0]{
-    seoTitle,
-    seoDescription,
+    "seoTitle": ${loc("seoTitle")},
+    "seoDescription": ${loc("seoDescription")},
 
-    heroHeadline,
-    heroBody,
+    "heroHeadline": ${loc("heroHeadline")},
+    "heroBody": ${loc("heroBody")},
     heroCtaHref,
     heroBackground{
       kind,
@@ -69,9 +123,22 @@ export const HOME_PAGE_QUERY = defineQuery(`
       image${IMAGE_PROJECTION}
     },
     heroSlides[]{
-      headline,
-      body,
-      ctaHref,
+      "headline": ${loc("headline")},
+      "body": ${loc("body")},
+      // Resolve the slide's CTA link (page / content item / custom URL) to
+      // one href, falling back to any legacy string ctaHref.
+      "ctaHref": coalesce(
+        select(
+          ctaLink.linkType == "content" => select(
+            ctaLink.reference->_type == "initiative" => coalesce(ctaLink.reference->externalLink, "/initiatives/" + ctaLink.reference->slug.current),
+            ctaLink.reference->_type == "post" => coalesce(ctaLink.reference->externalLink, "/blog/" + ctaLink.reference->slug.current),
+            ctaLink.reference->_type == "job" => "/careers/" + ctaLink.reference->slug.current,
+          ),
+          ctaLink.linkType == "page" => ctaLink.page,
+          ctaLink.href
+        ),
+        ctaHref
+      ),
       background{
         kind,
         "videoUrl": coalesce(externalVideoUrl, video.asset->url),
@@ -80,43 +147,56 @@ export const HOME_PAGE_QUERY = defineQuery(`
       thumbnail${IMAGE_PROJECTION}
     },
     heroFeature{
-      label,
-      eyebrow,
-      href,
+      "label": ${loc("label")},
+      "eyebrow": ${loc("eyebrow")},
       "videoUrl": coalesce(externalVideoUrl, video.asset->url),
-      poster${IMAGE_PROJECTION}
+      poster${IMAGE_PROJECTION},
+      // Resolve the picked page / content item / custom URL to one href.
+      // Falls back to any legacy string href stored before the link picker.
+      "href": coalesce(
+        select(
+          link.linkType == "content" => select(
+            link.reference->_type == "initiative" => coalesce(link.reference->externalLink, "/initiatives/" + link.reference->slug.current),
+            link.reference->_type == "post" => coalesce(link.reference->externalLink, "/blog/" + link.reference->slug.current),
+            link.reference->_type == "job" => "/careers/" + link.reference->slug.current,
+          ),
+          link.linkType == "page" => link.page,
+          link.href
+        ),
+        href
+      )
     },
 
-    leaderQuote,
-    leaderBody,
-    leaderName,
-    leaderTitle,
-    leaderOrg,
+    "leaderQuote": ${loc("leaderQuote")},
+    "leaderBody": ${loc("leaderBody")},
+    "leaderName": ${loc("leaderName")},
+    "leaderTitle": ${loc("leaderTitle")},
+    "leaderOrg": ${loc("leaderOrg")},
     leaderQuoteImage${IMAGE_PROJECTION},
     leaderPortraitImage${IMAGE_PROJECTION},
     leaderSocials[]{
       kind,
       href,
-      label
+      "label": ${loc("label")}
     },
 
-    architectureHeading,
-    architectureDescription,
+    "architectureHeading": ${loc("architectureHeading")},
+    "architectureDescription": ${loc("architectureDescription")},
     architectureItems[]{
-      title,
-      description,
+      "title": ${loc("title")},
+      "description": ${loc("description")},
       href,
       image${IMAGE_PROJECTION},
       color
     },
 
-    sectorsHeading,
-    sectorsBody,
+    "sectorsHeading": ${loc("sectorsHeading")},
+    "sectorsBody": ${loc("sectorsBody")},
     sectorsNodes[]{
       nodeId,
       num,
-      title,
-      description,
+      "title": ${loc("title")},
+      "description": ${loc("description")},
       media{
         kind,
         image${IMAGE_PROJECTION},
@@ -126,26 +206,35 @@ export const HOME_PAGE_QUERY = defineQuery(`
       href
     },
 
-    whyQuote,
-    whyAttribution,
-    whyBody,
+    "whyQuote": ${loc("whyQuote")},
+    "whyAttribution": ${loc("whyAttribution")},
+    "whyBody": ${loc("whyBody")},
     whyCta${CTA_PROJECTION},
     whyImage${IMAGE_PROJECTION},
 
-    initiativesEyebrow,
-    initiativesHeading,
+    "initiativesEyebrow": ${loc("initiativesEyebrow")},
+    "initiativesHeading": ${loc("initiativesHeading")},
     initiativesViewAllHref,
     initiativesDefaultImage${IMAGE_PROJECTION},
     initiativesShowCount,
 
-    blogHeading,
+    "blogHeading": ${loc("blogHeading")},
     blogShowCount,
 
-    buildingHeadlineLine1,
-    buildingHeadlineLine2,
+    "careersEyebrow": ${loc("careersEyebrow")},
+    "careersHeading": ${loc("careersHeading")},
+    "careersLead": ${loc("careersLead")},
+    "careersBody": ${loc("careersBody")},
+    careersImage${IMAGE_PROJECTION},
+    careersPrimaryCta${CTA_PROJECTION},
+    careersSecondaryCta${CTA_PROJECTION},
+
+    "buildingHeadlineLine1": ${loc("buildingHeadlineLine1")},
+    "buildingHeadlineLine2": ${loc("buildingHeadlineLine2")},
     buildingImage${IMAGE_PROJECTION},
     buildingPrimaryCta${CTA_PROJECTION},
-    buildingSecondaryCta${CTA_PROJECTION}
+    buildingSecondaryCta${CTA_PROJECTION},
+    ${PAGE_SECTIONS_PROJECTION}
   }
 `);
 
@@ -153,12 +242,70 @@ export const LATEST_POSTS_QUERY = defineQuery(`
   *[_type == "post" && defined(slug.current) && showInInitiatives != true]
     | order(publishedAt desc)[0...$limit]{
     _id,
-    title,
+    "title": ${loc("title")},
     "slug": slug.current,
-    excerpt,
+    "excerpt": ${loc("excerpt")},
     publishedAt,
+    contentType,
+    ${TAGS_PROJECTION},
     coverImage${IMAGE_PROJECTION},
     externalLink
+  }
+`);
+
+// ── Blog ────────────────────────────────────────────────────────────────────
+// Every post, newest first — drives the /blog index grid + filters.
+export const ALL_BLOG_POSTS_QUERY = defineQuery(`
+  *[_type == "post" && defined(slug.current)]
+    | order(publishedAt desc)${BLOG_CARD_PROJECTION}
+`);
+
+export const ALL_TAGS_QUERY = defineQuery(`
+  *[_type == "tag"] | order(title asc){
+    "title": ${loc("title")},
+    "slug": slug.current,
+    color
+  }
+`);
+
+export const BLOG_PAGE_QUERY = defineQuery(`
+  *[_type == "blogPage"][0]{
+    "heading": ${loc("heading")},
+    "intro": ${loc("intro")},
+    "seoTitle": ${loc("seoTitle")},
+    "seoDescription": ${loc("seoDescription")},
+    "featuredPost": featuredPost->${BLOG_CARD_PROJECTION},
+    ${PAGE_SECTIONS_PROJECTION}
+  }
+`);
+
+// On-site pages are generated for posts that don't link out (an externalLink,
+// typically News, opens the source directly — no detail page needed).
+export const ALL_POST_SLUGS_QUERY = defineQuery(`
+  *[_type == "post" && defined(slug.current) && !defined(externalLink)]{
+    "slug": slug.current
+  }
+`);
+
+export const POST_BY_SLUG_QUERY = defineQuery(`
+  *[_type == "post" && slug.current == $slug][0]{
+    _id,
+    "title": ${loc("title")},
+    "slug": slug.current,
+    "excerpt": ${loc("excerpt")},
+    publishedAt,
+    contentType,
+    wideTile,
+    ${TAGS_PROJECTION},
+    coverImage${IMAGE_PROJECTION},
+    externalLink,
+    "body": ${loc("body")},
+    "attachments": attachments[]{
+      "label": ${loc("label")},
+      "url": file.asset->url,
+      "filename": file.asset->originalFilename,
+      "size": file.asset->size
+    }
   }
 `);
 
@@ -166,10 +313,10 @@ export const LATEST_INITIATIVES_QUERY = defineQuery(`
   *[_type == "initiative" && defined(slug.current)]
     | order(featured desc, coalesce(order, 9999) asc, publishedAt desc)[0...$limit]{
     _id,
-    title,
+    "title": ${loc("title")},
     "slug": slug.current,
-    subtitle,
-    excerpt,
+    "subtitle": ${loc("subtitle")},
+    "excerpt": ${loc("excerpt")},
     publishedAt,
     featured,
     hasDetailPage,
@@ -182,10 +329,10 @@ export const FEATURED_INITIATIVES_QUERY = defineQuery(`
   *[_type == "initiative" && defined(slug.current) && featured == true]
     | order(coalesce(order, 9999) asc, publishedAt desc){
     _id,
-    title,
+    "title": ${loc("title")},
     "slug": slug.current,
-    subtitle,
-    excerpt,
+    "subtitle": ${loc("subtitle")},
+    "excerpt": ${loc("excerpt")},
     publishedAt,
     featured,
     hasDetailPage,
@@ -198,10 +345,10 @@ export const ALL_INITIATIVES_QUERY = defineQuery(`
   *[_type == "initiative" && defined(slug.current)]
     | order(featured desc, coalesce(order, 9999) asc, publishedAt desc){
     _id,
-    title,
+    "title": ${loc("title")},
     "slug": slug.current,
-    subtitle,
-    excerpt,
+    "subtitle": ${loc("subtitle")},
+    "excerpt": ${loc("excerpt")},
     publishedAt,
     featured,
     hasDetailPage,
@@ -222,16 +369,31 @@ export const ALL_INITIATIVE_SLUGS_QUERY = defineQuery(`
 export const INITIATIVE_BY_SLUG_QUERY = defineQuery(`
   *[_type == "initiative" && slug.current == $slug][0]{
     _id,
-    title,
+    "title": ${loc("title")},
     "slug": slug.current,
-    subtitle,
-    excerpt,
+    "subtitle": ${loc("subtitle")},
+    "excerpt": ${loc("excerpt")},
     publishedAt,
     featured,
     hasDetailPage,
     coverImage${IMAGE_PROJECTION},
     externalLink,
-    body
+    "body": ${loc("body")},
+    pageColor,
+    showQuote,
+    "quoteSupporting": ${loc("quoteSupporting")},
+    "quoteText": ${loc("quoteText")},
+    "quoteAttribution": ${loc("quoteAttribution")},
+    quoteImage${IMAGE_PROJECTION},
+    "whyMattersHeading": ${loc("whyMattersHeading")},
+    "whyMattersBody": ${loc("whyMattersBody")},
+    whyMattersImage${IMAGE_PROJECTION},
+    "impactHeading": ${loc("impactHeading")},
+    "impactBody": ${loc("impactBody")},
+    "impactStats": impactStats[]{
+      "value": ${loc("value")},
+      "label": ${loc("label")}
+    }
   }
 `);
 
@@ -239,13 +401,13 @@ export const INITIATIVE_POSTS_QUERY = defineQuery(`
   *[_type == "post" && showInInitiatives == true && defined(slug.current)]
     | order(publishedAt desc)[0...$limit]{
     _id,
-    title,
+    "title": ${loc("title")},
     "slug": slug.current,
-    excerpt,
+    "excerpt": ${loc("excerpt")},
     publishedAt,
     coverImage${IMAGE_PROJECTION},
     externalLink,
-    initiativeEyebrow,
+    "initiativeEyebrow": ${loc("initiativeEyebrow")},
     initiativeTileSize,
     initiativeTileAccent
   }
@@ -253,44 +415,47 @@ export const INITIATIVE_POSTS_QUERY = defineQuery(`
 
 export const INITIATIVES_PAGE_QUERY = defineQuery(`
   *[_type == "initiativesPage"][0]{
-    seoTitle,
-    seoDescription,
+    "seoTitle": ${loc("seoTitle")},
+    "seoDescription": ${loc("seoDescription")},
 
     heroImage${IMAGE_PROJECTION},
-    heroHeadline,
-    heroBody,
+    "heroHeadline": ${loc("heroHeadline")},
+    "heroBody": ${loc("heroBody")},
     heroPrimaryCta${CTA_PROJECTION},
     heroSecondaryCta${CTA_PROJECTION},
 
     showWorkInMotion,
-    workInMotionHeading,
-    workInMotionBody,
+    "workInMotionHeading": ${loc("workInMotionHeading")},
+    "workInMotionBody": ${loc("workInMotionBody")},
     workInMotionBg,
     workInMotionPrimaryCta${CTA_PROJECTION},
     workInMotionSecondaryCta${CTA_PROJECTION},
+    workInMotionImage${IMAGE_PROJECTION},
 
     // The defined() filter drops dangling weak refs (e.g. when the target
     // initiative has been deleted). Without it, deleted refs show up as
     // null entries and need extra handling downstream.
     "featuredInitiative": featuredInitiative->{
       _id,
-      title,
+      "title": ${loc("title")},
       "slug": slug.current,
-      subtitle,
-      excerpt,
+      "subtitle": ${loc("subtitle")},
+      "excerpt": ${loc("excerpt")},
       publishedAt,
       featured,
       coverImage${IMAGE_PROJECTION},
       externalLink
     },
+    "featuredStatBody": ${loc("featuredStatBody")},
     "featuredSupportingInitiatives": featuredSupportingInitiatives[
       defined(@->_id)
     ]->{
       _id,
-      title,
+      "title": ${loc("title")},
       "slug": slug.current,
-      subtitle,
-      excerpt,
+      "subtitle": ${loc("subtitle")},
+      "tag": ${loc("tag")},
+      "excerpt": ${loc("excerpt")},
       publishedAt,
       featured,
       coverImage${IMAGE_PROJECTION},
@@ -298,84 +463,102 @@ export const INITIATIVES_PAGE_QUERY = defineQuery(`
     },
 
     showMotionStories,
-    motionStoriesHeading,
+    "motionStoriesHeading": ${loc("motionStoriesHeading")},
     motionStoriesBg,
     motionStoriesViewAllHref,
     motionStoriesShowCount,
 
     showOtherWorks,
-    otherWorksEyebrow,
-    otherWorksHeading,
-    otherWorksBody,
-    otherWorksBlueTitle,
-    otherWorksBlueBody,
+    "otherWorksEyebrow": ${loc("otherWorksEyebrow")},
+    "otherWorksHeading": ${loc("otherWorksHeading")},
+    "otherWorksBody": ${loc("otherWorksBody")},
+    "otherWorksBlueTitle": ${loc("otherWorksBlueTitle")},
+    "otherWorksBlueBody": ${loc("otherWorksBlueBody")},
     otherWorksBlueCta${CTA_PROJECTION},
     otherWorksBlueBg,
-    otherWorksGreenTitle,
-    otherWorksGreenBody,
+    "otherWorksGreenTitle": ${loc("otherWorksGreenTitle")},
+    "otherWorksGreenBody": ${loc("otherWorksGreenBody")},
     otherWorksGreenBg,
     otherWorksTopRightImages[]${IMAGE_PROJECTION},
     otherWorksBottomLeftImage${IMAGE_PROJECTION},
-
-    buildingFutureHeading,
-    buildingFutureBody,
-    buildingFutureStats[]{
-      value,
-      body
+    "otherWorksInitiatives": otherWorksInitiatives[defined(@->_id)]->{
+      _id,
+      "title": ${loc("title")},
+      "slug": slug.current,
+      "tag": ${loc("tag")},
+      "excerpt": ${loc("excerpt")},
+      coverImage${IMAGE_PROJECTION},
+      externalLink,
+      hasDetailPage
     },
-    buildingFutureStatBg
+    "otherWorksFeaturedTitle": ${loc("otherWorksFeaturedTitle")},
+    otherWorksFeaturedImage${IMAGE_PROJECTION},
+    otherWorksFeaturedHref,
+    otherWorksViewAllHref,
+
+    "buildingFutureHeading": ${loc("buildingFutureHeading")},
+    "buildingFutureBody": ${loc("buildingFutureBody")},
+    buildingFutureStats[]{
+      "value": ${loc("value")},
+      "body": ${loc("body")}
+    },
+    buildingFutureStatBg,
+    ${PAGE_SECTIONS_PROJECTION}
   }
 `);
 
 export const CONTACT_PAGE_QUERY = defineQuery(`
   *[_type == "contactPage"][0]{
-    seoTitle,
-    seoDescription,
+    "seoTitle": ${loc("seoTitle")},
+    "seoDescription": ${loc("seoDescription")},
 
-    heroHeading,
+    "heroHeading": ${loc("heroHeading")},
     heroImage${IMAGE_PROJECTION},
     contactRows[]{
-      label,
-      value,
-      copyValue
+      "label": ${loc("label")},
+      "value": ${loc("value")},
+      "copyValue": ${loc("copyValue")}
     },
 
-    formHeading,
-    formDescription,
-    formSubmitLabel,
+    "formHeading": ${loc("formHeading")},
+    "formDescription": ${loc("formDescription")},
+    "formSubmitLabel": ${loc("formSubmitLabel")},
     formBg,
-    formImage${IMAGE_PROJECTION}
+    formImage${IMAGE_PROJECTION},
+    ${PAGE_SECTIONS_PROJECTION}
   }
 `);
 
 export const CAREERS_PAGE_QUERY = defineQuery(`
   *[_type == "careersPage"][0]{
-    seoTitle,
-    seoDescription,
+    "seoTitle": ${loc("seoTitle")},
+    "seoDescription": ${loc("seoDescription")},
 
-    heroHeadlineLine1,
-    heroDescription,
+    "heroHeadlineLine1": ${loc("heroHeadlineLine1")},
+    "heroHeadlineHighlight": ${loc("heroHeadlineHighlight")},
+    "heroDescription": ${loc("heroDescription")},
     heroImage${IMAGE_PROJECTION},
 
-    whyHeading,
-    whyIntro,
+    "whyHeading": ${loc("whyHeading")},
+    "whyIntro": ${loc("whyIntro")},
     whyImage${IMAGE_PROJECTION},
     whySections[]{
-      heading,
-      body
+      "heading": ${loc("heading")},
+      "body": ${loc("body")}
     },
-    whyBulletsHeading,
+    "whyBulletsHeading": ${loc("whyBulletsHeading")},
     whyBullets,
 
-    jobsHeading,
-    jobsDescription,
-    jobsSearchPlaceholder,
-    jobsFindButtonLabel,
+    "jobsHeading": ${loc("jobsHeading")},
+    "jobsDescription": ${loc("jobsDescription")},
+    "jobsSearchPlaceholder": ${loc("jobsSearchPlaceholder")},
+    "jobsFindButtonLabel": ${loc("jobsFindButtonLabel")},
     jobsBg,
 
-    equalOpportunityParagraph1,
-    equalOpportunityParagraph2,
-    equalOpportunityBg
+    "equalOpportunityParagraph1": ${loc("equalOpportunityParagraph1")},
+    "equalOpportunityParagraph2": ${loc("equalOpportunityParagraph2")},
+    equalOpportunityBg,
+    ${PAGE_SECTIONS_PROJECTION}
   }
 `);
 
@@ -383,12 +566,12 @@ export const ALL_JOBS_QUERY = defineQuery(`
   *[_type == "job" && active != false && defined(slug.current)]
     | order(publishedAt desc){
     _id,
-    title,
+    "title": ${loc("title")},
     "slug": slug.current,
     category,
-    location,
-    schedule,
-    summary,
+    "location": ${loc("location")},
+    "schedule": ${loc("schedule")},
+    "summary": ${loc("summary")},
     publishedAt
   }
 `);
@@ -396,17 +579,17 @@ export const ALL_JOBS_QUERY = defineQuery(`
 export const JOB_BY_SLUG_QUERY = defineQuery(`
   *[_type == "job" && slug.current == $slug][0]{
     _id,
-    title,
+    "title": ${loc("title")},
     "slug": slug.current,
     category,
-    location,
-    schedule,
-    summary,
-    longSummary,
-    description,
+    "location": ${loc("location")},
+    "schedule": ${loc("schedule")},
+    "summary": ${loc("summary")},
+    "longSummary": ${loc("longSummary")},
+    "description": ${loc("description")},
     sections[]{
-      title,
-      content
+      "title": ${loc("title")},
+      "content": ${loc("content")}
     },
     applyEmail,
     applyUrl
@@ -419,75 +602,284 @@ export const ALL_JOB_SLUGS_QUERY = defineQuery(`
   }
 `);
 
+// ── Events ──────────────────────────────────────────────────────────────────
+// Every event, soonest first — drives the /events grid. Includes the synced
+// Eventbrite id/url (set by /api/eventbrite-sync) used by the checkout widget.
+const EVENT_PROJECTION = `{
+  _id,
+  "title": ${loc("title")},
+  "slug": slug.current,
+  "summary": ${loc("summary")},
+  startAt,
+  endAt,
+  timezone,
+  featured,
+  currency,
+  image${IMAGE_PROJECTION},
+  eventbriteId,
+  eventbriteUrl,
+  tickets[]{ "name": ${loc("name")}, kind, price }
+}`;
+
+export const EVENTS_QUERY = defineQuery(`
+  *[_type == "event" && defined(startAt)]
+    | order(startAt asc)${EVENT_PROJECTION}
+`);
+
+// All event slugs — drives generateStaticParams for /events/[slug].
+export const ALL_EVENT_SLUGS_QUERY = defineQuery(`
+  *[_type == "event" && defined(slug.current)]{ "slug": slug.current }
+`);
+
+// Single event by slug — the /events/[slug] detail page. Adds the rich
+// description + location fields on top of the card projection.
+export const EVENT_BY_SLUG_QUERY = defineQuery(`
+  *[_type == "event" && slug.current == $slug][0]{
+    _id,
+    "title": ${loc("title")},
+    "slug": slug.current,
+    "summary": ${loc("summary")},
+    "description": ${loc("description")},
+    startAt,
+    endAt,
+    timezone,
+    featured,
+    currency,
+    locationType,
+    "venueName": ${loc("venueName")},
+    "venueAddress": ${loc("venueAddress")},
+    image${IMAGE_PROJECTION},
+    eventbriteId,
+    eventbriteUrl,
+    tickets[]{ "name": ${loc("name")}, kind, price, quantityTotal }
+  }
+`);
+
+// Full event by id — used by the Eventbrite sync webhook. Projects everything
+// the Eventbrite create/update needs, plus the stored syncHash (loop guard).
+// imageUrl is the raw Sanity CDN URL of the upload (used as the event logo).
+export const EVENT_FOR_SYNC_QUERY = defineQuery(`
+  *[_type == "event" && _id == $id][0]{
+    _id,
+    "title": ${loc("title")},
+    "summary": ${loc("summary")},
+    "description": ${loc("description")},
+    startAt,
+    endAt,
+    timezone,
+    locationType,
+    "venueName": ${loc("venueName")},
+    "venueAddress": ${loc("venueAddress")},
+    currency,
+    tickets[]{ "name": ${loc("name")}, kind, price, quantityTotal },
+    "imageUrl": image.asset.asset->url,
+    eventbriteId,
+    syncHash
+  }
+`);
+
 export const ABOUT_PAGE_QUERY = defineQuery(`
   *[_type == "aboutPage"][0]{
-    seoTitle,
-    seoDescription,
+    "seoTitle": ${loc("seoTitle")},
+    "seoDescription": ${loc("seoDescription")},
 
     heroImage${IMAGE_PROJECTION},
-    heroHeadline,
-    heroSubheading,
+    "heroHeadline": ${loc("heroHeadline")},
+    "heroSubheading": ${loc("heroSubheading")},
     heroCta${CTA_PROJECTION},
 
-    visionHeading,
-    visionDescription,
+    "visionHeading": ${loc("visionHeading")},
+    "visionDescription": ${loc("visionDescription")},
     visionPrimaryCta${CTA_PROJECTION},
     visionSecondaryCta${CTA_PROJECTION},
     visionBg,
     pillars[]{
-      eyebrow,
-      description,
+      "eyebrow": ${loc("eyebrow")},
+      "description": ${loc("description")},
       image${IMAGE_PROJECTION},
       bg,
       highlight
     },
 
-    differenceLeftImage${IMAGE_PROJECTION},
-    differenceRightImage${IMAGE_PROJECTION},
-    differenceHeading,
-    differenceBody,
-    differencePrimaryCta${CTA_PROJECTION},
-    differenceSecondaryCta${CTA_PROJECTION},
-    differenceOuterBg,
-    differenceInnerBg,
+    "differenceEyebrow": ${loc("differenceEyebrow")},
+    "differenceHeading": ${loc("differenceHeading")},
+    "differenceBody": ${loc("differenceBody")},
+    "differenceTagline": ${loc("differenceTagline")},
 
-    missionHeading,
-    missionDescription,
+    "missionHeading": ${loc("missionHeading")},
+    "missionDescription": ${loc("missionDescription")},
     missionCards[]{
-      title,
-      description,
+      "title": ${loc("title")},
+      "description": ${loc("description")},
       href,
-      eyebrow,
+      "eyebrow": ${loc("eyebrow")},
       image${IMAGE_PROJECTION},
       bg
     },
 
-    statsHeading,
-    statsDescription,
+    "statsHeading": ${loc("statsHeading")},
+    "statsDescription": ${loc("statsDescription")},
     stats[]{
-      value,
-      description
+      "value": ${loc("value")},
+      "description": ${loc("description")}
     },
 
     bannerImage${IMAGE_PROJECTION},
 
-    initiativesEyebrow,
-    initiativesHeading,
+    "initiativesEyebrow": ${loc("initiativesEyebrow")},
+    "initiativesHeading": ${loc("initiativesHeading")},
     initiativesShowCount,
 
-    leadershipHeading,
-    leadershipDescription,
+    "leadershipHeading": ${loc("leadershipHeading")},
+    "leadershipDescription": ${loc("leadershipDescription")},
     leadershipBg,
     leaders[]{
-      name,
-      role,
+      "name": ${loc("name")},
+      "role": ${loc("role")},
       image${IMAGE_PROJECTION},
-      bio,
+      "bio": ${loc("bio")},
       linkedin
     },
-    leadershipContactHeading,
-    leadershipContactDescription,
+    "leadershipContactHeading": ${loc("leadershipContactHeading")},
+    "leadershipContactDescription": ${loc("leadershipContactDescription")},
     leadershipContactPrimaryCta${CTA_PROJECTION},
-    leadershipContactSecondaryCta${CTA_PROJECTION}
+    leadershipContactSecondaryCta${CTA_PROJECTION},
+    ${PAGE_SECTIONS_PROJECTION}
   }
 `);
+
+// ── Investor / Partner portal ────────────────────────────────────────────────
+
+// Auth-critical reads. `useCdn:false` client (see app/lib/portal/sanity.ts).
+export const PORTAL_USER_BY_EMAIL_QUERY = defineQuery(`
+  *[_type == "portalUser" && email == $email][0]{
+    _id, name, email, organization, roles, status
+  }
+`);
+
+export const PORTAL_USER_BY_ID_QUERY = defineQuery(`
+  *[_type == "portalUser" && _id == $id][0]{
+    _id, name, email, organization, roles, status
+  }
+`);
+
+// Content listings — already filtered to the viewer's roles in GROQ (the DAL
+// re-checks per item too). Audience match = non-empty intersection.
+export const PORTAL_PAGES_QUERY = defineQuery(`
+  *[_type == "portalPage" && count(audiences[@ in $roles]) > 0]
+    | order(coalesce(order, 9999) asc, title asc){
+    _id,
+    "title": ${loc("title")},
+    "slug": slug.current,
+    "summary": ${loc("summary")},
+    audiences
+  }
+`);
+
+export const PORTAL_RESOURCES_QUERY = defineQuery(`
+  *[_type == "portalResource" && count(audiences[@ in $roles]) > 0]
+    | order(coalesce(order, 9999) asc, title asc){
+    _id,
+    "title": ${loc("title")},
+    "description": ${loc("description")},
+    kind,
+    audiences,
+    file{ key, originalFilename, contentType, size }
+  }
+`);
+
+// Detail reads include `audiences` so the page/route can re-check access for a
+// directly-typed URL.
+export const PORTAL_PAGE_BY_SLUG_QUERY = defineQuery(`
+  *[_type == "portalPage" && slug.current == $slug][0]{
+    _id,
+    "title": ${loc("title")},
+    "slug": slug.current,
+    "summary": ${loc("summary")},
+    audiences,
+    // body is localized (internationalizedArrayPortableText). Resolve to the
+    // active language's block array, then keep the per-block imageWithAlt
+    // media resolution so the renderer is unchanged.
+    "body": coalesce(
+      body[language == $lang][0].value,
+      body[language == "en"][0].value
+    )[]{
+      ...,
+      _type == "imageWithAlt" => {
+        ...,
+        "videoUrl": coalesce(externalVideoUrl, video.asset->url),
+        "audioUrl": coalesce(externalAudioUrl, audio.asset->url)
+      }
+    }
+  }
+`);
+
+export const PORTAL_RESOURCE_BY_ID_QUERY = defineQuery(`
+  *[_type == "portalResource" && _id == $id][0]{
+    _id,
+    "title": ${loc("title")},
+    kind,
+    audiences,
+    file{ key, originalFilename, contentType, size }
+  }
+`);
+
+// ── Site search ──────────────────────────────────────────────────────────────
+// Powers the global search modal. `$q` is a GROQ match pattern built by the
+// /api/search route (each token suffixed with `*` for prefix matching, e.g.
+// "phar mal" -> "phar* mal*"). We match across *every* language value of each
+// translatable field (`field[].value match $q`) so a query finds content no
+// matter which language it was authored in, then project the localized value
+// (via `loc`) for display. Results are grouped by type and capped per group;
+// hrefs mirror each type's public route (coalescing to an external link where
+// the document links out instead of rendering an on-site detail page).
+const SEARCH_LIMIT = 6;
+
+export const SEARCH_QUERY = defineQuery(`{
+  "posts": *[_type == "post" && defined(slug.current) && (
+      title[].value match $q ||
+      excerpt[].value match $q
+    )] | order(publishedAt desc)[0...${SEARCH_LIMIT}]{
+    _id,
+    "type": "post",
+    "title": ${loc("title")},
+    "description": ${loc("excerpt")},
+    "href": coalesce(externalLink, "/blog/" + slug.current)
+  },
+  "initiatives": *[_type == "initiative" && defined(slug.current) && (
+      title[].value match $q ||
+      subtitle[].value match $q ||
+      excerpt[].value match $q
+    )] | order(featured desc, coalesce(order, 9999) asc, publishedAt desc)[0...${SEARCH_LIMIT}]{
+    _id,
+    "type": "initiative",
+    "title": ${loc("title")},
+    "description": coalesce(${loc("subtitle")}, ${loc("excerpt")}),
+    "href": select(
+      defined(externalLink) => externalLink,
+      hasDetailPage != false => "/initiatives/" + slug.current,
+      "/initiatives"
+    )
+  },
+  "events": *[_type == "event" && defined(slug.current) && defined(startAt) && (
+      title[].value match $q ||
+      summary[].value match $q
+    )] | order(startAt asc)[0...${SEARCH_LIMIT}]{
+    _id,
+    "type": "event",
+    "title": ${loc("title")},
+    "description": ${loc("summary")},
+    "href": "/events/" + slug.current
+  },
+  "jobs": *[_type == "job" && active != false && defined(slug.current) && (
+      title[].value match $q ||
+      summary[].value match $q ||
+      location[].value match $q
+    )] | order(publishedAt desc)[0...${SEARCH_LIMIT}]{
+    _id,
+    "type": "job",
+    "title": ${loc("title")},
+    "description": coalesce(${loc("summary")}, ${loc("location")}),
+    "href": "/careers/" + slug.current
+  }
+}`);

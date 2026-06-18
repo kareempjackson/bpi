@@ -7,8 +7,6 @@ export const revalidate = 3600;
 
 import ArchitectureOfCareSection from "@/app/components/ArchitectureOfCareSection";
 import BlogSection, { type BlogSectionPost } from "@/app/components/BlogSection";
-import BuildingSection from "@/app/components/BuildingSection";
-import CareersSection from "@/app/components/CareersSection";
 import SectorsSection from "@/app/components/SectorsSection";
 import HeroSection, {
   type HeroSlide,
@@ -16,6 +14,7 @@ import HeroSection, {
 } from "@/app/components/HeroSection";
 import InitiativesSection from "@/app/components/InitiativesSection";
 import LeaderSection from "@/app/components/LeaderSection";
+import PageSections from "@/app/components/PageSections";
 import StackCard from "@/app/components/StackCard";
 import WhyBpiSection from "@/app/components/WhyBpiSection";
 import { resolveImage, resolveMedia } from "@/sanity/lib/image";
@@ -28,9 +27,9 @@ import {
   SITE_SETTINGS_QUERY,
 } from "@/sanity/lib/queries";
 import type {
+  BlogPost,
   HomePage,
   Initiative,
-  PostSummary,
   ResolvedMedia,
   SiteSettings,
 } from "@/sanity/lib/types";
@@ -100,34 +99,48 @@ const SECTOR_NODE_GEOMETRY: Record<
   },
 };
 
-async function getHomePage(): Promise<HomePage | null> {
-  return loadQuery<HomePage | null>(HOME_PAGE_QUERY, { tags: [TAG.homePage] });
+async function getHomePage(lang: string): Promise<HomePage | null> {
+  return loadQuery<HomePage | null>(HOME_PAGE_QUERY, {
+    params: { lang },
+    tags: [TAG.homePage],
+  });
 }
 
-async function getLatestPosts(limit: number): Promise<PostSummary[]> {
+async function getLatestPosts(
+  lang: string,
+  limit: number,
+): Promise<BlogPost[]> {
   if (limit <= 0) return [];
-  const data = await loadQuery<PostSummary[] | null>(LATEST_POSTS_QUERY, {
-    params: { limit },
+  const data = await loadQuery<BlogPost[] | null>(LATEST_POSTS_QUERY, {
+    params: { lang, limit },
     tags: [TAG.post],
   });
   return data ?? [];
 }
 
-async function getSiteSettings(): Promise<SiteSettings | null> {
+async function getSiteSettings(lang: string): Promise<SiteSettings | null> {
   return loadQuery<SiteSettings | null>(SITE_SETTINGS_QUERY, {
+    params: { lang },
     tags: [TAG.siteSettings],
   });
 }
 
-async function getFeaturedInitiatives(): Promise<Initiative[]> {
+async function getFeaturedInitiatives(lang: string): Promise<Initiative[]> {
   const data = await loadQuery<Initiative[] | null>(FEATURED_INITIATIVES_QUERY, {
+    params: { lang },
     tags: [TAG.initiative],
   });
   return data ?? [];
 }
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
   const doc = await loadQuery<HomePage | null>(HOME_PAGE_QUERY, {
+    params: { lang },
     tags: [TAG.homePage],
     stega: false,
   });
@@ -137,8 +150,13 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function Home() {
-  const data = await getHomePage();
+export default async function Home({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+  const data = await getHomePage(lang);
 
   if (!data) {
     return <EmptyState />;
@@ -146,24 +164,27 @@ export default async function Home() {
 
   const showCount = data.blogShowCount ?? 3;
   const [posts, settings, initiatives] = await Promise.all([
-    getLatestPosts(showCount),
-    getSiteSettings(),
-    getFeaturedInitiatives(),
+    getLatestPosts(lang, showCount),
+    getSiteSettings(lang),
+    getFeaturedInitiatives(lang),
   ]);
 
   const blogPosts: BlogSectionPost[] = posts.map((p) => {
-    const m = resolveMedia(p.coverImage, { width: 800 });
+    const m = resolveMedia(p.coverImage, { width: 1200 });
     return {
       title: p.title,
       excerpt: p.excerpt,
-      // Blog detail pages aren't built yet — route every card to the
-      // under-construction catch-all so visitors see "Please be patient
-      // with us" instead of a 404 / dead link.
-      href: "/coming-soon",
+      // News (and any post with an external link) opens its source; everything
+      // else opens its on-site /blog/[slug] page.
+      href: p.externalLink ?? `/blog/${p.slug}`,
       publishedAt: p.publishedAt,
       imageSrc: mediaImageSrc(m),
       videoSrc: mediaVideoSrc(m),
       imageAlt: m?.alt,
+      tags: (p.tags ?? []).map((t) => t.title).slice(0, 2),
+      category: p.contentType
+        ? p.contentType[0].toUpperCase() + p.contentType.slice(1)
+        : undefined,
     };
   });
 
@@ -225,7 +246,12 @@ export default async function Home() {
     ];
   });
 
-  const initiativesItems = initiatives.map((it) => {
+  // Cap the home-page list at the editor-controlled count (default 4).
+  // FEATURED_INITIATIVES_QUERY is already ordered featured-first, so the
+  // first N are the ones to show.
+  const initiativesItems = initiatives
+    .slice(0, data.initiativesShowCount ?? 4)
+    .map((it) => {
     // Render initiatives even if no cover image has been uploaded yet —
     // the section falls back to the panel-level default image so the
     // card list never goes dark on a freshly-featured initiative.
@@ -477,18 +503,7 @@ export default async function Home() {
         />
       </div>
       <BlogSection heading={data.blogHeading} posts={blogPosts} />
-      <CareersSection
-        imageSrc={mediaImageSrc(buildingMedia)}
-        imageAlt={buildingMedia?.alt}
-      />
-      <BuildingSection
-        imageSrc={mediaImageSrc(buildingMedia)}
-        imageAlt={buildingMedia?.alt}
-        primaryLabel={data.buildingPrimaryCta?.label}
-        primaryHref={data.buildingPrimaryCta?.href}
-        secondaryLabel={data.buildingSecondaryCta?.label}
-        secondaryHref={data.buildingSecondaryCta?.href}
-      />
+      <PageSections sections={data.pageSections} />
     </main>
   );
 }

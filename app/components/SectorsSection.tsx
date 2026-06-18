@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import CtaLink from "./CtaLink";
-import { useLenis } from "./LenisProvider";
 import LogoShape, { LOGO_SHAPE_PATH_D } from "./shapes/LogoShape";
 
 type Node = {
@@ -43,8 +42,8 @@ const VIEWBOX_H = 702;
 export default function SectorsSection({
   heading = "Shifting Trade Prowess in Favour of the Global South",
   body = "BPI is building across six sectors, each one a structural component of the Caribbean's pharmaceutical future.",
-  ctaLabel = "Explore our work",
-  ctaHref = "/initiatives",
+  ctaLabel = "Explore sectors",
+  ctaHref = "/sectors",
   nodes = [],
 }: Props) {
   const sectionRef = useRef<HTMLElement>(null);
@@ -57,31 +56,23 @@ export default function SectorsSection({
   const diagramRef = useRef<HTMLDivElement>(null);
   const mouseTargetRef = useRef({ x: 0, y: 0 });
   const mouseRef = useRef({ x: 0, y: 0 });
-  const { sync } = useLenis();
-  // Asymmetric scroll length, the buttery way — no programmatic scroll.
-  // Going DOWN the section is tall so the six nodes reveal one-by-one over
-  // a long pinned scrub. Once revealed AND scrolled fully past, the tall
-  // scroll range COLLAPSES to a short sticky section (like Initiatives):
-  // scrolling back up the Why-BPI slide-over reveals the diagram, it
-  // sticks for a beat, then a normal short scroll carries you to the
-  // section above — all natural momentum, nothing forced. When you go back
-  // above it, the tall range is restored so the next downward pass reveals
-  // from scratch. Height changes happen only while the section is fully
-  // off-screen, with the scroll position compensated in a layout effect so
-  // there's no visible jump.
+  // The section holds a fixed tall scroll range in both directions: going
+  // DOWN it's a long pinned scrub that reveals the six nodes one-by-one;
+  // going UP the diagram is held fully lit (see `revealedRef`) so nothing
+  // reverse-animates. There is deliberately NO height collapse — shrinking
+  // the range while it sits above the viewport forced a programmatic scroll
+  // compensation that (with Lenis driving scroll) jumped the page backward.
+  // `revealedRef` latches once the molecule has fully revealed; combined
+  // with the scroll direction it holds the diagram fully lit while the user
+  // scrolls back UP, so the nodes never reverse-animate on the way out.
   const revealedRef = useRef(false);
   const lastScrollYRef = useRef(0);
   const scrollDirRef = useRef<"up" | "down">("down");
-  const [collapsed, setCollapsed] = useState(false);
-  const collapsedRef = useRef(false);
-  // Collapsed height. The Why-BPI slide-over overlaps the bottom 120vh of
-  // this section, so the collapsed pinned range must outlast that overlap:
-  // ~120vh for Why-BPI to slide off + a short ~40vh hold of the FULL
-  // diagram, then the section unpins promptly toward "how we work". The
-  // trailing static-hold scroll = (COLLAPSED_VH - 220)vh, so keep this just
-  // above 220 for a brief hold rather than a long dead scrub.
-  const COLLAPSED_VH = 260;
-  const TALL_VH = (nodes.length + 1) * 100;
+  // Pinned scroll length for the node-by-node reveal. The section stays this
+  // height in both directions — no collapse/scroll-compensation, which (with
+  // Lenis driving scroll) could never be made invisible and caused the page
+  // to jump backward after the Initiatives slide-over.
+  const TALL_VH = (nodes.length + 1) * 70;
   const router = useRouter();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [portalIndex, setPortalIndex] = useState<number | null>(null);
@@ -113,32 +104,6 @@ export default function SectorsSection({
   }, []);
 
   const pinned = isDesktop && !reducedMotion;
-
-  // Compensate scroll when the tall range collapses. The collapse only
-  // ever fires while the section is fully ABOVE the viewport (the user has
-  // scrolled past it), so shrinking it pulls everything below — including
-  // what the user is looking at — up by the height delta. We subtract that
-  // delta from the scroll position in a layout effect (before paint) so
-  // the view never moves. Restoring fires while the section is fully BELOW
-  // the viewport, so growth happens off-screen below the user and needs no
-  // compensation — just a Lenis resize so its scroll limits stay correct.
-  const prevCollapsedRef = useRef(false);
-  useLayoutEffect(() => {
-    if (!pinned) {
-      prevCollapsedRef.current = collapsed;
-      return;
-    }
-    if (prevCollapsedRef.current === collapsed) return; // not a real toggle
-    const wasCollapsed = prevCollapsedRef.current;
-    prevCollapsedRef.current = collapsed;
-    if (collapsed && !wasCollapsed) {
-      // Section shrank above the viewport → pull the view up by the delta.
-      const deltaPx = ((TALL_VH - COLLAPSED_VH) / 100) * window.innerHeight;
-      window.scrollTo(0, Math.max(0, window.scrollY - deltaPx));
-    }
-    // Re-align Lenis with the new scroll position / document height.
-    sync();
-  }, [collapsed, pinned, TALL_VH, sync]);
 
   // Single-threshold background-color flip. The section stays the page's
   // baseline mint until the user has scrolled completely past the heading
@@ -272,13 +237,9 @@ export default function SectorsSection({
       if (target.activationP >= 0.999 && target.introP >= 0.999) {
         revealedRef.current = true;
       }
-      // Hold the diagram fully lit when the section is collapsed (it's
-      // "done"), or when scrolling up after a reveal but before collapse —
-      // so the nodes never reverse one-by-one on the way back up.
-      if (
-        collapsedRef.current ||
-        (revealedRef.current && scrollDirRef.current === "up")
-      ) {
+      // Once revealed, hold the diagram fully lit while scrolling back up
+      // so the nodes never reverse one-by-one on the way out.
+      if (revealedRef.current && scrollDirRef.current === "up") {
         target.introP = 1;
         target.activationP = 1;
       }
@@ -400,41 +361,16 @@ export default function SectorsSection({
     }
     if (inView && !isHidden) raf = requestAnimationFrame(tick);
 
-    // ── Collapse / restore the tall scroll range ────────────────────
-    // Always-on so it reacts to natural scrolling (no programmatic scroll).
-    //   • COLLAPSE once the reveal is done AND the section is fully above
-    //     the viewport (scrolled past): the tall range shrinks to a short
-    //     sticky section, so scrolling back up is a brief Initiatives-style
-    //     stick rather than a 700vh scrub. Compensated in the layout effect.
-    //   • RESTORE once the section is fully below the viewport (scrolled
-    //     back above it): the tall range returns so the next downward pass
-    //     reveals node-by-node from scratch.
+    // Track scroll direction only — the `tick` loop reads it to decide
+    // whether to hold the diagram lit (scrolling up) or reveal node-by-node
+    // (scrolling down). No height changes, so there's never a programmatic
+    // scroll jump.
     lastScrollYRef.current = window.scrollY;
     const onRangeScroll = () => {
       const yy = window.scrollY;
       if (yy < lastScrollYRef.current - 0.5) scrollDirRef.current = "up";
       else if (yy > lastScrollYRef.current + 0.5) scrollDirRef.current = "down";
       lastScrollYRef.current = yy;
-
-      const rangeEl = stickyRangeRef.current;
-      if (!rangeEl) return;
-      const rect = rangeEl.getBoundingClientRect();
-      const vh = window.innerHeight;
-
-      if (
-        !collapsedRef.current &&
-        revealedRef.current &&
-        rect.bottom <= 0
-      ) {
-        // Fully scrolled past, below the section → collapse.
-        collapsedRef.current = true;
-        setCollapsed(true);
-      } else if (collapsedRef.current && rect.top >= vh) {
-        // Scrolled back above the section → restore tall + re-arm reveal.
-        collapsedRef.current = false;
-        revealedRef.current = false;
-        setCollapsed(false);
-      }
     };
 
     window.addEventListener("scroll", ensureRunning, { passive: true });
@@ -655,11 +591,7 @@ export default function SectorsSection({
       <div
         ref={stickyRangeRef}
         className="hidden md:block relative z-10"
-        style={
-          pinned
-            ? { height: `${collapsed ? COLLAPSED_VH : TALL_VH}vh` }
-            : undefined
-        }
+        style={pinned ? { height: `${TALL_VH}vh` } : undefined}
       >
         <div
           className={

@@ -65,7 +65,7 @@ const sectionPortableTextComponents: PortableTextComponents = {
 };
 
 type RouteProps = {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ lang: string; slug: string }>;
 };
 
 const DEFAULT_APPLY_EMAIL = "hr_bpi@investbarbados.org";
@@ -83,15 +83,16 @@ export async function generateStaticParams() {
   return (data ?? []).map((d) => ({ slug: d.slug }));
 }
 
-async function getJob(slug: string): Promise<Job | null> {
+async function getJob(lang: string, slug: string): Promise<Job | null> {
   return loadQuery<Job | null>(JOB_BY_SLUG_QUERY, {
-    params: { slug },
+    params: { lang, slug },
     tags: [TAG.job],
   });
 }
 
-async function getCareersPage(): Promise<CareersPage | null> {
+async function getCareersPage(lang: string): Promise<CareersPage | null> {
   return loadQuery<CareersPage | null>(CAREERS_PAGE_QUERY, {
+    params: { lang },
     tags: [TAG.careersPage],
   });
 }
@@ -99,8 +100,8 @@ async function getCareersPage(): Promise<CareersPage | null> {
 export async function generateMetadata({
   params,
 }: RouteProps): Promise<Metadata> {
-  const { slug } = await params;
-  const job = await getJob(slug);
+  const { lang, slug } = await params;
+  const job = await getJob(lang, slug);
   if (!job) return { title: "Careers — BPI" };
   return {
     title: `${job.title} — BPI Careers`,
@@ -109,8 +110,11 @@ export async function generateMetadata({
 }
 
 export default async function JobDetailPage({ params }: RouteProps) {
-  const { slug } = await params;
-  const [job, careers] = await Promise.all([getJob(slug), getCareersPage()]);
+  const { lang, slug } = await params;
+  const [job, careers] = await Promise.all([
+    getJob(lang, slug),
+    getCareersPage(lang),
+  ]);
   if (!job) notFound();
 
   const applyHref = job.applyUrl

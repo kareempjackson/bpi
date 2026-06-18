@@ -2,8 +2,12 @@ import { visionTool } from "@sanity/vision";
 import { defineConfig } from "sanity";
 import { defineLocations, presentationTool } from "sanity/presentation";
 import { structureTool } from "sanity/structure";
+import { internationalizedArray } from "sanity-plugin-internationalized-array";
 
+import { locales, LOCALE_LABELS } from "./app/lib/locale";
+import { portableText } from "./sanity/schemaTypes/objects/portableText";
 import { apiVersion, dataset, projectId } from "./sanity/env";
+import { approvePortalUserAction } from "./sanity/lib/approvePortalUserAction";
 import { forceDeleteAction } from "./sanity/lib/forceDeleteAction";
 import { schemaTypes } from "./sanity/schemaTypes";
 import { structure } from "./sanity/structure";
@@ -21,6 +25,7 @@ const SINGLETON_TYPES = new Set<string>([
   "initiativesPage",
   "contactPage",
   "careersPage",
+  "blogPage",
 ]);
 const DISABLED_SINGLETON_ACTIONS = new Set<string>([
   "unpublish",
@@ -35,6 +40,18 @@ export default defineConfig({
   projectId,
   dataset,
   plugins: [
+    // Field-level i18n. Every translatable field uses one of the generated
+    // `internationalizedArray*` types; each stores all locales inline as
+    // `[{ language, value }]`. The frontend coalesces to the active locale
+    // (falling back to `en`) in GROQ. `languageFilter` lets editors collapse
+    // the form to the languages they're actively writing.
+    internationalizedArray({
+      languages: locales.map((id) => ({ id, title: LOCALE_LABELS[id] })),
+      defaultLanguages: ["en"],
+      fieldTypes: ["string", "text", portableText],
+      buttonLocations: ["field"],
+      languageDisplay: "titleAndCode",
+    }),
     presentationTool({
       previewUrl: {
         previewMode: {
@@ -116,10 +133,16 @@ export default defineConfig({
               locations: [
                 {
                   title: doc?.title ?? "Post",
-                  href: doc?.slug ? `/blog/${doc.slug}` : "/",
+                  href: doc?.slug ? `/blog/${doc.slug}` : "/blog",
                 },
-                { title: "Home", href: "/" },
+                { title: "Blog", href: "/blog" },
               ],
+            }),
+          }),
+          blogPage: defineLocations({
+            select: { title: "seoTitle" },
+            resolve: () => ({
+              locations: [{ title: "Blog", href: "/blog" }],
             }),
           }),
           initiative: defineLocations({
@@ -161,6 +184,10 @@ export default defineConfig({
         // Append the force-delete action so editors can remove a doc
         // even when other documents still hold references to it.
         return [...prev, forceDeleteAction];
+      }
+      if (schemaType === "portalUser") {
+        // One-click approve: set the user active and email a sign-in link.
+        return [...prev, approvePortalUserAction];
       }
       return prev;
     },
