@@ -48,3 +48,54 @@ export function externalAudioUrlField(gateByKind = true) {
       : undefined,
   });
 }
+
+/**
+ * Legacy native-Sanity video upload, locked. New video bytes must go to
+ * Cloudflare R2 via {@link externalVideoUrlField} so they never bill against
+ * Sanity's bandwidth; this field is kept only so pre-R2 content still resolves
+ * through the GROQ `coalesce(externalVideoUrl, video.asset->url)` fallback. It
+ * is `readOnly`, and hidden unless a legacy asset already lives here (and, when
+ * `gateByKind`, unless the parent's `kind` radio is "video") — so new content
+ * only ever sees the R2 uploader above.
+ */
+export function sanityVideoField(gateByKind = true) {
+  return defineField({
+    name: "video",
+    title: "Sanity video (legacy — locked, use the R2 field above)",
+    type: "file",
+    options: { accept: "video/mp4,video/webm" },
+    readOnly: true,
+    description:
+      "Locked. Upload new videos via the Cloudflare R2 field above to keep them off Sanity's bandwidth.",
+    hidden: ({ parent, value }) => {
+      if (
+        gateByKind &&
+        (parent as { kind?: string } | undefined)?.kind !== "video"
+      )
+        return true;
+      return !value;
+    },
+  });
+}
+
+/**
+ * Audio counterpart of {@link sanityVideoField}: a locked, legacy native-Sanity
+ * audio upload. New audio must use {@link externalAudioUrlField} (R2). Hidden
+ * unless the parent's `kind` is "audio" and a legacy asset already lives here.
+ */
+export function sanityAudioField() {
+  return defineField({
+    name: "audio",
+    title: "Sanity audio (legacy — locked, use the R2 field above)",
+    type: "file",
+    options: { accept: "audio/*" },
+    readOnly: true,
+    description:
+      "Locked. Upload new audio via the Cloudflare R2 field above to keep it off Sanity's bandwidth.",
+    hidden: ({ parent, value }) => {
+      if ((parent as { kind?: string } | undefined)?.kind !== "audio")
+        return true;
+      return !value;
+    },
+  });
+}

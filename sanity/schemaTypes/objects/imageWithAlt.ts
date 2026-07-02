@@ -3,6 +3,8 @@ import { defineField, defineType } from "sanity";
 import {
   externalAudioUrlField,
   externalVideoUrlField,
+  sanityAudioField,
+  sanityVideoField,
 } from "./externalVideoUrlField";
 
 /**
@@ -42,20 +44,8 @@ export const imageWithAlt = defineType({
     }),
     externalVideoUrlField(),
     externalAudioUrlField(),
-    defineField({
-      name: "video",
-      title: "Video upload (MP4 recommended)",
-      type: "file",
-      options: { accept: "video/mp4,video/webm" },
-      hidden: ({ parent }) => parent?.kind !== "video",
-    }),
-    defineField({
-      name: "audio",
-      title: "Audio upload (MP3 recommended)",
-      type: "file",
-      options: { accept: "audio/*" },
-      hidden: ({ parent }) => parent?.kind !== "audio",
-    }),
+    sanityVideoField(),
+    sanityAudioField(),
     defineField({
       name: "alt",
       title: "Alt text",

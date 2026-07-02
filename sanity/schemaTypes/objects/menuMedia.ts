@@ -41,10 +41,13 @@ export const menuMedia = defineType({
     externalVideoUrlField(),
     defineField({
       name: "video",
-      title: "Video upload (MP4 recommended)",
+      title: "Sanity video (legacy — locked, use the R2 field above)",
       type: "file",
       options: { accept: "video/mp4,video/webm" },
-      hidden: ({ parent }) => parent?.kind !== "video",
+      readOnly: true,
+      description:
+        "Locked. Upload new videos via the Cloudflare R2 field above to keep them off Sanity's bandwidth.",
+      hidden: ({ parent, value }) => parent?.kind !== "video" || !value,
       validation: (Rule) =>
         Rule.custom((value, context) => {
           const parent = context.parent as

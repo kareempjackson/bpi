@@ -1,6 +1,9 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 
-import { externalVideoUrlField } from "../objects/externalVideoUrlField";
+import {
+  externalVideoUrlField,
+  sanityVideoField,
+} from "../objects/externalVideoUrlField";
 
 export const homePage = defineType({
   name: "homePage",
@@ -76,13 +79,7 @@ export const homePage = defineType({
           initialValue: "video",
         }),
         externalVideoUrlField(),
-        defineField({
-          name: "video",
-          title: "Video upload (MP4 recommended, < 100 MB)",
-          type: "file",
-          options: { accept: "video/mp4,video/webm" },
-          hidden: ({ parent }) => parent?.kind !== "video",
-        }),
+        sanityVideoField(),
         defineField({
           name: "image",
           title: "Image",
@@ -160,13 +157,7 @@ export const homePage = defineType({
                   initialValue: "video",
                 }),
                 externalVideoUrlField(),
-                defineField({
-                  name: "video",
-                  title: "Video upload (MP4 recommended, < 100 MB)",
-                  type: "file",
-                  options: { accept: "video/mp4,video/webm" },
-                  hidden: ({ parent }) => parent?.kind !== "video",
-                }),
+                sanityVideoField(),
                 defineField({
                   name: "image",
                   title: "Image",
@@ -217,12 +208,7 @@ export const homePage = defineType({
             "Where the card links to — a site page, a specific initiative / blog post / job, or a custom URL.",
         }),
         externalVideoUrlField(false),
-        defineField({
-          name: "video",
-          title: "Video (MP4 recommended, < 100 MB)",
-          type: "file",
-          options: { accept: "video/mp4,video/webm" },
-        }),
+        sanityVideoField(false),
         defineField({
           name: "poster",
           title: "Poster / fallback image",

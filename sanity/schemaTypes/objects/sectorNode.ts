@@ -1,6 +1,9 @@
 import { defineField, defineType } from "sanity";
 
-import { externalVideoUrlField } from "./externalVideoUrlField";
+import {
+  externalVideoUrlField,
+  sanityVideoField,
+} from "./externalVideoUrlField";
 
 /**
  * Sector node content. The 6 nodes' SVG positions / radii / label
@@ -73,13 +76,7 @@ export const sectorNode = defineType({
           hidden: ({ parent }) => parent?.kind !== "image",
         }),
         externalVideoUrlField(),
-        defineField({
-          name: "video",
-          title: "Video upload (MP4 recommended)",
-          type: "file",
-          options: { accept: "video/mp4,video/webm" },
-          hidden: ({ parent }) => parent?.kind !== "video",
-        }),
+        sanityVideoField(),
         defineField({
           name: "videoPoster",
           title: "Poster image (shown before video plays / on slow connections)",
