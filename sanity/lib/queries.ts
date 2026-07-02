@@ -189,6 +189,7 @@ export const HOME_PAGE_QUERY = defineQuery(`
       image${IMAGE_PROJECTION},
       color
     },
+    architectureFeature${IMAGE_PROJECTION},
 
     "sectorsHeading": ${loc("sectorsHeading")},
     "sectorsBody": ${loc("sectorsBody")},

@@ -16,20 +16,26 @@ type Item = {
   color: string;
 };
 
+/** Wide media anchoring the bottom of the section (video preferred, image
+ *  fallback), authored in Sanity and served from Cloudflare R2. */
+type FeatureMedia = {
+  videoSrc?: string;
+  imageSrc?: string;
+  imageAlt?: string;
+};
+
 type Props = {
   heading?: string;
   description?: string;
   items?: Item[];
+  feature?: FeatureMedia;
 };
-
-// Wide feature media anchoring the bottom of the section. Served from
-// public/videos; the spaces in the filename are URL-encoded.
-const FEATURE_VIDEO_SRC = "/videos/Shot%205%20Smaller.mov";
 
 export default function ArchitectureOfCareSection({
   heading = "How We Work",
   description = "BPI is focused on four strategic priorities. Each one a deliberate step toward a Caribbean that manufactures, distributes, and regulates its own medicines.",
   items = [],
+  feature,
 }: Props) {
   // Closed by default. A row opens only on a *deliberate* hover — the
   // pointer must come to rest over it. Scroll-induced mouseenter events
@@ -116,10 +122,6 @@ export default function ArchitectureOfCareSection({
     };
   }, [clearDwell, scheduleOpen]);
 
-  // Wide feature image that anchors the bottom of the section — uses the
-  // first item that has media uploaded.
-  const feature = items.find((it) => it.imageSrc || it.videoSrc) ?? null;
-
   return (
     <section
       data-nav-theme="light"
@@ -159,18 +161,30 @@ export default function ArchitectureOfCareSection({
           </ul>
         </div>
 
-        {/* Wide feature video anchoring the bottom of the section */}
-        <div
-          data-reveal="scale"
-          className="relative mt-10 md:mt-16 lg:mt-20 w-full aspect-video sm:aspect-2/1 lg:aspect-1976/640 rounded-2xl lg:rounded-3xl overflow-hidden bg-primary-500"
-        >
-          <LazyVideo
-            src={FEATURE_VIDEO_SRC}
-            poster={feature?.imageSrc}
-            ariaLabel={feature?.imageAlt || undefined}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        </div>
+        {/* Wide feature media anchoring the bottom of the section */}
+        {feature?.videoSrc || feature?.imageSrc ? (
+          <div
+            data-reveal="scale"
+            className="relative mt-10 md:mt-16 lg:mt-20 w-full aspect-video sm:aspect-2/1 lg:aspect-1976/640 rounded-2xl lg:rounded-3xl overflow-hidden bg-primary-500"
+          >
+            {feature.videoSrc ? (
+              <LazyVideo
+                src={feature.videoSrc}
+                poster={feature.imageSrc}
+                ariaLabel={feature.imageAlt || undefined}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            ) : (
+              <Image
+                src={feature.imageSrc!}
+                alt={feature.imageAlt ?? ""}
+                fill
+                sizes="100vw"
+                className="object-cover"
+              />
+            )}
+          </div>
+        ) : null}
       </div>
     </section>
   );

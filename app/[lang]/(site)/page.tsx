@@ -214,6 +214,17 @@ export default async function Home({
     ];
   });
 
+  const architectureFeatureMedia = resolveMedia(data.architectureFeature, {
+    width: 1976,
+  });
+  const architectureFeature = architectureFeatureMedia
+    ? {
+        videoSrc: mediaVideoSrc(architectureFeatureMedia),
+        imageSrc: mediaImageSrc(architectureFeatureMedia),
+        imageAlt: architectureFeatureMedia.alt,
+      }
+    : undefined;
+
   const sectorsNodes = (data.sectorsNodes ?? []).flatMap((node) => {
     const geo = SECTOR_NODE_GEOMETRY[node.nodeId];
     if (!geo) return [];
@@ -441,6 +452,7 @@ export default async function Home({
         heading={data.architectureHeading}
         description={data.architectureDescription}
         items={architectureItems}
+        feature={architectureFeature}
       />
       <SectorsSection
         heading={data.sectorsHeading}

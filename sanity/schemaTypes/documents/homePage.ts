@@ -296,6 +296,14 @@ export const homePage = defineType({
       group: "architecture",
       of: [defineArrayMember({ type: "priorityCard" })],
     }),
+    defineField({
+      name: "architectureFeature",
+      title: "Feature media (wide, bottom of section)",
+      type: "imageWithAlt",
+      group: "architecture",
+      description:
+        "The wide video or image anchoring the bottom of the Priorities section. Choose Video and upload to Cloudflare R2 to keep it off Sanity's bandwidth.",
+    }),
 
     // ──────────────────────────────────────────────────────────── Sectors ──
     defineField({

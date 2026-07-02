@@ -404,6 +404,7 @@ export type HomePage = {
   architectureHeading: string;
   architectureDescription: string;
   architectureItems: PriorityCard[];
+  architectureFeature?: SanityImage | null;
 
   sectorsHeading: string;
   sectorsBody: string;
