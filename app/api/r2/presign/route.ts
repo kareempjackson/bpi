@@ -11,6 +11,11 @@ export const runtime = "nodejs";
 
 const MAX_BYTES = 500 * 1024 * 1024; // 500 MB ceiling
 const PRESIGN_TTL = 120; // seconds the upload URL stays valid
+// Keys are content-addressed (random UUID) so an object never changes once
+// written — safe to cache in the browser forever. Baked into the object at
+// upload time so R2 serves it on every GET; the client must echo the same
+// value on the PUT or the presigned signature won't match.
+const CACHE_CONTROL = "public, max-age=31536000, immutable";
 
 /**
  * Issues a short-lived presigned PUT URL so the Studio can upload a video
@@ -109,13 +114,19 @@ export async function POST(req: NextRequest) {
       Bucket: R2_BUCKET,
       Key: key,
       ContentType: contentType,
+      CacheControl: CACHE_CONTROL,
     }),
     { expiresIn: PRESIGN_TTL },
   );
 
   const publicUrl = `${R2_PUBLIC_BASE_URL.replace(/\/+$/, "")}/${key}`;
 
-  return NextResponse.json({ uploadUrl, publicUrl, key });
+  return NextResponse.json({
+    uploadUrl,
+    publicUrl,
+    key,
+    cacheControl: CACHE_CONTROL,
+  });
 }
 
 function extensionFor(filename: string | undefined, contentType: string): string {

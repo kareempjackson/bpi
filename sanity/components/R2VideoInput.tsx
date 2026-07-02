@@ -75,16 +75,22 @@ function R2MediaInput(props: R2MediaInputProps) {
           };
           throw new Error(msg || `Presign failed (${presignRes.status})`);
         }
-        const { uploadUrl, publicUrl } = (await presignRes.json()) as {
-          uploadUrl: string;
-          publicUrl: string;
-        };
+        const { uploadUrl, publicUrl, cacheControl } =
+          (await presignRes.json()) as {
+            uploadUrl: string;
+            publicUrl: string;
+            cacheControl?: string;
+          };
 
         // 2. PUT straight to R2, with upload progress (XHR — fetch can't report it).
         await new Promise<void>((resolve, reject) => {
           const xhr = new XMLHttpRequest();
           xhr.open("PUT", uploadUrl);
           xhr.setRequestHeader("Content-Type", file.type);
+          // Must match the Cache-Control the server signed, or R2 rejects the
+          // PUT with a signature mismatch. Bakes a 1-year immutable cache onto
+          // the object so browsers never re-fetch it after the first load.
+          if (cacheControl) xhr.setRequestHeader("Cache-Control", cacheControl);
           xhr.upload.onprogress = (e) => {
             if (e.lengthComputable) {
               setProgress(Math.round((e.loaded / e.total) * 100));
