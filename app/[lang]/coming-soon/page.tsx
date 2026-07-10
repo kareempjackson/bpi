@@ -8,12 +8,12 @@ import Logo from "@/app/components/Logo";
 // directly under `[lang]` (html/fonts root) but outside the `(site)` group,
 // so none of the nav/footer/Sanity chrome loads.
 
-// TODO: confirm/replace with BPI's preferred public inbox before launch.
-const CONTACT_EMAIL = "info@barbadospharmainc.org";
+const CONTACT_EMAIL = "hr_bpi@investbarbados.org";
 
 export const metadata: Metadata = {
   title: "Coming soon — Barbados Pharmaceutical Inc",
-  description: "A new era of pharmaceutical care for Barbados and the region.",
+  description:
+    "Building the infrastructure for care across Barbados and the region.",
   // Keep the placeholder out of search results until the real site launches.
   robots: { index: false, follow: false },
 };
@@ -39,13 +39,13 @@ export default function ComingSoonPage() {
         </p>
 
         <h1 className="mt-6 font-display text-3xl font-semibold leading-tight text-balance sm:text-4xl md:text-5xl">
-          A new era of pharmaceutical care for Barbados and the region.
+          Building the infrastructure for care across Barbados and the region.
         </h1>
 
         <p className="mt-6 max-w-xl text-base leading-relaxed text-base-white/70 sm:text-lg">
-          Our new home is nearly ready. We&rsquo;re building something meaningful
-          for our patients, partners, and communities — thank you for your
-          patience.
+          Our new home is nearly ready. We&rsquo;re creating the markets and
+          infrastructure that make world-class care possible — for our partners,
+          investors, and communities.
         </p>
 
         <div className="mt-10 h-px w-16 bg-base-green/60" />
