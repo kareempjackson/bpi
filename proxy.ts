@@ -14,6 +14,65 @@ const LOCALES = ["en", "es", "fr", "pt", "nl"] as const;
 const DEFAULT_LOCALE = "en";
 const COOKIE = "NEXT_LOCALE";
 
+// ── Coming-soon gate ────────────────────────────────────────────────────────
+// When `COMING_SOON` is truthy (set it only on the Production/Vercel env), the
+// public sees a branded splash instead of the site — so staging keeps showing
+// the real app while it's built. The team bypasses the gate by visiting any URL
+// with `?preview=<token>` (matching `COMING_SOON_BYPASS`), which drops a cookie.
+const COMING_SOON_PATH = "coming-soon";
+const BYPASS_COOKIE = "cs_bypass";
+const BYPASS_QUERY = "preview";
+
+function comingSoonEnabled(): boolean {
+  const v = process.env.COMING_SOON;
+  return v === "1" || v === "true";
+}
+
+function isLocale(seg: string | undefined): boolean {
+  return !!seg && (LOCALES as readonly string[]).includes(seg);
+}
+
+// Returns a response when the gate handles the request, or null to fall through
+// to normal locale/portal routing (i.e. the visitor is allowed onto the site).
+function gateComingSoon(req: NextRequest, pathname: string): NextResponse | null {
+  const bypassToken = process.env.COMING_SOON_BYPASS;
+
+  // 1) Team preview link: stash a bypass cookie, then strip the token from the
+  //    URL so it doesn't linger in history or server logs.
+  const preview = req.nextUrl.searchParams.get(BYPASS_QUERY);
+  if (bypassToken && preview === bypassToken) {
+    const url = req.nextUrl.clone();
+    url.searchParams.delete(BYPASS_QUERY);
+    const res = NextResponse.redirect(url);
+    res.cookies.set(BYPASS_COOKIE, bypassToken, {
+      path: "/",
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+    });
+    return res;
+  }
+
+  // 2) Already holding a valid bypass cookie → let the real site through.
+  if (bypassToken && req.cookies.get(BYPASS_COOKIE)?.value === bypassToken) {
+    return null;
+  }
+
+  // 3) Already on the splash → don't rewrite onto itself (avoid a loop).
+  const segments = pathname.split("/");
+  if (segments[2] === COMING_SOON_PATH) return null;
+
+  // 4) Everyone else → serve the splash at the visitor's locale, keeping their
+  //    URL intact (rewrite, not redirect) and out of search indexes.
+  const locale = isLocale(segments[1]) ? segments[1] : detectLocale(req);
+  const url = req.nextUrl.clone();
+  url.pathname = `/${locale}/${COMING_SOON_PATH}`;
+  url.search = "";
+  const res = NextResponse.rewrite(url);
+  res.headers.set("X-Robots-Tag", "noindex");
+  return res;
+}
+
 // Portal paths reachable while logged out.
 const PORTAL_PUBLIC_SUBPATHS = [
   "/portal/login",
@@ -44,6 +103,13 @@ function isPublicPortalSub(sub: string): boolean {
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // Public coming-soon gate runs first: if enabled and the visitor isn't a
+  // team member holding a bypass cookie, everything below is short-circuited.
+  if (comingSoonEnabled()) {
+    const gated = gateComingSoon(req, pathname);
+    if (gated) return gated;
+  }
 
   // Un-prefixed → redirect to add a locale, then let the next request be gated.
   const hasLocale = LOCALES.some(
