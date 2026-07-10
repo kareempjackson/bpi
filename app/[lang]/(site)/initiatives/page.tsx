@@ -448,7 +448,8 @@ function FeaturedSpotlight({
 
 // Headline two-tone: text up to and including the first colon stays dark; the
 // remainder greys back. Falls back to all-dark when there's no colon.
-function ColonTwoTone({ text }: { text: string }) {
+function ColonTwoTone({ text }: { text: string | null | undefined }) {
+  if (!text) return null;
   const i = text.indexOf(":");
   if (i === -1) return <span className="text-primary-500">{text}</span>;
   return (
@@ -461,7 +462,8 @@ function ColonTwoTone({ text }: { text: string }) {
 
 // Statement emphasis: words wrapped in **double asterisks** render bold/dark,
 // everything else greys back — lets editors pick the highlighted phrase.
-function Emphasis({ text }: { text: string }) {
+function Emphasis({ text }: { text: string | null | undefined }) {
+  if (!text) return null;
   return (
     <>
       {text.split(/\*\*(.+?)\*\*/g).map((part, i) =>
