@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import LazyVideo from "./LazyVideo";
 import CtaLink from "./CtaLink";
+import { Reveal, Stagger, StaggerItem } from "./motion";
 
 type Item = {
   title: string;
@@ -128,11 +129,8 @@ export default function ArchitectureOfCareSection({
       className="bg-error-25 px-5 md:px-20 lg:px-32 pt-10 md:pt-20 lg:pt-28 pb-8 md:pb-16 lg:pb-24"
     >
       <div className="mx-auto max-w-page">
-        <div
-          data-reveal-stagger
-          className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-20 items-start"
-        >
-          <div className="max-w-xl lg:sticky lg:top-28">
+        <Stagger className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-20 items-start">
+          <StaggerItem className="max-w-xl lg:sticky lg:top-28">
             <h2 className="font-display text-display-xs md:text-display-sm lg:text-display-md font-semibold text-primary-500 leading-[1.05] tracking-[-0.02em]">
               {heading}
             </h2>
@@ -141,9 +139,10 @@ export default function ArchitectureOfCareSection({
                 {description}
               </p>
             ) : null}
-          </div>
+          </StaggerItem>
 
-          <ul
+          <StaggerItem
+            as="ul"
             className="flex flex-col border-b border-primary-500/15"
             onMouseLeave={handleListLeave}
           >
@@ -158,13 +157,13 @@ export default function ArchitectureOfCareSection({
                 onFocus={handleFocus}
               />
             ))}
-          </ul>
-        </div>
+          </StaggerItem>
+        </Stagger>
 
         {/* Wide feature media anchoring the bottom of the section */}
         {feature?.videoSrc || feature?.imageSrc ? (
-          <div
-            data-reveal="scale"
+          <Reveal
+            preset="scale"
             className="relative mt-10 md:mt-16 lg:mt-20 w-full aspect-video sm:aspect-2/1 lg:aspect-1976/640 rounded-2xl lg:rounded-3xl overflow-hidden bg-primary-500"
           >
             {feature.videoSrc ? (
@@ -183,7 +182,7 @@ export default function ArchitectureOfCareSection({
                 className="object-cover"
               />
             )}
-          </div>
+          </Reveal>
         ) : null}
       </div>
     </section>

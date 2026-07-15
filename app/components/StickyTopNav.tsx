@@ -53,10 +53,12 @@ const HERO_PATHS = new Set<string>(["/"]);
 const HERO_NAV_BG: Record<string, { bg: string; dark: boolean }> = {
   "/careers": { bg: "#01190d", dark: true },
   "/about": { bg: "#01190d", dark: true },
+  "/impact": { bg: "#01190d", dark: true },
+  "/sectors": { bg: "#01190d", dark: true },
   "/initiatives": { bg: "#01190d", dark: true },
   "/reports": { bg: "#01190d", dark: true },
   "/investors": { bg: "#01190d", dark: true },
-  "/priorities": { bg: "#0B2F64", dark: true },
+  "/priorities": { bg: "#01190d", dark: true },
 };
 
 /** Initial nav background + contrast for a route, before the live sampler runs. */
@@ -410,7 +412,11 @@ export default function StickyTopNav({
     <div
       data-page-header
       aria-hidden={!visible}
-      className={`${hasHero ? "fixed" : "sticky"} top-0 inset-x-0 z-40 ${
+      // `transform-gpu` + `will-change-transform`: this bar toggles its
+      // `translateY` on scroll-up/down, so keep it on its own compositor
+      // layer — the show/hide is then a pure composited transform with no
+      // layout or paint per scroll frame.
+      className={`${hasHero ? "fixed" : "sticky"} top-0 inset-x-0 z-40 transform-gpu will-change-transform ${
         ready
           ? "transition-transform duration-500 ease-[var(--ease-premium)]"
           : ""
@@ -418,7 +424,10 @@ export default function StickyTopNav({
     >
       <div
         ref={surfaceRef}
-        className={`backdrop-blur-md backdrop-saturate-150 ${
+        // `isolate` gives the backdrop-filter its own stacking context so
+        // its repaint stays bounded to this thin bar rather than compositing
+        // against the whole page.
+        className={`isolate backdrop-blur-md backdrop-saturate-150 ${
           ready ? "transition-colors duration-300 ease-out" : ""
         } ${txt}`}
         style={{

@@ -7,6 +7,7 @@ import CtaLink from "@/app/components/CtaLink";
 import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
 import Logo from "@/app/components/Logo";
 import PageSections from "@/app/components/PageSections";
+import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
 import { resolveImage } from "@/sanity/lib/image";
 import {
@@ -140,24 +141,30 @@ function HeroHeader({ page }: { page: InitiativesPage | null }) {
       <div className="relative mx-auto w-full max-w-page lg:flex lg:flex-1 lg:flex-col lg:min-h-0">
         {/* Two-tone headline — first sentence white, remainder green. Width
             capped so it breaks onto two lines. */}
-        <h1
-          data-reveal-stagger
+        <Stagger
+          as="h1"
           className="shrink-0 font-display text-[clamp(2.25rem,4vw,3.75rem)] font-bold leading-[1.04] tracking-[-0.03em] max-w-2xl"
         >
-          <span className="text-error-300">{headlineStart}</span>
+          <StaggerItem as="span" className="text-error-300">
+            {headlineStart}
+          </StaggerItem>
           {headlineMiddle ? (
             <>
               {" "}
-              <span className="text-white">{headlineMiddle}</span>
+              <StaggerItem as="span" className="text-white">
+                {headlineMiddle}
+              </StaggerItem>
             </>
           ) : null}
           {headlineEnd ? (
             <>
               {" "}
-              <span className="text-error-300">{headlineEnd}</span>
+              <StaggerItem as="span" className="text-error-300">
+                {headlineEnd}
+              </StaggerItem>
             </>
           ) : null}
-        </h1>
+        </Stagger>
 
         {/* Full-width hero image. Outer wrapper takes ALL the leftover column
             height (flex-1) so the image is as large as possible; inner fills
@@ -165,8 +172,8 @@ function HeroHeader({ page }: { page: InitiativesPage | null }) {
             where the page scrolls. */}
         {imageSrc ? (
           <div className="mt-4 md:mt-5 w-full lg:flex-1 lg:min-h-0 lg:max-h-[54dvh]">
-            <div
-              data-reveal="scale"
+            <Reveal
+              preset="scale"
               className="relative w-full max-lg:aspect-video lg:h-full overflow-hidden rounded-2xl lg:rounded-3xl bg-white/5"
             >
               <Image
@@ -177,21 +184,23 @@ function HeroHeader({ page }: { page: InitiativesPage | null }) {
                 priority
                 className="object-cover"
               />
-            </div>
+            </Reveal>
           </div>
         ) : null}
 
         {/* Body (left) + CTAs (right) below the image. */}
-        <div
-          data-reveal-stagger
+        <Stagger
           className="shrink-0 mt-7 md:mt-9 lg:mt-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between"
         >
           {body ? (
-            <p className="max-w-lg text-base md:text-lg text-white/70 leading-relaxed">
+            <StaggerItem
+              as="p"
+              className="max-w-lg text-base md:text-lg text-white/70 leading-relaxed"
+            >
               {body}
-            </p>
+            </StaggerItem>
           ) : null}
-          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          <StaggerItem className="flex flex-wrap items-center gap-2.5 shrink-0">
             {primary ? (
               <CtaLink
                 href={primary.href}
@@ -208,8 +217,8 @@ function HeroHeader({ page }: { page: InitiativesPage | null }) {
                 {secondary.label}
               </CtaLink>
             ) : null}
-          </div>
-        </div>
+          </StaggerItem>
+        </Stagger>
       </div>
     </section>
   );
@@ -254,12 +263,14 @@ function WorkInMotion({ page }: { page: InitiativesPage | null }) {
       className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-28"
       style={{ backgroundColor: bg }}
     >
-      <div
-        data-reveal-stagger
+      <Stagger
         className="mx-auto grid max-w-page grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start"
       >
         {/* Left — oversized heading, each line stepped further right. */}
-        <h2 className="font-display text-[clamp(2.5rem,5vw,4.5rem)] font-bold text-primary-500 leading-[0.98] tracking-[-0.03em]">
+        <StaggerItem
+          as="h2"
+          className="font-display text-[clamp(2.5rem,5vw,4.5rem)] font-bold text-primary-500 leading-[0.98] tracking-[-0.03em]"
+        >
           {headingLines.map((line, i) => (
             <span
               key={i}
@@ -269,10 +280,10 @@ function WorkInMotion({ page }: { page: InitiativesPage | null }) {
               {line}
             </span>
           ))}
-        </h2>
+        </StaggerItem>
 
         {/* Right — body + CTAs, dropped toward the lower half. */}
-        <div className="flex flex-col gap-8 lg:gap-10 lg:pt-16 xl:pt-24">
+        <StaggerItem className="flex flex-col gap-8 lg:gap-10 lg:pt-16 xl:pt-24">
           {body ? (
             <p className="text-lg md:text-xl text-primary-500/90 leading-relaxed">
               {body}
@@ -296,13 +307,13 @@ function WorkInMotion({ page }: { page: InitiativesPage | null }) {
               </CtaLink>
             ) : null}
           </div>
-        </div>
-      </div>
+        </StaggerItem>
+      </Stagger>
 
       {/* Wide banner image across the bottom of the section. */}
       {bannerImage ? (
-        <div
-          data-reveal="scale"
+        <Reveal
+          preset="scale"
           className="mx-auto mt-12 md:mt-16 lg:mt-20 w-full max-w-page overflow-hidden rounded-2xl lg:rounded-3xl bg-primary-500/5"
         >
           <div className="relative aspect-video lg:aspect-2/1">
@@ -314,7 +325,7 @@ function WorkInMotion({ page }: { page: InitiativesPage | null }) {
               className="object-cover"
             />
           </div>
-        </div>
+        </Reveal>
       ) : null}
     </section>
   );
@@ -358,21 +369,24 @@ function FeaturedSpotlight({
     >
       <div className="mx-auto max-w-page flex flex-col gap-14 lg:gap-20">
         {featured ? (
-          <div data-reveal-stagger className="flex flex-col">
+          <Stagger className="flex flex-col">
             {/* Eyebrow */}
-            <div className="text-xs lg:text-sm font-medium tracking-[0.18em] text-primary-500 uppercase">
+            <StaggerItem className="text-xs lg:text-sm font-medium tracking-[0.18em] text-primary-500 uppercase">
               Featured
-            </div>
+            </StaggerItem>
 
             {/* Two-tone headline — the part before the colon stays dark, the
                 remainder greys back. */}
-            <h2 className="mt-5 lg:mt-7 font-display text-[clamp(1.9rem,3.6vw,3.25rem)] font-bold leading-[1.08] tracking-[-0.02em] max-w-5xl">
+            <StaggerItem
+              as="h2"
+              className="mt-5 lg:mt-7 font-display text-[clamp(1.9rem,3.6vw,3.25rem)] font-bold leading-[1.08] tracking-[-0.02em] max-w-5xl"
+            >
               <ColonTwoTone text={featured.title} />
-            </h2>
+            </StaggerItem>
 
             {/* Editorial body — note + portrait media on the left; statement,
                 stat note, and CTAs on the right. */}
-            <div className="mt-10 lg:mt-12 grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-10">
+            <StaggerItem className="mt-10 lg:mt-12 grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-10">
               <div className="flex flex-col gap-8 lg:gap-12">
                 {featured.excerpt ? (
                   <RuleNote className="lg:max-w-xs">
@@ -423,23 +437,23 @@ function FeaturedSpotlight({
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </StaggerItem>
+          </Stagger>
         ) : null}
 
         {supporting.length > 0 ? (
-          <div
-            data-reveal-stagger
+          <Stagger
             className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 lg:gap-6"
           >
             {supporting.slice(0, 3).map((initiative, idx, arr) => (
-              <SupportingInitiativeCard
-                key={initiative._id}
-                initiative={initiative}
-                watermark={idx === arr.length - 1}
-              />
+              <StaggerItem key={initiative._id}>
+                <SupportingInitiativeCard
+                  initiative={initiative}
+                  watermark={idx === arr.length - 1}
+                />
+              </StaggerItem>
             ))}
-          </div>
+          </Stagger>
         ) : null}
       </div>
     </section>
@@ -661,8 +675,7 @@ function MotionStoriesSection({
           ) : null}
         </div>
 
-        <div
-          data-reveal-stagger
+        <Stagger
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 auto-rows-fr"
         >
           {posts.map((post, idx) => {
@@ -670,13 +683,17 @@ function MotionStoriesSection({
             // of the per-post setting — matches the Motion Stories design.
             // Other tiles follow `initiativeTileSize` from Sanity.
             const isLarge = idx === 0 || post.initiativeTileSize === "large";
-            return isLarge ? (
-              <LargeStoryTile key={post._id} post={post} />
-            ) : (
-              <CompactStoryTile key={post._id} post={post} />
+            return (
+              <StaggerItem key={post._id}>
+                {isLarge ? (
+                  <LargeStoryTile post={post} />
+                ) : (
+                  <CompactStoryTile post={post} />
+                )}
+              </StaggerItem>
             );
           })}
-        </div>
+        </Stagger>
       </div>
     </section>
   );
@@ -812,12 +829,14 @@ function OtherWorksSection({ page }: { page: InitiativesPage | null }) {
       <div className="mx-auto grid max-w-page grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-14">
         {/* Left — eyebrow + staggered, two-tone heading. Sticks while the
             right-hand grid scrolls past (like the blog sidebar). */}
-        <div
-          data-reveal-stagger
+        <Stagger
           className="lg:col-span-1 lg:pt-4 lg:sticky lg:top-24 lg:self-start"
         >
-          <div className="text-sm text-white/55">{eyebrow}</div>
-          <h2 className="mt-6 font-display text-[clamp(2rem,3.2vw,3rem)] font-bold leading-[1.05] tracking-[-0.03em]">
+          <StaggerItem className="text-sm text-white/55">{eyebrow}</StaggerItem>
+          <StaggerItem
+            as="h2"
+            className="mt-6 font-display text-[clamp(2rem,3.2vw,3rem)] font-bold leading-[1.05] tracking-[-0.03em]"
+          >
             {lines.map((line, i) => (
               <span
                 key={i}
@@ -839,16 +858,15 @@ function OtherWorksSection({ page }: { page: InitiativesPage | null }) {
                 {line}
               </span>
             ))}
-          </h2>
-        </div>
+          </StaggerItem>
+        </Stagger>
 
         {/* Right — mint card masonry + featured tile + View More. */}
-        <div
-          data-reveal-stagger
+        <Stagger
           className="lg:col-span-2 flex flex-col gap-6 lg:gap-7"
         >
           {cards.length > 0 ? (
-            <div className="columns-1 md:columns-2 gap-5 lg:gap-6">
+            <StaggerItem className="columns-1 md:columns-2 gap-5 lg:gap-6">
               {cards.map((initiative, idx) => (
                 <OtherWorkCard
                   key={initiative._id}
@@ -857,29 +875,31 @@ function OtherWorksSection({ page }: { page: InitiativesPage | null }) {
                   variant={(idx + 1) % 5 === 0 ? "feature" : "compact"}
                 />
               ))}
-            </div>
+            </StaggerItem>
           ) : null}
 
           {featuredImg ? (
-            <OtherWorksFeaturedTile
-              src={featuredImg.src}
-              alt={featuredImg.alt}
-              title={featuredTitle}
-              href={featuredHref}
-            />
+            <StaggerItem>
+              <OtherWorksFeaturedTile
+                src={featuredImg.src}
+                alt={featuredImg.alt}
+                title={featuredTitle}
+                href={featuredHref}
+              />
+            </StaggerItem>
           ) : null}
 
           {viewMoreHref ? (
-            <div className="flex justify-end">
+            <StaggerItem className="flex justify-end">
               <CtaLink
                 href={viewMoreHref}
                 className="inline-flex w-fit items-center rounded-round border border-white/50 px-6 py-2.5 text-sm font-semibold text-white transition-colors duration-300 ease-(--ease-premium) hover:border-white/80 hover:bg-white/10"
               >
                 View More
               </CtaLink>
-            </div>
+            </StaggerItem>
           ) : null}
-        </div>
+        </Stagger>
       </div>
     </section>
   );
@@ -1052,28 +1072,34 @@ function BuildingFutureSection({
   return (
     <section className="px-5 md:px-20 lg:px-32 pb-14 md:pb-20 lg:pb-24">
       <div className="mx-auto max-w-page">
-        <div
-          data-reveal-stagger
+        <Stagger
           className="flex flex-col gap-3 max-w-3xl mb-8 lg:mb-10"
         >
-          <h2 className="font-display text-2xl md:text-3xl lg:text-display-sm font-bold text-primary-500 leading-[1.1] tracking-[-0.015em]">
+          <StaggerItem
+            as="h2"
+            className="font-display text-2xl md:text-3xl lg:text-display-sm font-bold text-primary-500 leading-[1.1] tracking-[-0.015em]"
+          >
             {heading}
-          </h2>
+          </StaggerItem>
           {body ? (
-            <p className="text-sm md:text-base text-primary-500/75 leading-relaxed max-w-2xl">
+            <StaggerItem
+              as="p"
+              className="text-sm md:text-base text-primary-500/75 leading-relaxed max-w-2xl"
+            >
               {body}
-            </p>
+            </StaggerItem>
           ) : null}
-        </div>
+        </Stagger>
 
-        <div
-          data-reveal-stagger
+        <Stagger
           className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-5"
         >
           {stats.map((stat, idx) => (
-            <FutureStatCard key={idx} stat={stat} bg={statBg} />
+            <StaggerItem key={idx}>
+              <FutureStatCard stat={stat} bg={statBg} />
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       </div>
     </section>
   );

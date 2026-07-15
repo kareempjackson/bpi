@@ -7,6 +7,8 @@ const SINGLETON_IDS = new Set<string>([
   "initiativesPage",
   "contactPage",
   "careersPage",
+  "prioritiesPage",
+  "sectorsPage",
   "blogPage",
 ]);
 
@@ -54,11 +56,27 @@ export const structure: StructureResolver = (S) =>
           S.document().schemaType("careersPage").documentId("careersPage"),
         ),
       S.listItem()
+        .title("Priorities page")
+        .id("prioritiesPage")
+        .child(
+          S.document()
+            .schemaType("prioritiesPage")
+            .documentId("prioritiesPage"),
+        ),
+      S.listItem()
+        .title("Sectors page")
+        .id("sectorsPage")
+        .child(
+          S.document().schemaType("sectorsPage").documentId("sectorsPage"),
+        ),
+      S.listItem()
         .title("Blog page")
         .id("blogPage")
         .child(S.document().schemaType("blogPage").documentId("blogPage")),
       S.divider(),
       S.documentTypeListItem("initiative").title("Initiatives"),
+      S.documentTypeListItem("priority").title("Strategic priorities"),
+      S.documentTypeListItem("sector").title("Sectors"),
       S.documentTypeListItem("event").title("Events"),
       S.documentTypeListItem("job").title("Jobs"),
       S.documentTypeListItem("post").title("Posts"),
@@ -98,6 +116,8 @@ export const structure: StructureResolver = (S) =>
           id !== "post" &&
           id !== "tag" &&
           id !== "initiative" &&
+          id !== "priority" &&
+          id !== "sector" &&
           id !== "event" &&
           id !== "job" &&
           id !== "contactSubmission" &&

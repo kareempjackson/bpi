@@ -22,6 +22,13 @@ export const careersSection = defineType({
   type: "object",
   fields: [
     defineField({
+      name: "enabled",
+      title: "Show this section",
+      description: "Turn the block off without deleting it.",
+      type: "boolean",
+      initialValue: true,
+    }),
+    defineField({
       name: "eyebrow",
       title: "Eyebrow",
       type: "internationalizedArrayString",

@@ -18,11 +18,16 @@ const GREEN = "6, 254, 131"; // #06FE83 (error-500)
 export default function GridHoverBackdrop({
   cell = 112,
   className = "",
+  tone = "dark",
 }: {
   /** Tile size in px. */
   cell?: number;
   className?: string;
+  /** "dark" (default) draws faint white tile borders for navy backgrounds;
+   *  "light" draws faint navy borders for pale backgrounds. */
+  tone?: "dark" | "light";
 }) {
+  const borderClass = tone === "light" ? "border-primary-500/10" : "border-white/5";
   const ref = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const [grid, setGrid] = useState({ cols: 0, rows: 0 });
@@ -139,7 +144,7 @@ export default function GridHoverBackdrop({
           <div
             key={i}
             style={{ backgroundColor: "transparent" }}
-            className="m-px rounded-[14px] border border-white/5 transition-[background-color,border-color,box-shadow,transform] duration-300 ease-out motion-reduce:transition-none"
+            className={`m-px rounded-[14px] border ${borderClass} transition-[background-color,border-color,box-shadow,transform] duration-300 ease-out motion-reduce:transition-none`}
           />
         ))}
       </div>

@@ -10,6 +10,7 @@ import Logo from "@/app/components/Logo";
 import LazyVideo from "@/app/components/LazyVideo";
 import MediaImage from "@/app/components/MediaImage";
 import PageSections from "@/app/components/PageSections";
+import { Parallax, Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import LeaderShape from "@/app/components/shapes/LeaderShape";
 import MissionShape from "@/app/components/shapes/MissionShape";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
@@ -139,42 +140,43 @@ export default async function AboutPage({
         <div className="relative mx-auto grid w-full max-w-page flex-1 grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 min-h-0 items-stretch">
           {/* Left — description + CTA (top), two-tone headline (bottom). */}
           <div className="order-2 lg:order-1 flex flex-col min-h-0">
-            <div
-              data-reveal-stagger
+            <Stagger
               className="flex flex-col gap-6 max-w-md"
             >
               {data.heroSubheading ? (
-                <p className="text-base md:text-lg text-white/75 leading-relaxed">
+                <StaggerItem as="p" className="text-base md:text-lg text-white/75 leading-relaxed">
                   {data.heroSubheading}
-                </p>
+                </StaggerItem>
               ) : null}
-              <CtaLink
-                href={data.heroCta?.href ?? "/contact"}
-                className="inline-flex w-fit items-center rounded-round bg-error-500 px-6 py-2.5 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-[var(--ease-premium)] hover:bg-error-400"
-              >
-                {data.heroCta?.label ?? "Partner With BPI"}
-              </CtaLink>
-            </div>
+              <StaggerItem>
+                <CtaLink
+                  href={data.heroCta?.href ?? "/contact"}
+                  className="inline-flex w-fit items-center rounded-round bg-error-500 px-6 py-2.5 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-[var(--ease-premium)] hover:bg-error-400"
+                >
+                  {data.heroCta?.label ?? "Partner With BPI"}
+                </CtaLink>
+              </StaggerItem>
+            </Stagger>
 
-            <h1
-              data-reveal-stagger
+            <Stagger
+              as="h1"
               className="mt-10 lg:mt-auto lg:pt-12 font-display text-[clamp(2.5rem,5.5vw,5rem)] font-bold leading-[0.95] tracking-[-0.03em] max-w-3xl"
             >
-              <span className="text-white">{heroLead}</span>
+              <StaggerItem as="span" className="text-white">{heroLead}</StaggerItem>
               {heroRest ? (
                 <>
                   {" "}
-                  <span className="text-error-500">{heroRest}</span>
+                  <StaggerItem as="span" className="text-error-500">{heroRest}</StaggerItem>
                 </>
               ) : null}
-            </h1>
+            </Stagger>
           </div>
 
           {/* Right — tall portrait image. */}
           {heroMedia ? (
             <div className="order-1 lg:order-2 w-full min-h-0 lg:h-full">
-              <div
-                data-reveal="scale"
+              <Reveal
+                preset="scale"
                 className="relative w-full aspect-3/4 lg:aspect-auto lg:h-full overflow-hidden rounded-2xl bg-white/5"
               >
                 <MediaImage
@@ -183,7 +185,7 @@ export default async function AboutPage({
                   preload
                   eager
                 />
-              </div>
+              </Reveal>
             </div>
           ) : null}
         </div>
@@ -194,32 +196,32 @@ export default async function AboutPage({
         className="bg-error-25 px-6 md:px-12 lg:px-20 xl:px-28 pt-12 md:pt-16 lg:pt-20 pb-12 md:pb-16 lg:pb-24"
       >
         <div className="mx-auto max-w-page">
-          <div
-            data-reveal-stagger
+          <Stagger
             className="flex flex-col md:flex-row md:items-start md:justify-between gap-5 md:gap-8 mb-10 md:mb-12 lg:mb-14"
           >
-            <div className="max-w-lg">
+            <StaggerItem className="max-w-lg">
               <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-primary-500 leading-tight tracking-[-0.01em]">
                 {data.visionHeading}
               </h2>
               <p className="mt-3 text-sm lg:text-base text-primary-500/70 leading-relaxed">
                 {data.visionDescription}
               </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 md:gap-3 shrink-0 md:ml-auto">
+            </StaggerItem>
+            <StaggerItem className="flex flex-wrap items-center gap-2 md:gap-3 shrink-0 md:ml-auto">
               <CtaButton cta={data.visionPrimaryCta} variant="primary" />
               <CtaButton cta={data.visionSecondaryCta} variant="tertiary" />
-            </div>
-          </div>
+            </StaggerItem>
+          </Stagger>
 
-          <div
-            data-reveal-stagger
+          <Stagger
             className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 lg:gap-8 items-stretch"
           >
             {data.pillars?.map((pillar, idx) => (
-              <PillarCard key={pillar.eyebrow + idx} pillar={pillar} />
+              <StaggerItem key={pillar.eyebrow + idx}>
+                <PillarCard pillar={pillar} />
+              </StaggerItem>
             ))}
-          </div>
+          </Stagger>
         </div>
       </section>
 
@@ -227,16 +229,16 @@ export default async function AboutPage({
 
       <section className="px-5 md:px-20 lg:px-32 pt-12 md:pt-12 lg:pt-16 pb-12 md:pb-12 lg:pb-16">
         <div className="mx-auto max-w-page">
-          <div data-reveal-stagger className="max-w-2xl mb-8 lg:mb-8">
-            <h2 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
+          <Stagger className="max-w-2xl mb-8 lg:mb-8">
+            <StaggerItem as="h2" className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
               {data.missionHeading}
-            </h2>
-            <p className="mt-3 text-sm lg:text-base text-primary-500/75 leading-relaxed">
+            </StaggerItem>
+            <StaggerItem as="p" className="mt-3 text-sm lg:text-base text-primary-500/75 leading-relaxed">
               {data.missionDescription}
-            </p>
-          </div>
+            </StaggerItem>
+          </Stagger>
 
-          <div data-reveal="fade">
+          <Reveal preset="fade">
             <MissionCarousel>
               {data.missionCards?.map((card, idx) => (
                 <MissionCardItem
@@ -245,7 +247,7 @@ export default async function AboutPage({
                 />
               ))}
             </MissionCarousel>
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -253,85 +255,89 @@ export default async function AboutPage({
       {bannerMedia ? (
         <section className="px-5 md:px-20 lg:px-32 pt-8 lg:pt-10 pb-8 lg:pb-10">
           <div className="mx-auto max-w-page">
-            <div
-              data-reveal="scale"
+            <Reveal
+              preset="scale"
               className="relative aspect-3/1 md:aspect-2/1 rounded-lg overflow-hidden"
             >
-              <div
-                data-parallax="0.06"
+              <Parallax
+                speed={0.06}
                 className="absolute inset-x-0 top-[-12%] bottom-[-12%]"
               >
                 <MediaImage media={bannerMedia} sizes="100vw" eager />
-              </div>
-            </div>
+              </Parallax>
+            </Reveal>
           </div>
         </section>
       ) : null}
 
       <section className="px-5 md:px-20 lg:px-32 pt-12 md:pt-12 lg:pt-16 pb-12 md:pb-12 lg:pb-16">
         <div className="mx-auto max-w-page">
-          <div data-reveal-stagger className="max-w-3xl mb-8 lg:mb-8">
-            <h2 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
+          <Stagger className="max-w-3xl mb-8 lg:mb-8">
+            <StaggerItem as="h2" className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
               {data.statsHeading}
-            </h2>
-            <p className="mt-3 text-sm lg:text-base text-primary-500/75 leading-relaxed">
+            </StaggerItem>
+            <StaggerItem as="p" className="mt-3 text-sm lg:text-base text-primary-500/75 leading-relaxed">
               {data.statsDescription}
-            </p>
-          </div>
+            </StaggerItem>
+          </Stagger>
 
-          <div
-            data-reveal-stagger
+          <Stagger
             className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-3 lg:gap-4"
           >
             {data.stats?.map((stat, idx) => (
-              <StatCard key={stat.value + idx} stat={stat} />
+              <StaggerItem key={stat.value + idx}>
+                <StatCard stat={stat} />
+              </StaggerItem>
             ))}
-          </div>
+          </Stagger>
         </div>
       </section>
 
       <section className="pt-12 md:pt-10 lg:pt-14 pb-14 md:pb-14 lg:pb-20">
-        <div
-          data-reveal-stagger
+        <Stagger
           className="bg-[#13362A] px-5 py-12 md:px-8 md:py-16 lg:px-12 lg:py-24"
         >
-          <div className="mb-8 lg:mb-8">
+          <StaggerItem className="mb-8 lg:mb-8">
             <p className="text-[10px] lg:text-xs font-bold tracking-[0.14em] text-white/60 uppercase">
               {data.initiativesEyebrow}
             </p>
             <h2 className="mt-2 font-display text-display-xs lg:text-display-sm font-semibold text-white leading-[1.1] tracking-tight">
               {data.initiativesHeading}
             </h2>
-          </div>
+          </StaggerItem>
 
-          <InitiativesPanel initiatives={initiativesForPanel} />
-        </div>
+          <StaggerItem>
+            <InitiativesPanel initiatives={initiativesForPanel} />
+          </StaggerItem>
+        </Stagger>
       </section>
 
       <section className="px-5 md:px-20 lg:px-32 pt-12 md:pt-10 lg:pt-14 pb-14 md:pb-14 lg:pb-20">
-        <div data-reveal-stagger className="mx-auto max-w-page">
-          <div className="max-w-md mb-8 lg:mb-10">
+        <Stagger className="mx-auto max-w-page">
+          <StaggerItem className="max-w-md mb-8 lg:mb-10">
             <h2 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
               {data.leadershipHeading}
             </h2>
             <p className="mt-3 text-sm lg:text-base text-primary-500/75 leading-relaxed">
               {data.leadershipDescription}
             </p>
-          </div>
+          </StaggerItem>
 
-          <div
-            data-reveal-stagger
-            className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-3 lg:gap-4"
-          >
-            {data.leaders?.map((leader, idx) => (
-              <LeaderCard
-                key={leader.name + leader.role + idx}
-                leader={leader}
-                index={idx}
-              />
-            ))}
-          </div>
-        </div>
+          <StaggerItem>
+            <Stagger
+              className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-3 lg:gap-4"
+            >
+              {data.leaders?.map((leader, idx) => (
+                <StaggerItem key={leader.name + leader.role + idx}>
+                  <LeaderCard
+                    leader={leader}
+                    index={idx}
+                  />
+                </StaggerItem>
+              ))}
+            </Stagger>
+          </StaggerItem>
+        </Stagger>
       </section>
 
       <PageSections sections={data.pageSections} />
@@ -419,13 +425,13 @@ function DifferenceWeMakeSection({ data }: { data: AboutPage }) {
   return (
     <section className="my-12 md:my-16 lg:my-24 px-5 md:px-20 lg:px-32 pt-12 md:pt-12 lg:pt-16 pb-12 md:pb-12 lg:pb-16">
       <div className="mx-auto max-w-page grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-20 items-start">
-        <div data-reveal-stagger className="max-w-sm">
+        <Stagger className="max-w-sm">
           {eyebrow ? (
-            <p className="text-[10px] lg:text-xs font-bold tracking-[0.14em] text-primary-500/70 uppercase">
+            <StaggerItem as="p" className="text-[10px] lg:text-xs font-bold tracking-[0.14em] text-primary-500/70 uppercase">
               {eyebrow}
-            </p>
+            </StaggerItem>
           ) : null}
-          <h2 className="mt-3 font-display text-display-md lg:text-display-lg font-extrabold text-primary-500 leading-[1.05] tracking-tight">
+          <StaggerItem as="h2" className="mt-3 font-display text-display-md lg:text-display-lg font-extrabold text-primary-500 leading-[1.05] tracking-tight">
             {headingLines.map((line, i) => (
               <span
                 key={i}
@@ -434,21 +440,21 @@ function DifferenceWeMakeSection({ data }: { data: AboutPage }) {
                 {line}
               </span>
             ))}
-          </h2>
-        </div>
+          </StaggerItem>
+        </Stagger>
 
-        <div data-reveal-stagger>
+        <Stagger>
           {body ? (
-            <p className="text-sm md:text-base lg:text-lg text-primary-500/85 leading-relaxed whitespace-pre-line">
+            <StaggerItem as="p" className="text-sm md:text-base lg:text-lg text-primary-500/85 leading-relaxed whitespace-pre-line">
               {body}
-            </p>
+            </StaggerItem>
           ) : null}
           {tagline ? (
-            <p className="mt-6 lg:mt-8 pt-5 lg:pt-6 border-t border-primary-500/15 text-sm lg:text-base text-primary-500/70 leading-relaxed whitespace-pre-line">
+            <StaggerItem as="p" className="mt-6 lg:mt-8 pt-5 lg:pt-6 border-t border-primary-500/15 text-sm lg:text-base text-primary-500/70 leading-relaxed whitespace-pre-line">
               {tagline}
-            </p>
+            </StaggerItem>
           ) : null}
-        </div>
+        </Stagger>
       </div>
     </section>
   );
@@ -614,8 +620,8 @@ function MissionCardItem({ card }: { card: MissionCardData }) {
       </div>
 
       {img ? (
-        <div
-          data-reveal="scale"
+        <Reveal
+          preset="scale"
           className="shrink-0 self-stretch flex items-center"
         >
           <MissionShape
@@ -625,7 +631,7 @@ function MissionCardItem({ card }: { card: MissionCardData }) {
             imageAlt={img.alt}
             className="w-auto h-auto max-h-64 md:max-h-80 lg:max-h-96"
           />
-        </div>
+        </Reveal>
       ) : null}
     </div>
   );
@@ -655,8 +661,8 @@ function PillarCard({ pillar }: { pillar: PillarData }) {
   const hasMedia = !!media;
 
   const mediaBlock = hasMedia ? (
-    <div
-      data-reveal="scale"
+    <Reveal
+      preset="scale"
       className="relative aspect-4/3 rounded-xl overflow-hidden bg-black/10"
     >
       {videoSrc ? (
@@ -675,7 +681,7 @@ function PillarCard({ pillar }: { pillar: PillarData }) {
           className="object-cover"
         />
       )}
-    </div>
+    </Reveal>
   ) : null;
 
   // Highlighted card — dark green, image on top, copy beneath. Slightly

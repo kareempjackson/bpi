@@ -1,5 +1,6 @@
 import CtaLink from "./CtaLink";
 import WhyShape from "./shapes/WhyShape";
+import { Stagger, StaggerItem } from "./motion";
 
 type Props = {
   quote?: string;
@@ -30,12 +31,9 @@ export default function WhyBpiSection({
       data-nav-theme="light"
       className="bg-error-500 px-5 sm:px-8 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-32"
     >
-      <div
-        data-reveal-stagger
-        className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center"
-      >
+      <Stagger className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
         {/* Left — quote, body, CTA */}
-        <div className="flex flex-col gap-8 lg:gap-10">
+        <StaggerItem className="flex flex-col gap-8 lg:gap-10">
           <div className="flex flex-col gap-4">
             <p className="font-display text-2xl md:text-3xl lg:text-display-sm font-bold text-primary-500 leading-[1.15] tracking-[-0.02em]">
               {quote}
@@ -57,10 +55,10 @@ export default function WhyBpiSection({
               {ctaLabel}
             </CtaLink>
           </div>
-        </div>
+        </StaggerItem>
 
         {/* Right — notched image */}
-        <div data-reveal="scale" className="relative lg:flex lg:justify-end">
+        <StaggerItem preset="scale" className="relative lg:flex lg:justify-end">
           <WhyShape
             size={520}
             imageSrc={imageSrc}
@@ -69,8 +67,8 @@ export default function WhyBpiSection({
             imagePosition="xMidYMin slice"
             className="w-full h-auto"
           />
-        </div>
-      </div>
+        </StaggerItem>
+      </Stagger>
     </section>
   );
 }

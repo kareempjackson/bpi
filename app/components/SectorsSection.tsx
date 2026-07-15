@@ -1,6 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  motion,
+  useMotionValue,
+  useMotionValueEvent,
+  useScroll,
+  useSpring,
+  useTransform,
+} from "motion/react";
 import { useRouter } from "next/navigation";
 import CtaLink from "./CtaLink";
 import LogoShape, { LOGO_SHAPE_PATH_D } from "./shapes/LogoShape";
@@ -39,6 +47,36 @@ type Props = {
 const VIEWBOX_W = 1190;
 const VIEWBOX_H = 702;
 
+// `easeOutExpo` — matches var(--ease-premium): fast take-off, long settle.
+const sceneEaseOutExpo = (t: number): number =>
+  t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);
+
+// Inertial smoothing for the scroll-coupled reveal — the motion-spring
+// replacement for the old hand-rolled 0.14/frame LERP ("premium float": quick
+// enough to feel responsive, soft enough that fast scrolls settle rather than
+// slam). Tuned to approximate the old feel; a candidate for live QA tuning.
+const REVEAL_SPRING = { stiffness: 120, damping: 26, mass: 0.4 } as const;
+
+// Scroll-coupled phase progress for one node's sub-window inside its
+// activation step. Shared by the rAF (which writes the live reveal) and the
+// initial-render defaults so both stay in exact lockstep.
+const phaseAt = (
+  act: number,
+  nodeIdx: number,
+  subStart: number,
+  subEnd: number,
+  stepFraction: number,
+): number => {
+  const stepStart = (nodeIdx + 1) * stepFraction;
+  const stepEnd = (nodeIdx + 2) * stepFraction;
+  const inStep = (act - stepStart) / (stepEnd - stepStart);
+  const raw = Math.max(
+    0,
+    Math.min(1, (inStep - subStart) / (subEnd - subStart)),
+  );
+  return sceneEaseOutExpo(raw);
+};
+
 export default function SectorsSection({
   heading = "Shifting Trade Prowess in Favour of the Global South",
   body = "BPI is building across six sectors, each one a structural component of the Caribbean's pharmaceutical future.",
@@ -53,9 +91,16 @@ export default function SectorsSection({
   // Refs targeted by the unified scroll/parallax RAF so we can write
   // styles directly without triggering React re-renders.
   const perspectiveRef = useRef<HTMLDivElement>(null);
-  const diagramRef = useRef<HTMLDivElement>(null);
-  const mouseTargetRef = useRef({ x: 0, y: 0 });
-  const mouseRef = useRef({ x: 0, y: 0 });
+  // Mouse-parallax tilt — pointer position (normalised to [-1, 1]) held in
+  // MotionValues, spring-smoothed, then mapped to the diagram's rotateX/rotateY.
+  // Replaces the hand-rolled lerp rAF; the static 2° forward tilt is baked into
+  // the rotateX mapping. Spring is soft (matches the old 0.055 lerp feel).
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const springX = useSpring(mouseX, { stiffness: 55, damping: 15, mass: 1 });
+  const springY = useSpring(mouseY, { stiffness: 55, damping: 15, mass: 1 });
+  const diagramRotateX = useTransform(springY, (v) => 2 - v * 1.8);
+  const diagramRotateY = useTransform(springX, (v) => v * 2.2);
   // The section holds a fixed tall scroll range in both directions: going
   // DOWN it's a long pinned scrub that reveals the six nodes one-by-one;
   // going UP the diagram is held fully lit (see `revealedRef`) so nothing
@@ -76,15 +121,31 @@ export default function SectorsSection({
   const router = useRouter();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [portalIndex, setPortalIndex] = useState<number | null>(null);
+  // `step` (0..nodes.length) stays React state: it gates DISCRETE, structural
+  // things (which nodes accept pointer events, the one-shot shine sweep, the
+  // idle "breathing" once fully revealed). It changes ~6 times per traversal,
+  // not per frame, so its re-renders are cheap.
   const [step, setStep] = useState(0);
-  const [introP, setIntroP] = useState(0);
-  const [activationP, setActivationP] = useState(0);
-  // Recede ("push to back") progress for the slide-over: 0 = molecule at
-  // full size on its stage, 1 = scaled down + dimmed into the dark stage
-  // as the next section covers it.
-  const [pushP, setPushP] = useState(0);
-  const [enterP, setEnterP] = useState(0);
-  const [exitP, setExitP] = useState(0);
+  // The CONTINUOUS reveal progress — intro rise, per-node activation, and the
+  // recede/push-to-back — is NOT React state. Driving it through setState
+  // re-rendered this ~1,200-line SVG tree on every scroll frame (the dominant
+  // scroll-jank source). Instead the rAF below lerps these values and writes
+  // the derived styles straight to the DOM via the refs collected here, so
+  // scrolling never re-renders the tree. Mirrors the pattern HeroSection uses.
+  const headingReceRef = useRef<HTMLDivElement>(null);
+  const progressFillRef = useRef<HTMLDivElement>(null);
+  const connectorRefs = useRef<(SVGLineElement | null)[]>([]);
+  const discRefs = useRef<(SVGCircleElement | null)[]>([]);
+  const photoRevealRefs = useRef<(SVGGElement | null)[]>([]);
+  const labelRevealRefs = useRef<(HTMLDivElement | null)[]>([]);
+  // Two-state teal wash: `onDark` flips once when the user scrolls into the
+  // heading and once on the way out. It is derived from scroll-coupled
+  // enter/exit progress inside a rAF, but only committed to state when the
+  // boolean itself changes — so scrolling through the section no longer
+  // re-renders this (large) tree on every frame just to move the wash. The
+  // visible fade stays smooth because the overlay opacity is CSS-transitioned
+  // (duration-900), not interpolated in React.
+  const [onDark, setOnDark] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
 
@@ -113,8 +174,7 @@ export default function SectorsSection({
   // No scroll-driven interpolation, no gradient — just two clean states.
   useEffect(() => {
     if (reducedMotion) {
-      setEnterP(0);
-      setExitP(0);
+      setOnDark(false);
       return;
     }
     // `easeOutExpo` — matches the var(--ease-premium) used
@@ -123,8 +183,11 @@ export default function SectorsSection({
       t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);
 
     let raf = 0;
+    let lastDark = false;
     const apply = () => {
       const vh = window.innerHeight;
+      let enterP = 0;
+      let exitP = 0;
       const sectionEl = sectionRef.current;
       if (sectionEl) {
         // Scroll-coupled entrance keyed to the SECTION (not the heading,
@@ -138,7 +201,7 @@ export default function SectorsSection({
           0,
           Math.min(1, (entryStart - top) / (entryStart - entryEnd))
         );
-        setEnterP(easeOutExpo(raw));
+        enterP = easeOutExpo(raw);
       }
       const exitEl = exitRef.current;
       if (exitEl) {
@@ -154,7 +217,16 @@ export default function SectorsSection({
           0,
           Math.min(1, (fadeStart - top) / (fadeStart - fadeEnd))
         );
-        setExitP(easeOutExpo(raw));
+        exitP = easeOutExpo(raw);
+      }
+      // Same threshold as before — the wash is on once the entrance has
+      // passed 55 % and the exit hasn't yet reached 50 %. Commit to state
+      // only when the boolean flips (twice per traversal) rather than on
+      // every frame.
+      const dark = enterP > 0.55 && exitP < 0.5;
+      if (dark !== lastDark) {
+        lastDark = dark;
+        setOnDark(dark);
       }
     };
     const onScroll = () => {
@@ -169,287 +241,191 @@ export default function SectorsSection({
     };
   }, [reducedMotion]);
 
+  // ── Scroll-coupled reveal (framer-motion) ──────────────────────────────
+  // Two `useScroll` reads on the sticky range replace the hand-rolled
+  // getBoundingClientRect math, exactly:
+  //   introRaw = entrance rise — offset ["start end","start start"] yields
+  //              `1 − top/vh` clamped 0..1 (0 as the range enters from a
+  //              viewport-height below, 1 once its top reaches the viewport top);
+  //   pRaw     = pinned scrub — offset ["start start","end end"] yields
+  //              `−top/(offsetHeight − vh)` clamped 0..1 across the tall range.
+  const { scrollYProgress: introRaw } = useScroll({
+    target: stickyRangeRef,
+    offset: ["start end", "start start"],
+  });
+  const { scrollYProgress: pRaw } = useScroll({
+    target: stickyRangeRef,
+    offset: ["start start", "end end"],
+  });
+  const { scrollY } = useScroll();
+
+  // Latched targets → springs. The springs replace the manual 0.14/frame LERP
+  // with motion's inertial smoothing; `writeFrame` still paints each frame
+  // straight to the DOM off the smoothed values, so the ~1,200-line SVG tree
+  // never re-renders on scroll — same architecture as before, motion-driven.
+  const introTarget = useMotionValue(0);
+  const actTarget = useMotionValue(0);
+  const pushTarget = useMotionValue(0);
+  const introSmooth = useSpring(introTarget, REVEAL_SPRING);
+  const actSmooth = useSpring(actTarget, REVEAL_SPRING);
+  const pushSmooth = useSpring(pushTarget, REVEAL_SPRING);
+
+  const stepFraction = 1 / (nodes.length + 1);
+  // Static per-connector lengths for the stroke-dash draw. Node geometry is
+  // baked, so this is constant for a given node set.
+  const connectorLengths = useMemo(
+    () =>
+      nodes
+        .slice(0, -1)
+        .map((from, i) =>
+          Math.hypot(nodes[i + 1].cx - from.cx, nodes[i + 1].cy - from.cy),
+        ),
+    [nodes],
+  );
+
+  // Paint one frame of the scroll-coupled reveal straight to the DOM. Every
+  // expression mirrors exactly what the old rAF `writeFrame` computed — only
+  // the driver (motion springs vs. the manual LERP) changed, so the visual
+  // output is unchanged.
+  const writeFrame = useCallback(
+    (intro: number, act: number, push: number) => {
+      const h = headingReceRef.current;
+      if (h) {
+        h.style.opacity = String(1 - push * 0.7);
+        h.style.transform = `translateY(${push * 56}px) scale(${1 - push * 0.24})`;
+      }
+      const persp = perspectiveRef.current;
+      if (persp) {
+        persp.style.opacity = String(intro * (1 - push * 0.7));
+        persp.style.transform = `translateY(${(1 - intro) * 24 + push * 56}px) scale(${1 - push * 0.24})`;
+      }
+      const pf = progressFillRef.current;
+      if (pf) pf.style.height = `${act * 100}%`;
+
+      const conns = connectorRefs.current;
+      for (let i = 0; i < conns.length; i++) {
+        const line = conns[i];
+        if (!line) continue;
+        const cp = phaseAt(act, i + 1, 0, 0.55, stepFraction);
+        line.style.strokeDashoffset = String(
+          (connectorLengths[i] ?? 0) * (1 - cp),
+        );
+      }
+
+      for (let i = 0; i < nodes.length; i++) {
+        // Photo/label reveal share one window; disc fill uses its own.
+        const pp =
+          i === 0
+            ? phaseAt(act, i, 0, 0.6, stepFraction)
+            : phaseAt(act, i, 0.6, 0.85, stepFraction);
+        const disc = discRefs.current[i];
+        if (disc) {
+          const fillP =
+            i === 0
+              ? phaseAt(act, i, 0, 0.6, stepFraction)
+              : phaseAt(act, i, 0.45, 0.6, stepFraction);
+          disc.style.opacity = String(fillP * (1 - pp));
+        }
+        const pg = photoRevealRefs.current[i];
+        if (pg) pg.style.opacity = String(pp);
+        const lbl = labelRevealRefs.current[i];
+        if (lbl) {
+          lbl.style.opacity = String(pp);
+          lbl.style.transform = `translate3d(0, ${(1 - pp) * 16}px, 0)`;
+        }
+      }
+    },
+    [nodes, stepFraction, connectorLengths],
+  );
+
+  // Raw scroll → latched targets. Mirrors the old `tick` target math:
+  // activation completes over the first 70% of the scrub then holds; push
+  // recedes over the last 28%; once fully revealed, scrolling back up holds
+  // the molecule lit so nodes never reverse one-by-one on the way out.
+  const recomputeTargets = useCallback(() => {
+    if (!pinned) return;
+    let intro = introRaw.get();
+    const p = pRaw.get();
+    let act = Math.min(1, p / 0.7);
+    const push = Math.max(0, Math.min(1, (p - 0.72) / 0.28));
+    if (act >= 0.999 && intro >= 0.999) revealedRef.current = true;
+    if (revealedRef.current && scrollDirRef.current === "up") {
+      intro = 1;
+      act = 1;
+    }
+    introTarget.set(intro);
+    actTarget.set(act);
+    pushTarget.set(push);
+  }, [pinned, introRaw, pRaw, introTarget, actTarget, pushTarget]);
+
+  // Smoothed springs → paint + commit `step`. `step` is the only value still
+  // in React state; it changes at most nodes.length+1 times per traversal.
+  const paintFromSprings = useCallback(() => {
+    if (!pinned) return;
+    const act = actSmooth.get();
+    writeFrame(introSmooth.get(), act, pushSmooth.get());
+    const s = Math.min(nodes.length, Math.floor(act * (nodes.length + 1)));
+    setStep((cur) => (cur === s ? cur : s));
+  }, [pinned, actSmooth, introSmooth, pushSmooth, writeFrame, nodes.length]);
+
+  // Track scroll direction (drives the hold-on-scroll-up latch). No height
+  // changes anywhere, so there's never a programmatic scroll jump.
+  useMotionValueEvent(scrollY, "change", (y) => {
+    const last = lastScrollYRef.current;
+    if (y < last - 0.5) scrollDirRef.current = "up";
+    else if (y > last + 0.5) scrollDirRef.current = "down";
+    lastScrollYRef.current = y;
+  });
+
+  // Raw scroll drives the targets; the smoothed springs drive the paint.
+  useMotionValueEvent(introRaw, "change", recomputeTargets);
+  useMotionValueEvent(pRaw, "change", recomputeTargets);
+  useMotionValueEvent(introSmooth, "change", paintFromSprings);
+  useMotionValueEvent(actSmooth, "change", paintFromSprings);
+  useMotionValueEvent(pushSmooth, "change", paintFromSprings);
+
+  // Prime on mount / when `pinned` flips: seed targets from the current scroll
+  // position and jump the springs there (no animate-from-zero on load), then
+  // paint once. Mobile / reduced-motion renders fully revealed from the static
+  // JSX defaults — just settle `step` so structural gating matches.
   useEffect(() => {
     if (!pinned) {
       setStep(nodes.length);
-      setIntroP(1);
-      setActivationP(1);
-      setPushP(0);
       return;
     }
-    // Scroll position is read into `target.*`; a continuous RAF then
-    // lerps `displayed.*` toward those targets so motion never snaps
-    // with raw scroll events. The result reads as a Lenis-style
-    // inertial smoothing layer specifically for the sector animation
-    // — fast scrolls smooth into ~8 frames of motion, slow scrolls
-    // never stutter on individual scroll events.
-    let raf = 0;
-    let settledFor = 0;
-    let inView = false;
-    let isHidden = typeof document !== "undefined" && document.hidden;
-    const target = { introP: 0, activationP: 0, pushP: 0 };
-    const displayed = { introP: 0, activationP: 0, pushP: 0 };
-    // Last setState'd values — we only call setState when the displayed
-    // value crosses a perceptual threshold, so re-renders happen ~5-10x
-    // per scroll traversal instead of 60Hz.
-    let lastSetIntro = -Infinity;
-    let lastSetAct = -Infinity;
-    let lastSetPush = -Infinity;
-    let lastSetStep = -1;
-
-    const readTargets = () => {
-      const el = stickyRangeRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const vh = window.innerHeight;
-      target.introP = Math.max(0, Math.min(1, 1 - rect.top / vh));
-      const total = el.offsetHeight - vh;
-      const p = total > 0 ? Math.max(0, Math.min(1, -rect.top / total)) : 0;
-      // Reveal completes within the first ~70 % of the pinned travel, so
-      // the last node is fully shown and the diagram then HOLDS — pinned
-      // and stationary, fully lit — for the remaining ~30 %. That stuck
-      // hold is the beat the user reads as "the section stays put"; only
-      // after it does the section release and the next section slide up
-      // over it. (Pacing 1:1 with `p` finished the reveal exactly at the
-      // un-pin point, leaving no hold, so node 6 looked cut off.)
-      target.activationP = Math.min(1, p / 0.7);
-      // Recede over the last ~28 % of the pinned travel — beginning just
-      // after the reveal completes (~p 0.72) so the molecule + heading ease
-      // back gradually as the next section slides up and covers them,
-      // rather than snapping back over a short window.
-      target.pushP = Math.max(0, Math.min(1, (p - 0.72) / 0.28));
-    };
-
-    const LERP = 0.14; // premium smoothing — high enough to feel
-                       // responsive, low enough that fast scrolls
-                       // float into place instead of slamming.
-    const SETTLE_EPSILON = 0.0006;
-    // Re-render only when the lerped value has moved by ~0.5% of full
-    // travel since the last commit. Keeps the visible motion buttery
-    // (the rAF still runs every frame) without recomputing the 1141-
-    // line tree on every tick.
-    const RENDER_EPSILON = 0.005;
-
-    const tick = () => {
-      readTargets();
-
-      // Mark the section as fully revealed once the reveal completes.
-      if (target.activationP >= 0.999 && target.introP >= 0.999) {
-        revealedRef.current = true;
-      }
-      // Once revealed, hold the diagram fully lit while scrolling back up
-      // so the nodes never reverse one-by-one on the way out.
-      if (revealedRef.current && scrollDirRef.current === "up") {
-        target.introP = 1;
-        target.activationP = 1;
-      }
-
-      const nextIntro =
-        displayed.introP + (target.introP - displayed.introP) * LERP;
-      const nextAct =
-        displayed.activationP + (target.activationP - displayed.activationP) * LERP;
-      const nextPush =
-        displayed.pushP + (target.pushP - displayed.pushP) * LERP;
-      const settled =
-        Math.abs(target.introP - nextIntro) < SETTLE_EPSILON &&
-        Math.abs(target.activationP - nextAct) < SETTLE_EPSILON &&
-        Math.abs(target.pushP - nextPush) < SETTLE_EPSILON;
-
-      displayed.introP = nextIntro;
-      displayed.activationP = nextAct;
-      displayed.pushP = nextPush;
-
-      // Coalesced re-renders. Always commit on settle so the final
-      // frame lands exactly on target.
-      if (settled || Math.abs(nextIntro - lastSetIntro) > RENDER_EPSILON) {
-        setIntroP(nextIntro);
-        lastSetIntro = nextIntro;
-      }
-      if (settled || Math.abs(nextAct - lastSetAct) > RENDER_EPSILON) {
-        setActivationP(nextAct);
-        lastSetAct = nextAct;
-      }
-      if (settled || Math.abs(nextPush - lastSetPush) > RENDER_EPSILON) {
-        setPushP(nextPush);
-        lastSetPush = nextPush;
-      }
-      const nextStep = Math.min(
-        nodes.length,
-        Math.floor(nextAct * (nodes.length + 1)),
-      );
-      if (nextStep !== lastSetStep) {
-        setStep(nextStep);
-        lastSetStep = nextStep;
-      }
-
-      // Keep the RAF alive briefly past settle so the next scroll
-      // event picks up smoothly without spin-up latency.
-      if (settled) {
-        settledFor += 1;
-        if (settledFor > 10) {
-          raf = 0;
-          return;
-        }
-      } else {
-        settledFor = 0;
-      }
-      raf = requestAnimationFrame(tick);
-    };
-
-    const ensureRunning = () => {
-      if (!raf && inView && !isHidden) {
-        settledFor = 0;
-        raf = requestAnimationFrame(tick);
-      }
-    };
-
-    // IntersectionObserver gates the rAF — when the section is fully
-    // off-screen, scripting cost drops to zero. Section root has its
-    // own ref already.
-    const observed = sectionRef.current;
-    const io = observed
-      ? new IntersectionObserver(
-          ([entry]) => {
-            inView = !!entry?.isIntersecting;
-            if (inView) {
-              ensureRunning();
-            } else if (raf) {
-              cancelAnimationFrame(raf);
-              raf = 0;
-            }
-          },
-          { rootMargin: "20% 0px" },
-        )
-      : null;
-    if (io && observed) io.observe(observed);
-
-    // Visibility pause — also bail when the tab is hidden.
-    const onVisibility = () => {
-      isHidden = document.hidden;
-      if (isHidden && raf) {
-        cancelAnimationFrame(raf);
-        raf = 0;
-      } else {
-        ensureRunning();
-      }
-    };
-    document.addEventListener("visibilitychange", onVisibility);
-
-    // Prime the loop and snap to initial scroll position so we don't
-    // animate from zero on first paint.
-    readTargets();
-    displayed.introP = target.introP;
-    displayed.activationP = target.activationP;
-    displayed.pushP = target.pushP;
-    setIntroP(target.introP);
-    setActivationP(target.activationP);
-    setPushP(target.pushP);
-    lastSetIntro = target.introP;
-    lastSetAct = target.activationP;
-    lastSetPush = target.pushP;
-    const initialStep = Math.min(
-      nodes.length,
-      Math.floor(target.activationP * (nodes.length + 1)),
-    );
-    setStep(initialStep);
-    lastSetStep = initialStep;
-    // Decide whether to kick off the rAF immediately (section visible)
-    // or wait for the IO callback.
-    if (observed) {
-      const rect = observed.getBoundingClientRect();
-      inView = rect.bottom > 0 && rect.top < window.innerHeight;
-    }
-    if (inView && !isHidden) raf = requestAnimationFrame(tick);
-
-    // Track scroll direction only — the `tick` loop reads it to decide
-    // whether to hold the diagram lit (scrolling up) or reveal node-by-node
-    // (scrolling down). No height changes, so there's never a programmatic
-    // scroll jump.
     lastScrollYRef.current = window.scrollY;
-    const onRangeScroll = () => {
-      const yy = window.scrollY;
-      if (yy < lastScrollYRef.current - 0.5) scrollDirRef.current = "up";
-      else if (yy > lastScrollYRef.current + 0.5) scrollDirRef.current = "down";
-      lastScrollYRef.current = yy;
-    };
+    recomputeTargets();
+    introSmooth.jump(introTarget.get());
+    actSmooth.jump(actTarget.get());
+    pushSmooth.jump(pushTarget.get());
+    paintFromSprings();
+  }, [
+    pinned,
+    nodes.length,
+    recomputeTargets,
+    paintFromSprings,
+    introSmooth,
+    actSmooth,
+    pushSmooth,
+    introTarget,
+    actTarget,
+    pushTarget,
+  ]);
 
-    window.addEventListener("scroll", ensureRunning, { passive: true });
-    window.addEventListener("scroll", onRangeScroll, { passive: true });
-    window.addEventListener("resize", ensureRunning, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", ensureRunning);
-      window.removeEventListener("scroll", onRangeScroll);
-      window.removeEventListener("resize", ensureRunning);
-      document.removeEventListener("visibilitychange", onVisibility);
-      io?.disconnect();
-      if (raf) cancelAnimationFrame(raf);
-    };
-  }, [nodes.length, pinned]);
-
-  // Smooth mouse-parallax loop — writes directly to the diagram's
-  // transform via ref. Lerping happens in a ref (no React state) so
-  // mouse movement does not trigger re-renders of the whole tree;
-  // scroll stays smooth even while the cursor moves across the diagram.
-  // The static 2° forward tilt is baked into the formula here.
-  useEffect(() => {
-    if (!pinned) return;
-    let raf = 0;
-    let settledFor = 0;
-    const tick = () => {
-      const t = mouseTargetRef.current;
-      const m = mouseRef.current;
-      const lerp = 0.055;
-      const nx = m.x + (t.x - m.x) * lerp;
-      const ny = m.y + (t.y - m.y) * lerp;
-      const settled =
-        Math.abs(nx - m.x) < 0.0005 && Math.abs(ny - m.y) < 0.0005;
-      m.x = nx;
-      m.y = ny;
-      const el = diagramRef.current;
-      if (el) {
-        const rx = 2 - ny * 1.8;
-        const ry = nx * 2.2;
-        el.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
-      }
-      // Keep the RAF alive briefly even after settling so a small new
-      // mouse movement always picks up smoothly.
-      if (settled) {
-        settledFor += 1;
-        if (settledFor > 8) {
-          raf = 0;
-          return;
-        }
-      } else {
-        settledFor = 0;
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    const ensureRunning = () => {
-      if (!raf) raf = requestAnimationFrame(tick);
-    };
-    // Restart the RAF on movement events.
-    const el = sectionRef.current;
-    el?.addEventListener("mousemove", ensureRunning, { passive: true });
-    el?.addEventListener("mouseleave", ensureRunning, { passive: true });
-    raf = requestAnimationFrame(tick);
-    return () => {
-      el?.removeEventListener("mousemove", ensureRunning);
-      el?.removeEventListener("mouseleave", ensureRunning);
-      if (raf) cancelAnimationFrame(raf);
-    };
-  }, [pinned]);
-
+  // Mouse-parallax is now spring-driven off `mouseX`/`mouseY` (see the
+  // MotionValues above) — the pointer handlers just set the target, and the
+  // springs + `useTransform` supply the smoothed rotateX/rotateY the diagram
+  // reads. No rAF, no per-frame ref writes.
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!pinned) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    mouseTargetRef.current = {
-      x: ((e.clientX - rect.left) / rect.width - 0.5) * 2,
-      y: ((e.clientY - rect.top) / rect.height - 0.5) * 2,
-    };
+    mouseX.set(((e.clientX - rect.left) / rect.width - 0.5) * 2);
+    mouseY.set(((e.clientY - rect.top) / rect.height - 0.5) * 2);
   };
 
   const handleMouseLeave = () => {
-    mouseTargetRef.current = { x: 0, y: 0 };
+    mouseX.set(0);
+    mouseY.set(0);
   };
 
   // Two-state theme: mint (baseline) or deep cinematic teal (post-heading).
@@ -460,9 +436,7 @@ export default function SectorsSection({
   // as the page begins to scroll past — no overstaying once the diagram
   // is no longer the focus. `onDark` controls text-colour inversion in
   // lockstep.
-  const isDarkPhase = enterP > 0.55 && exitP < 0.5;
-  const darkness = isDarkPhase ? 1 : 0;
-  const onDark = isDarkPhase;
+  const darkness = onDark ? 1 : 0;
 
   // ─────────────────────────────────────────────────────────────────
   //  Scroll-coupled per-node sequencing.
@@ -475,24 +449,12 @@ export default function SectorsSection({
   //  guaranteed to play in order regardless of scroll speed — the next
   //  step's connector can never start before the previous node is
   //  fully shown.
+  //
+  //  The per-node phase math now lives in the module-level `phaseAt`
+  //  helper and is evaluated inside the rAF (`writeFrame`) against the
+  //  lerped activation progress — it is no longer computed in render, so
+  //  scrolling the reveal never re-renders this tree.
   // ─────────────────────────────────────────────────────────────────
-  const sceneEaseOutExpo = (t: number): number =>
-    t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);
-  const stepFraction = 1 / (nodes.length + 1);
-  const phaseP = (
-    nodeIdx: number,
-    subStart: number,
-    subEnd: number
-  ): number => {
-    const stepStart = (nodeIdx + 1) * stepFraction;
-    const stepEnd = (nodeIdx + 2) * stepFraction;
-    const inStep = (activationP - stepStart) / (stepEnd - stepStart);
-    const raw = Math.max(
-      0,
-      Math.min(1, (inStep - subStart) / (subEnd - subStart))
-    );
-    return sceneEaseOutExpo(raw);
-  };
   const txt = onDark ? "rgb(255, 255, 255)" : "rgb(0, 0, 54)";
   const txt60 = onDark
     ? "rgba(255, 255, 255, 0.6)"
@@ -608,10 +570,15 @@ export default function SectorsSection({
               with the diagram, so the whole stage pushes to the back as the
               next section slides over the top. */}
           <div
+            ref={headingReceRef}
             className="relative z-10 mx-auto w-full max-w-page shrink-0"
+            // Initial = push 0 (opacity 1, no offset). The rAF writes
+            // `opacity`/`transform` directly as the stage recedes; these
+            // constants only seed the first paint and never change across
+            // re-renders, so React never clobbers the rAF's writes.
             style={{
-              opacity: 1 - pushP * 0.7,
-              transform: `translateY(${pushP * 56}px) scale(${1 - pushP * 0.24})`,
+              opacity: 1,
+              transform: "translateY(0px) scale(1)",
               transformOrigin: "left top",
               willChange: "opacity, transform",
             }}
@@ -654,21 +621,28 @@ export default function SectorsSection({
               // `introP` fades/raises the molecule in on entry; `pushP`
               // scales it down and dims it on exit so it recedes deep into
               // the dark stage as the next section slides over the top.
-              opacity: introP * (1 - pushP * 0.7),
-              transform: `translateY(${(1 - introP) * 24 + pushP * 56}px) scale(${1 - pushP * 0.24})`,
+              // Seeded to the initial scroll state (hidden when pinned, since
+              // the section enters from below; fully shown otherwise). The rAF
+              // then owns `opacity`/`transform`; these constants depend only on
+              // the stable `pinned` flag so React never clobbers those writes.
+              opacity: pinned ? 0 : 1,
+              transform: pinned
+                ? "translateY(24px) scale(1)"
+                : "translateY(0px) scale(1)",
               transformOrigin: "center 45%",
               willChange: "opacity, transform",
             }}
           >
-            <div
-              ref={diagramRef}
+            <motion.div
               className="relative w-full aspect-3/2"
               style={{
-                // Static 2° forward tilt baked into the rotateX init.
-                // The mouse-parallax RAF (above) writes `transform`
-                // directly to this element via ref, so React doesn't
-                // re-render on every mouse move.
-                transform: pinned ? "rotateX(2deg) rotateY(0deg)" : "none",
+                // Static 2° forward tilt + mouse parallax, supplied by the
+                // spring-smoothed `diagramRotateX`/`diagramRotateY` MotionValues
+                // (rotateX rests at 2° when the pointer is centred). Motion
+                // writes these to `transform` off its own rAF; no re-render.
+                ...(pinned
+                  ? { rotateX: diagramRotateX, rotateY: diagramRotateY }
+                  : {}),
                 transformOrigin: "center 60%",
                 transformStyle: "preserve-3d",
                 willChange: pinned ? "transform" : undefined,
@@ -735,10 +709,12 @@ export default function SectorsSection({
                 {nodes.slice(0, -1).map((from, i) => {
                   const to = nodes[i + 1];
                   const length = Math.hypot(to.cx - from.cx, to.cy - from.cy);
-                  const cp = phaseP(i + 1, 0, 0.55);
                   return (
                     <line
                       key={`conn-${i}`}
+                      ref={(el) => {
+                        connectorRefs.current[i] = el;
+                      }}
                       x1={from.cx}
                       y1={from.cy}
                       x2={to.cx}
@@ -748,11 +724,11 @@ export default function SectorsSection({
                       strokeLinecap="round"
                       fill="none"
                       strokeDasharray={length}
-                      strokeDashoffset={length * (1 - cp)}
-                      style={{
-                        transition:
-                          "stroke-dashoffset 280ms var(--ease-premium)",
-                      }}
+                      // Initial draw state (undrawn when pinned, fully drawn
+                      // otherwise). The rAF writes `strokeDashoffset` per frame
+                      // — no CSS transition, since the value is already
+                      // frame-perfect off the lerped scroll progress.
+                      style={{ strokeDashoffset: pinned ? length : 0 }}
                     />
                   );
                 })}
@@ -765,26 +741,21 @@ export default function SectorsSection({
               <g>
                 {nodes.map((n, i) => {
                   if (n.id === "workforce") return null;
-                  const fillP =
-                    i === 0
-                      ? phaseP(i, 0, 0.6)
-                      : phaseP(i, 0.45, 0.6);
-                  const photoP =
-                    i === 0
-                      ? phaseP(i, 0, 0.6)
-                      : phaseP(i, 0.6, 0.85);
                   return (
                     <circle
                       key={`fill-${n.id}`}
+                      ref={(el) => {
+                        discRefs.current[i] = el;
+                      }}
                       cx={n.cx}
                       cy={n.cy}
                       r={n.r - 2}
                       fill="#38fe9c"
-                      opacity={fillP * (1 - photoP)}
-                      style={{
-                        transition:
-                          "opacity 280ms var(--ease-premium)",
-                      }}
+                      // Disc fades in on activation then out as the photo
+                      // arrives; at both endpoints (hidden or fully revealed)
+                      // its opacity is 0, so 0 seeds the first paint. The rAF
+                      // writes the mid-reveal opacity per frame.
+                      style={{ opacity: 0 }}
                     />
                   );
                 })}
@@ -824,16 +795,6 @@ export default function SectorsSection({
               </defs>
               {nodes.map((n, i) => {
                 const activated = step >= i + 1;
-                // Scroll-coupled photo reveal. For the first node there
-                // is no incoming connector, so it appears over the first
-                // 60 % of its step. For every subsequent node, the photo
-                // waits for the disc fill to settle (60 % of step) then
-                // appears over the next 25 % — guaranteed to arrive
-                // AFTER both the connector and the fill, BEFORE the hold.
-                const pp =
-                  i === 0
-                    ? phaseP(i, 0, 0.6)
-                    : phaseP(i, 0.6, 0.85);
                 const isHovered = hoveredIndex === i && activated;
                 const href = n.href ?? `/sectors/${n.id}`;
                 const onClickNode = (e: React.MouseEvent) => {
@@ -851,8 +812,23 @@ export default function SectorsSection({
                 const dimSiblings =
                   hoveredIndex !== null && hoveredIndex !== i && activated;
                 return (
+                  // Outer wrapper: the scroll-coupled REVEAL opacity (`pp`),
+                  // written every frame by the rAF. Split from the inner
+                  // dim/hover opacity so the two multiply — identical math to
+                  // the old single `pp * (dimSiblings ? 0.7 : 1)` — while the
+                  // reveal stays out of React entirely. Opacity-only ancestor
+                  // (never a transform) so the descendant clipPath is safe.
                   <g
                     key={n.id}
+                    ref={(el) => {
+                      photoRevealRefs.current[i] = el;
+                    }}
+                    style={{
+                      opacity: pinned ? 0 : 1,
+                      willChange: "opacity",
+                    }}
+                  >
+                  <g
                     data-cursor="icon"
                     onMouseEnter={() =>
                       activated && setHoveredIndex(i)
@@ -862,12 +838,10 @@ export default function SectorsSection({
                     }
                     onClick={onClickNode}
                     style={{
-                      // No `transform` on this wrapper — Safari iOS /
-                      // desktop drops the descendants' SVG `<clipPath>`
-                      // reference whenever an ancestor `<g>` has a CSS
-                      // transform applied. The reveal is now opacity-
-                      // only, with the static `r` doing all the sizing.
-                      opacity: pp * (dimSiblings ? 0.7 : 1),
+                      // Only the hover dim lives here now (the reveal moved to
+                      // the outer wrapper). Its 320ms opacity / 700ms filter
+                      // transitions still smooth the focus-pull on hover.
+                      opacity: dimSiblings ? 0.7 : 1,
                       cursor: activated ? "none" : "default",
                       pointerEvents: activated ? "auto" : "none",
                       filter: dimSiblings
@@ -999,64 +973,66 @@ export default function SectorsSection({
                       pointerEvents={activated ? "all" : "none"}
                     />
                   </g>
+                  </g>
                 );
               })}
             </svg>
 
             {nodes.map((n, i) => {
-              // Scroll-coupled label reveal — same window as the node's
-              // photo so they appear together as a strict pair after
-              // the connector has drawn and the disc has filled.
-              const lp =
-                i === 0
-                  ? phaseP(i, 0, 0.6)
-                  : phaseP(i, 0.6, 0.85);
               // Once everything is revealed (final hold), every label
               // settles at full opacity. Otherwise the dim-others rule
               // still applies based on which step the user is in.
-              const isActive = step === i + 1;
               const allRevealed = step >= nodes.length;
-              const baseOpacity = lp; // 0 → 1 during this node's step
               const dimMultiplier = allRevealed
                 ? 1
                 : step > i + 1
                   ? 0.85
                   : 1; // previously-revealed labels softly dim to 85%
-              const labelOpacity = baseOpacity * dimMultiplier;
-              void isActive; // currently informative only
               return (
+              // Outer: the scroll-coupled REVEAL (opacity `lp` + translate),
+              // written per frame by the rAF. Inner: the step-driven dim,
+              // which stays in React and keeps its 700ms crossfade. The two
+              // opacities multiply — identical to the old `lp * dimMultiplier`.
               <div
                 key={`label-${n.id}`}
+                ref={(el) => {
+                  labelRevealRefs.current[i] = el;
+                }}
                 className="absolute w-[18%] max-w-72"
                 style={{
                   left: `${n.labelLeftPct}%`,
                   top: `${n.labelTopPct}%`,
-                  opacity: labelOpacity,
-                  transform: `translate3d(0, ${(1 - lp) * 16}px, 0)`,
-                  // Only the dim-cross-fade (when other labels dim once
-                  // they're no longer active) needs a CSS transition.
-                  // The reveal itself is scroll-coupled via `lp`.
-                  transition:
-                    "opacity 700ms var(--ease-premium)",
+                  opacity: pinned ? 0 : 1,
+                  transform: pinned
+                    ? "translate3d(0, 16px, 0)"
+                    : "translate3d(0, 0, 0)",
+                  willChange: "opacity, transform",
                 }}
               >
-                <h3
-                  className="font-display text-sm lg:text-base font-bold leading-tight tracking-[-0.01em]"
-                  style={{ color: txt, transition: colorEase }}
+                <div
+                  style={{
+                    opacity: dimMultiplier,
+                    transition: "opacity 700ms var(--ease-premium)",
+                  }}
                 >
-                  {parseInt(n.num, 10)}. {n.title}
-                </h3>
-                <p
-                  className="mt-2 text-xs lg:text-sm leading-[1.4]"
-                  style={{ color: txt75, transition: colorEase }}
-                >
-                  {n.description}
-                </p>
+                  <h3
+                    className="font-display text-sm lg:text-base font-bold leading-tight tracking-[-0.01em]"
+                    style={{ color: txt, transition: colorEase }}
+                  >
+                    {parseInt(n.num, 10)}. {n.title}
+                  </h3>
+                  <p
+                    className="mt-2 text-xs lg:text-sm leading-[1.4]"
+                    style={{ color: txt75, transition: colorEase }}
+                  >
+                    {n.description}
+                  </p>
+                </div>
               </div>
               );
             })}
 
-            </div>
+            </motion.div>
           </div>
 
           {/* Scroll-progress indicator — vertical track on the right that
@@ -1068,8 +1044,11 @@ export default function SectorsSection({
               aria-hidden
             >
               <div
-                className="absolute left-0 top-0 w-full rounded-full bg-error-500 transition-[height] duration-150 ease-[var(--ease-premium)]"
-                style={{ height: `${activationP * 100}%` }}
+                ref={progressFillRef}
+                className="absolute left-0 top-0 w-full rounded-full bg-error-500"
+                // rAF writes `height` per frame off the lerped activation
+                // progress — frame-perfect, so no CSS height transition.
+                style={{ height: "0%" }}
               />
             </div>
           ) : null}

@@ -363,6 +363,13 @@ html.lenis {
 }
 .hero-video {
   animation: hero-ken-burns 24s ease-in-out infinite alternate;
+  /* Paused (via `--kb-play`, set by HeroSection's scroll handler) once the
+     user scrolls off the very top: the card's scale-up already supplies the
+     motion there, so idling this large video/image layer's transform saves
+     continuous compositing during the scroll. Resumes from its paused
+     position at the top — no snap. Defaults to running when unset (mobile,
+     where there is no hero scroll handler). */
+  animation-play-state: var(--kb-play, running);
   transform-origin: center;
   will-change: transform;
 }
@@ -377,6 +384,12 @@ html.lenis {
 @keyframes hero-slider-fill {
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
+}
+/* "In Motion" progress ring — sweeps a stroked circle from empty to full over
+   the active initiative's dwell. `--ring-c` is the circle circumference. */
+@keyframes motion-ring-fill {
+  from { stroke-dashoffset: var(--ring-c); }
+  to { stroke-dashoffset: 0; }
 }
 @keyframes hero-slide-in {
   from { opacity: 0; }
@@ -425,138 +438,6 @@ html.lenis {
   [style*="init-cinematic-drift"] {
     animation: none !important;
     transform: none !important;
-  }
-}
-
-/* ─── Parallax — ParallaxController writes `transform` directly to
-       elements that are within the viewport (gated by an
-       IntersectionObserver). The CSS just hints `will-change` so the
-       compositor allocates a layer, and clears the transform under
-       prefers-reduced-motion. */
-[data-parallax] {
-  will-change: transform;
-}
-@media (prefers-reduced-motion: reduce) {
-  [data-parallax] {
-    transform: none !important;
-  }
-}
-
-/* ─── Scroll-reveal system ───────────────────────────────────── */
-:root {
-  --reveal-ease: var(--ease-premium);
-  --reveal-duration: 0.95s;
-  --reveal-rise: 14px;
-}
-
-[data-reveal],
-[data-reveal-stagger] > * {
-  opacity: 0;
-  transform: translate3d(0, var(--reveal-rise), 0);
-  transition:
-    opacity var(--reveal-duration) var(--reveal-ease),
-    transform var(--reveal-duration) var(--reveal-ease),
-    filter var(--reveal-duration) var(--reveal-ease);
-  will-change: transform, opacity;
-}
-
-/* Subtle blur fade-in for the premium reveal — desktop only to keep
-   mobile paint cost low. Filter animation is expensive on small GPUs. */
-@media (min-width: 641px) {
-  [data-reveal] {
-    filter: blur(6px);
-  }
-}
-[data-reveal="fade"] {
-  transform: none;
-}
-[data-reveal="scale"] {
-  transform: scale(1.04);
-  transform-origin: center;
-}
-/* Direction + tempo variants */
-[data-reveal="left"] {
-  transform: translate3d(-18px, 0, 0);
-}
-[data-reveal="slow"] {
-  transition-duration: var(--dur-reveal);
-}
-
-[data-reveal][data-in-view],
-[data-reveal-stagger][data-in-view] > * {
-  opacity: 1;
-  transform: translate3d(0, 0, 0);
-  filter: blur(0);
-}
-[data-reveal="scale"][data-in-view] {
-  transform: scale(1);
-}
-
-/* Stagger — tighter for the first 6 items (45ms), then loosens to
-   50ms so longer lists don't feel sluggish. */
-[data-reveal-stagger][data-in-view] > *:nth-child(1)  { transition-delay: 0ms; }
-[data-reveal-stagger][data-in-view] > *:nth-child(2)  { transition-delay: 45ms; }
-[data-reveal-stagger][data-in-view] > *:nth-child(3)  { transition-delay: 90ms; }
-[data-reveal-stagger][data-in-view] > *:nth-child(4)  { transition-delay: 135ms; }
-[data-reveal-stagger][data-in-view] > *:nth-child(5)  { transition-delay: 180ms; }
-[data-reveal-stagger][data-in-view] > *:nth-child(6)  { transition-delay: 225ms; }
-[data-reveal-stagger][data-in-view] > *:nth-child(7)  { transition-delay: 275ms; }
-[data-reveal-stagger][data-in-view] > *:nth-child(8)  { transition-delay: 325ms; }
-[data-reveal-stagger][data-in-view] > *:nth-child(9)  { transition-delay: 375ms; }
-[data-reveal-stagger][data-in-view] > *:nth-child(10) { transition-delay: 425ms; }
-[data-reveal-stagger][data-in-view] > *:nth-child(11) { transition-delay: 475ms; }
-[data-reveal-stagger][data-in-view] > *:nth-child(12) { transition-delay: 525ms; }
-
-/* CareMap mobile fallback — sequential reveal, only when [data-care-mobile] (set by component) */
-[data-care-mobile] [data-care-node] {
-  opacity: 0;
-  transform: scale(0.6);
-  transform-box: fill-box;
-  transform-origin: center;
-  transition:
-    opacity 0.9s var(--reveal-ease),
-    transform 0.9s var(--reveal-ease);
-}
-[data-care-mobile][data-care-revealed] [data-care-node] {
-  opacity: 1;
-  transform: scale(1);
-}
-[data-care-mobile] [data-care-node]:nth-of-type(1) { transition-delay: 80ms; }
-[data-care-mobile] [data-care-node]:nth-of-type(2) { transition-delay: 180ms; }
-[data-care-mobile] [data-care-node]:nth-of-type(3) { transition-delay: 280ms; }
-[data-care-mobile] [data-care-node]:nth-of-type(4) { transition-delay: 380ms; }
-[data-care-mobile] [data-care-node]:nth-of-type(5) { transition-delay: 480ms; }
-[data-care-mobile] [data-care-node]:nth-of-type(6) { transition-delay: 580ms; }
-
-[data-care-mobile] [data-care-label] {
-  opacity: 0;
-  transform: translate3d(0, 12px, 0);
-  transition:
-    opacity 0.7s var(--reveal-ease),
-    transform 0.7s var(--reveal-ease);
-}
-[data-care-mobile][data-care-revealed] [data-care-label] {
-  opacity: 1;
-  transform: translate3d(0, 0, 0);
-}
-[data-care-mobile][data-care-revealed] [data-care-label]:nth-of-type(1) { transition-delay: 700ms; }
-[data-care-mobile][data-care-revealed] [data-care-label]:nth-of-type(2) { transition-delay: 800ms; }
-[data-care-mobile][data-care-revealed] [data-care-label]:nth-of-type(3) { transition-delay: 900ms; }
-
-[data-reveal]:focus-within,
-[data-reveal-stagger]:focus-within > * {
-  opacity: 1;
-  transform: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  [data-reveal],
-  [data-reveal-stagger] > *,
-  [data-care-node],
-  [data-care-label] {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
   }
 }
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import CtaLink from "@/app/components/CtaLink";
 import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
+import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import { toLocale } from "@/app/lib/locale";
 
 export const metadata: Metadata = {
@@ -89,26 +90,28 @@ export default async function InvestorsPage({
 
         <div className="relative px-6 md:px-12 lg:px-20 xl:px-28 pt-32 md:pt-40 lg:pt-48 pb-20 md:pb-28 lg:pb-32">
           <div className="mx-auto grid w-full max-w-page grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12 items-end">
-            <h1
-              data-reveal-stagger
+            <Stagger
+              as="h1"
               className="font-display text-[clamp(2.75rem,5.5vw,5rem)] font-bold leading-[0.95] tracking-[-0.03em] max-w-3xl"
             >
-              <span className="text-white">Build the Caribbean&apos;s</span>{" "}
-              <span className="text-error-500">pharmaceutical gateway</span>{" "}
-              <span className="text-white">with us.</span>
-            </h1>
+              <StaggerItem as="span" className="text-white">Build the Caribbean&apos;s</StaggerItem>{" "}
+              <StaggerItem as="span" className="text-error-500">pharmaceutical gateway</StaggerItem>{" "}
+              <StaggerItem as="span" className="text-white">with us.</StaggerItem>
+            </Stagger>
 
-            <div
-              data-reveal-stagger
+            <Stagger
               className="flex flex-col gap-6 max-w-md lg:justify-self-end"
             >
-              <p className="text-base md:text-lg text-white/70 leading-relaxed">
+              <StaggerItem
+                as="p"
+                className="text-base md:text-lg text-white/70 leading-relaxed"
+              >
                 97% of Caribbean medicines are imported. BPI is building the
                 manufacturing capacity, supply chain, and regulatory
                 infrastructure to change that — and we&apos;re inviting aligned
                 investors and partners to build it with us.
-              </p>
-              <div className="flex flex-wrap items-center gap-3">
+              </StaggerItem>
+              <StaggerItem className="flex flex-wrap items-center gap-3">
                 <CtaLink
                   href={requestHref}
                   className="inline-flex w-fit items-center rounded-round bg-error-500 px-6 py-2.5 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-(--ease-premium) hover:bg-error-400"
@@ -121,8 +124,8 @@ export default async function InvestorsPage({
                 >
                   Talk to us
                 </CtaLink>
-              </div>
-            </div>
+              </StaggerItem>
+            </Stagger>
           </div>
         </div>
       </section>
@@ -133,21 +136,20 @@ export default async function InvestorsPage({
         className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-28"
       >
         <div className="mx-auto w-full max-w-page">
-          <div data-reveal-stagger className="max-w-2xl">
-            <span className="text-xs md:text-sm font-bold uppercase tracking-[0.14em] text-error-700">
+          <Stagger className="max-w-2xl">
+            <StaggerItem as="span" className="text-xs md:text-sm font-bold uppercase tracking-[0.14em] text-error-700">
               The opportunity
-            </span>
-            <h2 className="mt-3 font-display text-3xl md:text-4xl lg:text-5xl font-bold text-primary-500 leading-tight tracking-[-0.02em]">
+            </StaggerItem>
+            <StaggerItem as="h2" className="mt-3 font-display text-3xl md:text-4xl lg:text-5xl font-bold text-primary-500 leading-tight tracking-[-0.02em]">
               A region underserved by imported medicine — and ready for its own.
-            </h2>
-          </div>
+            </StaggerItem>
+          </Stagger>
 
-          <div
-            data-reveal-stagger
+          <Stagger
             className="mt-12 grid grid-cols-2 lg:grid-cols-4 gap-px overflow-hidden rounded-3xl bg-primary-500/10"
           >
             {STATS.map((s) => (
-              <div
+              <StaggerItem
                 key={s.label}
                 className="flex flex-col gap-3 bg-error-25 p-6 md:p-8"
               >
@@ -157,9 +159,9 @@ export default async function InvestorsPage({
                 <span className="text-sm md:text-base text-primary-500/70 leading-snug">
                   {s.label}
                 </span>
-              </div>
+              </StaggerItem>
             ))}
-          </div>
+          </Stagger>
         </div>
       </section>
 
@@ -171,9 +173,9 @@ export default async function InvestorsPage({
         <div className="mx-auto w-full max-w-page">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
             {TRACKS.map((track) => (
-              <div
+              <Reveal
                 key={track.eyebrow}
-                data-reveal="scale"
+                preset="scale"
                 className="flex flex-col rounded-3xl bg-primary-500 p-7 md:p-9 lg:p-10"
               >
                 <span className="text-xs md:text-sm font-bold uppercase tracking-[0.14em] text-error-500">
@@ -205,7 +207,7 @@ export default async function InvestorsPage({
                     <Arrow className="h-4 w-4" />
                   </span>
                 </CtaLink>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -220,21 +222,20 @@ export default async function InvestorsPage({
         {/* Interactive rounded-tile grid backdrop — tiles light up on hover; the BPI logo mark replaces the cursor (via the global CustomCursor, data-cursor="icon"). */}
         <GridHoverBackdrop />
         <div className="relative mx-auto w-full max-w-page">
-          <div data-reveal-stagger className="max-w-2xl">
-            <span className="text-xs md:text-sm font-bold uppercase tracking-[0.14em] text-error-500">
+          <Stagger className="max-w-2xl">
+            <StaggerItem as="span" className="text-xs md:text-sm font-bold uppercase tracking-[0.14em] text-error-500">
               How it works
-            </span>
-            <h2 className="mt-3 font-display text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight tracking-[-0.02em]">
+            </StaggerItem>
+            <StaggerItem as="h2" className="mt-3 font-display text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight tracking-[-0.02em]">
               From first contact to building together.
-            </h2>
-          </div>
+            </StaggerItem>
+          </Stagger>
 
-          <div
-            data-reveal-stagger
+          <Stagger
             className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10"
           >
             {STEPS.map((step, i) => (
-              <div key={step.title} className="flex flex-col gap-4">
+              <StaggerItem key={step.title} className="flex flex-col gap-4">
                 <span className="font-display text-2xl font-bold text-error-500">
                   {String(i + 1).padStart(2, "0")}
                 </span>
@@ -245,9 +246,9 @@ export default async function InvestorsPage({
                 <p className="text-sm md:text-base text-white/60 leading-relaxed">
                   {step.body}
                 </p>
-              </div>
+              </StaggerItem>
             ))}
-          </div>
+          </Stagger>
         </div>
       </section>
 
@@ -256,19 +257,18 @@ export default async function InvestorsPage({
         data-nav-theme="light"
         className="px-6 md:px-12 lg:px-20 xl:px-28 py-20 md:py-28 lg:py-32"
       >
-        <div
-          data-reveal-stagger
+        <Stagger
           className="mx-auto flex w-full max-w-page flex-col items-center gap-8 text-center"
         >
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-primary-500 leading-tight tracking-[-0.02em] max-w-3xl">
+          <StaggerItem as="h2" className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-primary-500 leading-tight tracking-[-0.02em] max-w-3xl">
             Ready to look at the details?
-          </h2>
-          <p className="max-w-xl text-base md:text-lg text-primary-500/70 leading-relaxed">
+          </StaggerItem>
+          <StaggerItem as="p" className="max-w-xl text-base md:text-lg text-primary-500/70 leading-relaxed">
             Request access to the investor &amp; partner portal. We review every
             request and email you a secure sign-in link once you&apos;re
             approved.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          </StaggerItem>
+          <StaggerItem className="flex flex-wrap items-center justify-center gap-3">
             <CtaLink
               href={requestHref}
               className="inline-flex w-fit items-center rounded-round bg-error-500 px-7 py-3 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-(--ease-premium) hover:bg-error-400"
@@ -281,8 +281,8 @@ export default async function InvestorsPage({
             >
               Talk to us first
             </CtaLink>
-          </div>
-        </div>
+          </StaggerItem>
+        </Stagger>
       </section>
     </main>
   );

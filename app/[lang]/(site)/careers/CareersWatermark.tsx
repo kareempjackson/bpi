@@ -1,4 +1,5 @@
 import Logo from "@/app/components/Logo";
+import { Reveal } from "@/app/components/motion";
 
 /**
  * Subtle BPI-icon watermarks that sit in the mint margins of the careers
@@ -10,9 +11,9 @@ import Logo from "@/app/components/Logo";
  */
 export default function CareersWatermark() {
   return (
-    <div
+    <Reveal
       aria-hidden
-      data-reveal="fade"
+      preset="fade"
       className="pointer-events-none absolute inset-0 z-0"
     >
       {/* Top-left — sits in the left margin above the hero */}
@@ -33,6 +34,6 @@ export default function CareersWatermark() {
         size={300}
         className="footer-watermark absolute bottom-[8%] -left-20 text-primary-500"
       />
-    </div>
+    </Reveal>
   );
 }

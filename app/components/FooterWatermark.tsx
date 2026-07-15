@@ -7,9 +7,9 @@ const WATERMARK_PATH =
 
 /**
  * Footer molecule watermark with a scroll-triggered "construction" reveal
- * (outline draws on, then the fill materialises). Unlike the global
- * RevealController — which fires once and unobserves — this keeps its own
- * IntersectionObserver and toggles `is-building` on every entry, so the
+ * (outline draws on, then the fill materialises). Unlike the one-shot reveal
+ * primitives (which fire once via `whileInView`/`viewport.once`), this keeps
+ * its own IntersectionObserver and toggles `is-building` on every entry, so the
  * build replays each time the footer scrolls into view (no refresh needed).
  */
 export default function FooterWatermark() {

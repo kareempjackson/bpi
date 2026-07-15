@@ -1,8 +1,16 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { createPortal } from "react-dom";
+import {
+  motion,
+  useMotionValueEvent,
+  useScroll,
+  useSpring,
+  useTransform,
+  type MotionValue,
+} from "motion/react";
 import Image from "next/image";
 import CtaLink from "./CtaLink";
 import LanguageToggle from "./LanguageToggle";
@@ -198,6 +206,7 @@ const DEFAULT_CARD_SIZE = { w: 1412, h: 1020 } as const;
 const clamp01 = (n: number) => (n < 0 ? 0 : n > 1 ? 1 : n);
 const local = (p: number, start: number, end: number) =>
   clamp01((p - start) / (end - start));
+const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 
 export default function HeroSection({
   headline = DEFAULT_HEADLINE,
@@ -231,14 +240,10 @@ export default function HeroSection({
   const showImage = slideBackgroundKind === "image" && !!activeSlide.imageSrc;
 
   const sectionRef = useRef<HTMLElement>(null);
+  // Only cardRef survives: the scroll-driven layout measurement (below) reads
+  // its un-transformed box. Every other element that used to be written to
+  // imperatively is now a `motion.*` element driven by the scroll MotionValues.
   const cardRef = useRef<HTMLDivElement>(null);
-  const copyWrapRef = useRef<HTMLDivElement>(null);
-  const bottomBarRef = useRef<HTMLDivElement>(null);
-  const heroWrapRef = useRef<HTMLDivElement>(null);
-  const tintRef = useRef<HTMLDivElement>(null);
-  const videoWrapRef = useRef<HTMLDivElement>(null);
-  const navLogoRef = useRef<HTMLDivElement>(null);
-  const navLinksRef = useRef<HTMLDivElement>(null);
 
   const [isDesktop, setIsDesktop] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -351,108 +356,63 @@ export default function HeroSection({
     "--hero-notch-w": `${Math.max(heroGeo.notchW - 3 * heroGeo.nr, 0)}px`,
   } as CSSProperties;
 
-  useEffect(() => {
-    if (!isDesktop || reducedMotion) return;
+  // ─── Scroll choreography ──────────────────────────────────────────────
+  // The section is 180vh with a sticky child; scrolling through it drives the
+  // whole hero exit. `useScroll` with offset ["start start", "end end"] yields
+  // progress 0 when the section top meets the viewport top and 1 when its
+  // bottom meets the viewport bottom — exactly the old `-rect.top / (offsetH -
+  // innerH)` range. A light spring on that progress adds a silky lag to the
+  // card scale-up and nav exit (the "upgraded feel") without rubber-banding.
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end end"],
+  });
+  const p = useSpring(scrollYProgress, {
+    stiffness: 300,
+    damping: 40,
+    mass: 0.35,
+  });
 
-    let raf = 0;
-    const apply = () => {
-      const el = sectionRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const range = el.offsetHeight - window.innerHeight;
-      const p = range > 0 ? clamp01(-rect.top / range) : 0;
+  // Card scales 1 → 1.7 (covers the viewport; the notch corners fall offscreen
+  // so the user sees clean full-bleed video). useTransform clamps at the range
+  // edges by default, matching the old clamp01/local helpers.
+  const cardScale = useTransform(p, [0, 1], [1, 1.7]);
+  // Headline copy + bottom bar fade and lift out over the first 40%.
+  const copyOpacity = useTransform(p, [0, 0.4], [1, 0]);
+  const copyY = useTransform(p, [0, 0.4], [0, -60]);
+  const bottomBarPE = useTransform(copyOpacity, (o) =>
+    o < 0.05 ? "none" : "auto",
+  );
+  // Whole hero dims slightly as it hands off (last 15%).
+  const heroOpacity = useTransform(p, [0.85, 1], [1, 0.7]);
+  // Brand tint deepens 0.38 → 0.73 through the mid-scroll.
+  const tintOpacity = useTransform(p, [0.2, 0.9], [0.38, 0.73]);
+  // Subtle video parallax: drifts down 40px against the card's scale-up.
+  const videoY = useTransform(p, [0, 1], [0, 40]);
+  // Pause the Ken-Burns drift once scrolled off the top — the scale-up carries
+  // the motion, so idling this layer trims compositing. The `--kb-play` var
+  // (feeding `.hero-video`'s play-state) is set on the plain slide-media div so
+  // it cascades to the media without mixing a CSS var into a motion style.
+  // Toggled off the raw progress (not the spring) so it flips immediately.
+  const [kbPaused, setKbPaused] = useState(false);
+  useMotionValueEvent(scrollYProgress, "change", (v) => {
+    const next = v > 0.001;
+    setKbPaused((prev) => (prev === next ? prev : next));
+  });
 
-      // Card scales from 1 (small notched card) → 1.7 (covers full viewport).
-      // The clip-path stays at the notched shape, but at scale 1.7 the
-      // notch corners are well outside the viewport, so the user sees a
-      // clean, full-bleed video.
-      const cardScale = 1 + p * 0.7;
-      const copyP = local(p, 0.0, 0.4);
-      const copyOpacity = 1 - copyP;
-      const copyTranslateY = copyP * -60;
-      const heroFadeP = local(p, 0.85, 1.0);
-      const heroOverallOpacity = 1 - heroFadeP * 0.3;
-      const tintBoost = local(p, 0.2, 0.9) * 0.35;
+  // Hero-embedded nav exits in a staggered cascade: the logo leads, then each
+  // nav link, then the utility cluster + menu — a "pushed aside" lift. The
+  // global sticky nav takes over on scroll-up.
+  const logoP = useTransform(p, (v) => easeOutCubic(local(v, 0.02, 0.16)));
+  const logoOpacity = useTransform(logoP, (l) => 1 - l);
+  const logoY = useTransform(logoP, (l) => l * -12);
 
-      if (cardRef.current) {
-        cardRef.current.style.transform = `scale(${cardScale})`;
-      }
-      if (copyWrapRef.current) {
-        copyWrapRef.current.style.opacity = String(copyOpacity);
-        copyWrapRef.current.style.transform = `translate3d(0, ${copyTranslateY}px, 0)`;
-      }
-      if (bottomBarRef.current) {
-        bottomBarRef.current.style.opacity = String(copyOpacity);
-        bottomBarRef.current.style.transform = `translate3d(0, ${copyTranslateY}px, 0)`;
-        bottomBarRef.current.style.pointerEvents = copyOpacity < 0.05 ? "none" : "";
-      }
-      if (heroWrapRef.current) {
-        heroWrapRef.current.style.opacity = String(heroOverallOpacity);
-      }
-      if (tintRef.current) {
-        // Add a deepening dark layer as we scroll into the video
-        tintRef.current.style.opacity = String(0.38 + tintBoost);
-      }
-      if (videoWrapRef.current) {
-        // Subtle parallax: video drifts down ~40px over the hero range,
-        // creating depth against the card's scale-up. Stays well within the
-        // card so no edges are exposed.
-        videoWrapRef.current.style.transform = `translate3d(0, ${p * 40}px, 0)`;
-      }
-
-      // Hero-embedded nav exits with a staggered, cascading lift as the user
-      // begins scrolling. The logo leads, then each nav link, then the menu
-      // launcher — creating a premium "pushed aside" effect rather than a
-      // single block fade. The global sticky nav takes over on scroll-up
-      // after ~62 % of the range.
-      const stagger = (start: number, end: number) =>
-        local(p, start, end);
-      const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
-
-      // Logo: leads the cascade, exits straight up
-      const logoP = easeOut(stagger(0.02, 0.16));
-      if (navLogoRef.current) {
-        navLogoRef.current.style.opacity = String(1 - logoP);
-        navLogoRef.current.style.transform = `translate3d(0, ${
-          logoP * -12
-        }px, 0)`;
-      }
-
-      // Right nav cluster: stagger each child slightly
-      if (navLinksRef.current) {
-        const items = navLinksRef.current.querySelectorAll<HTMLElement>(
-          "[data-nav-item]"
-        );
-        items.forEach((el, i) => {
-          // Each subsequent item starts its exit ~3% later
-          const start = 0.04 + i * 0.025;
-          const end = start + 0.12;
-          const itemP = easeOut(stagger(start, end));
-          el.style.opacity = String(1 - itemP);
-          el.style.transform = `translate3d(${itemP * 14}px, ${
-            itemP * -10
-          }px, 0)`;
-        });
-        // Container handles pointer-events once the last item is gone
-        const lastEnd = 0.04 + (items.length - 1) * 0.025 + 0.12;
-        const containerP = easeOut(stagger(0, lastEnd));
-        navLinksRef.current.style.pointerEvents =
-          containerP > 0.95 ? "none" : "";
-      }
-    };
-
-    const onScroll = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(apply);
-    };
-
-    apply();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(raf);
-    };
-  }, [isDesktop, reducedMotion]);
+  // The nav container drops pointer-events once the last item has lifted away.
+  const navItemCount = NAV_LINKS.length + 2; // links + utility cluster + menu
+  const navLastEnd = 0.04 + (navItemCount - 1) * 0.025 + 0.12;
+  const navContainerPE = useTransform(p, (v) =>
+    easeOutCubic(local(v, 0, navLastEnd)) > 0.95 ? "none" : "auto",
+  );
 
   const pinned = isDesktop && !reducedMotion;
 
@@ -471,19 +431,19 @@ export default function HeroSection({
         className="relative bg-error-25"
         style={pinned ? { height: "180vh" } : undefined}
       >
-        <div
-          ref={heroWrapRef}
+        <motion.div
           className={
             pinned
               ? "sticky top-0 h-dvh overflow-hidden p-1.5 lg:p-4"
               : "h-dvh overflow-hidden p-1.5 lg:p-4"
           }
+          style={pinned ? { opacity: heroOpacity } : undefined}
         >
           <div className="relative w-full h-full" style={heroVars}>
             {/* Hero card — clipped to notch shape via CSS clip-path on a plain div.
                 Scales freely on scroll because there's no SVG clipPath/foreignObject
                 in the transform path. */}
-            <div
+            <motion.div
               ref={cardRef}
               className="absolute inset-0 hero-anim-fade"
               style={
@@ -493,16 +453,26 @@ export default function HeroSection({
                   transformOrigin: "center",
                   backgroundColor: "#000036",
                   "--anim-delay": "0s",
+                  ...(pinned ? { scale: cardScale } : {}),
                 } as CSSProperties
               }
             >
-              <div
-                ref={videoWrapRef}
+              <motion.div
                 className="absolute inset-x-0 top-[-6%] bottom-[-6%] will-change-transform"
+                style={pinned ? { y: videoY } : undefined}
               >
                 {/* Active slide background — keyed by index so a slide change
-                    remounts the media and crossfades it in. */}
-                <div key={safeActive} className="hero-slide-media absolute inset-0">
+                    remounts the media and crossfades it in. `--kb-play` cascades
+                    to `.hero-video` to pause the Ken-Burns drift while scrolled. */}
+                <div
+                  key={safeActive}
+                  className="hero-slide-media absolute inset-0"
+                  style={
+                    {
+                      "--kb-play": pinned && kbPaused ? "paused" : "running",
+                    } as CSSProperties
+                  }
+                >
                   {showImage ? (
                     <Image
                       src={activeSlide.imageSrc!}
@@ -528,13 +498,15 @@ export default function HeroSection({
                     </video>
                   ) : null}
                 </div>
-              </div>
+              </motion.div>
 
               {/* Brand tint — opacity bumps as we scroll deeper */}
-              <div
-                ref={tintRef}
+              <motion.div
                 className="absolute inset-0"
-                style={{ backgroundColor: "#000036", opacity: 0.38 }}
+                style={{
+                  backgroundColor: "#000036",
+                  opacity: pinned ? tintOpacity : 0.38,
+                }}
               />
 
               {/* Cinematic colour grade — a teal→green→navy wash that gives
@@ -564,10 +536,9 @@ export default function HeroSection({
 
               {/* Bottom scrim — keeps headline legible */}
               <div className="absolute inset-x-0 bottom-0 h-[50%] bg-linear-to-t from-black/90 via-black/60 to-transparent" />
-            </div>
+            </motion.div>
 
-            <div
-              ref={navLogoRef}
+            <motion.div
               data-page-header
               className="absolute z-20 flex items-center will-change-[opacity,transform]"
               style={
@@ -575,6 +546,7 @@ export default function HeroSection({
                   left: "var(--hero-logo-left)",
                   top: 0,
                   height: "var(--hero-notch-h)",
+                  ...(pinned ? { opacity: logoOpacity, y: logoY } : {}),
                 } as CSSProperties
               }
             >
@@ -583,10 +555,9 @@ export default function HeroSection({
                 className="block text-white hero-anim"
                 style={{ "--anim-delay": "0.15s" } as CSSProperties}
               />
-            </div>
+            </motion.div>
 
-            <div
-              ref={navLinksRef}
+            <motion.div
               className="absolute z-30 hidden md:flex items-center justify-end gap-8 lg:gap-12 will-change-[opacity,transform]"
               style={{
                 // Slightly inset from the card's right edge so the whole nav
@@ -596,14 +567,17 @@ export default function HeroSection({
                 top: 0,
                 height: "var(--hero-notch-h)",
                 maxWidth: "var(--hero-notch-w)",
+                ...(pinned ? { pointerEvents: navContainerPE } : {}),
               }}
             >
               <nav data-page-header className="flex items-center gap-8 lg:gap-12 translate-x-3 lg:translate-x-5 font-sans text-[12px] leading-[16.8px] font-semibold uppercase tracking-[-0.24px] text-center text-black whitespace-nowrap">
                 {NAV_LINKS.map((link, i) =>
                   link.disabled ? (
-                    <div
+                    <HeroNavItem
                       key={link.href}
-                      data-nav-item
+                      index={i}
+                      progress={p}
+                      pinned={pinned}
                       className="will-change-[opacity,transform]"
                     >
                       <span
@@ -617,11 +591,13 @@ export default function HeroSection({
                       >
                         {link.label}
                       </span>
-                    </div>
+                    </HeroNavItem>
                   ) : (
-                    <div
+                    <HeroNavItem
                       key={link.href}
-                      data-nav-item
+                      index={i}
+                      progress={p}
+                      pinned={pinned}
                       className="will-change-[opacity,transform]"
                     >
                       <CtaLink
@@ -635,15 +611,17 @@ export default function HeroSection({
                       >
                         {link.label}
                       </CtaLink>
-                    </div>
+                    </HeroNavItem>
                   )
                 )}
               </nav>
               {/* Search + language form one tight utility pair, sitting a full
                   cluster-gap away from the nav links on the left and the menu
                   on the right. */}
-              <div
-                data-nav-item
+              <HeroNavItem
+                index={NAV_LINKS.length}
+                progress={p}
+                pinned={pinned}
                 data-page-header
                 className="flex items-center gap-3.5 will-change-[opacity,transform] text-black"
               >
@@ -659,12 +637,14 @@ export default function HeroSection({
                 >
                   <LanguageToggle className="text-[12px] tracking-[-0.24px]" />
                 </div>
-              </div>
+              </HeroNavItem>
               {/* Negative left margin pulls the links + EN cluster rightward
                   (its right edge stays pinned to the notch), opening a little
                   breathing room on the left of the first nav item. */}
-              <div
-                data-nav-item
+              <HeroNavItem
+                index={NAV_LINKS.length + 1}
+                progress={p}
+                pinned={pinned}
                 className="-ml-4 lg:-ml-6 mr-3 lg:mr-4 will-change-[opacity,transform]"
               >
                 <div
@@ -673,8 +653,8 @@ export default function HeroSection({
                 >
                   <MenuLauncher size={120} menuConfig={menuConfig} />
                 </div>
-              </div>
-            </div>
+              </HeroNavItem>
+            </motion.div>
 
             <div
               className="absolute top-0 right-2 z-30 md:hidden hero-anim-fade"
@@ -683,9 +663,9 @@ export default function HeroSection({
               <MenuLauncher size={104} menuConfig={menuConfig} />
             </div>
 
-            <div
-              ref={copyWrapRef}
+            <motion.div
               className="absolute bottom-0 left-0 z-10 px-8 lg:px-14 pb-52 lg:pb-72 max-w-4xl"
+              style={pinned ? { opacity: copyOpacity, y: copyY } : undefined}
             >
               {/* Keyed by active slide so the copy re-animates on change,
                   while the scroll-driven fade stays on the stable parent. */}
@@ -737,13 +717,17 @@ export default function HeroSection({
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Bottom bar — slider progress (left) + feature card (right).
                 Fades out on scroll alongside the headline copy. */}
-            <div
-              ref={bottomBarRef}
+            <motion.div
               className="absolute inset-x-0 bottom-0 z-20 px-8 lg:px-14 pb-10 lg:pb-14 flex items-end justify-between gap-6 will-change-[opacity,transform]"
+              style={
+                pinned
+                  ? { opacity: copyOpacity, y: copyY, pointerEvents: bottomBarPE }
+                  : undefined
+              }
             >
               {/* Left: a single preview of the active slide, above the
                   clickable progress toggles. The preview is exactly one
@@ -827,11 +811,52 @@ export default function HeroSection({
                   posterAlt={feature.posterAlt ?? ""}
                 />
               ) : null}
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </section>
     </>
+  );
+}
+
+/**
+ * A single hero-nav item that lifts away on scroll, staggered by `index`. Each
+ * item derives its own opacity/x/y from the shared scroll progress so the nav
+ * exits as a cascade (the old imperative per-item DOM write, now declarative).
+ * Renders a plain div when the hero isn't pinned (mobile / reduced motion).
+ */
+function HeroNavItem({
+  index,
+  progress,
+  pinned,
+  className,
+  children,
+  ...rest
+}: {
+  index: number;
+  progress: MotionValue<number>;
+  pinned: boolean;
+  className?: string;
+  children: ReactNode;
+} & Record<string, unknown>) {
+  const start = 0.04 + index * 0.025;
+  const end = start + 0.12;
+  const itemP = useTransform(progress, (v) => easeOutCubic(local(v, start, end)));
+  const opacity = useTransform(itemP, (l) => 1 - l);
+  const x = useTransform(itemP, (l) => l * 14);
+  const y = useTransform(itemP, (l) => l * -10);
+
+  if (!pinned) {
+    return (
+      <div className={className} {...rest}>
+        {children}
+      </div>
+    );
+  }
+  return (
+    <motion.div className={className} style={{ opacity, x, y }} {...rest}>
+      {children}
+    </motion.div>
   );
 }
 

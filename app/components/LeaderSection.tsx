@@ -1,5 +1,6 @@
 import Image from "next/image";
 import LazyVideo from "./LazyVideo";
+import { Reveal, Stagger, StaggerItem } from "./motion";
 
 type SocialKind = "Website" | "LinkedIn" | "X" | "Instagram" | "YouTube";
 type SocialLink = { kind: SocialKind; href: string; label?: string };
@@ -50,23 +51,17 @@ export default function LeaderSection({
       className="bg-error-25 px-5 md:px-20 lg:px-32 pt-16 md:pt-28 lg:pt-36 pb-16 md:pb-24 lg:pb-28"
     >
       {/* Top: bold lead-in headline */}
-      <div
-        data-reveal
-        className="mx-auto max-w-page mb-10 md:mb-16 lg:mb-20"
-      >
+      <Reveal className="mx-auto max-w-page mb-10 md:mb-16 lg:mb-20">
         <h2 className="lg:w-[88%] font-display text-display-xs md:text-display-sm lg:text-display-md font-bold text-primary-500 leading-[1.15] tracking-tight">
           {body}
         </h2>
-      </div>
+      </Reveal>
 
       {/* Bottom: primary image (left) + quote & attribution (right) */}
-      <div
-        data-reveal-stagger
-        className="mx-auto max-w-page flex flex-col gap-y-10 lg:flex-row lg:gap-x-16 lg:items-center"
-      >
+      <Stagger className="mx-auto max-w-page flex flex-col gap-y-10 lg:flex-row lg:gap-x-16 lg:items-center">
         {/* Left: primary video */}
-        <div
-          data-reveal="scale"
+        <StaggerItem
+          preset="scale"
           className="lg:w-[56%] relative aspect-5/4 rounded-2xl overflow-hidden shrink-0"
         >
           <div className="absolute inset-0">
@@ -90,10 +85,10 @@ export default function LeaderSection({
               />
             ) : null}
           </div>
-        </div>
+        </StaggerItem>
 
         {/* Right: quote + attribution */}
-        <div data-reveal className="lg:flex-1 flex flex-col">
+        <StaggerItem className="lg:flex-1 flex flex-col">
           <blockquote className="font-display text-display-xs md:text-display-sm font-normal text-primary-500 leading-tight tracking-tight">
             &quot;{quote}&quot;
           </blockquote>
@@ -134,8 +129,8 @@ export default function LeaderSection({
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </StaggerItem>
+      </Stagger>
     </section>
   );
 }

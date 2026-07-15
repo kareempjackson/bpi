@@ -1,6 +1,7 @@
 import Image from "next/image";
 
 import CtaLink from "./CtaLink";
+import { Reveal, Stagger, StaggerItem } from "./motion";
 
 type ImageTile = { src?: string; alt?: string };
 
@@ -22,6 +23,10 @@ type Props = {
   secondaryHref?: string;
   /** "green" (default) or "blue" — recolors the section + inner panel. */
   tone?: "green" | "blue";
+  /** When true, adopt the priority page's gutter + max-w-page container and a
+   *  continuation (top-padding-dropped) rhythm so this block lines up with the
+   *  sections above it. Default keeps the standalone full-bleed styling. */
+  contained?: boolean;
 };
 
 export default function BuildingSection({
@@ -38,6 +43,7 @@ export default function BuildingSection({
   secondaryLabel = "Our initiatives",
   secondaryHref = "/initiatives",
   tone = "green",
+  contained = false,
 }: Props) {
   const isBlue = tone === "blue";
   const title =
@@ -59,20 +65,33 @@ export default function BuildingSection({
   );
 
   return (
-    <section data-nav-theme="light" className={`${isBlue ? "bg-[#E7F9FF]" : "bg-[#EAFBF1]"} px-5 sm:px-8 md:px-12 lg:px-20 xl:px-28 pt-12 md:pt-20 lg:pt-28 pb-12 md:pb-20 lg:pb-28`}>
-      <div className={`${isBlue ? "bg-warning-25" : "bg-error-500"} rounded-2xl md:rounded-3xl overflow-hidden px-6 md:px-12 lg:px-16 pt-10 md:pt-14 lg:pt-20 pb-8 md:pb-10 lg:pb-14`}>
+    <section
+      data-nav-theme="light"
+      className={`${isBlue ? "bg-[#E7F9FF]" : "bg-[#EAFBF1]"} ${
+        contained
+          ? "px-6 md:px-12 lg:px-20 xl:px-28 pb-16 md:pb-24 lg:pb-28"
+          : "px-5 sm:px-8 md:px-12 lg:px-20 xl:px-28 pt-12 md:pt-20 lg:pt-28 pb-12 md:pb-20 lg:pb-28"
+      }`}
+    >
+      <div className={`${isBlue ? "bg-warning-25" : "bg-error-500"} ${contained ? "mx-auto max-w-page" : ""} rounded-2xl md:rounded-3xl overflow-hidden px-6 md:px-12 lg:px-16 pt-10 md:pt-14 lg:pt-20 pb-8 md:pb-10 lg:pb-14`}>
         <div className="flex flex-col gap-12 md:gap-16 lg:gap-24">
           {/* Top: copy on the left, three images on the right */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12 items-center">
             {/* Left — heading, body, CTAs */}
-            <div data-reveal-stagger className="flex flex-col gap-6 lg:gap-8 lg:max-w-xl">
-              <h2 className="font-display text-3xl md:text-4xl lg:text-display-lg font-bold text-primary-500 leading-[1.05] tracking-[-0.02em]">
+            <Stagger className="flex flex-col gap-6 lg:gap-8 lg:max-w-xl">
+              <StaggerItem
+                as="h2"
+                className="font-display text-3xl md:text-4xl lg:text-display-lg font-bold text-primary-500 leading-[1.05] tracking-[-0.02em]"
+              >
                 {title}
-              </h2>
-              <p className="text-base md:text-lg text-primary-500/80 leading-relaxed max-w-md">
+              </StaggerItem>
+              <StaggerItem
+                as="p"
+                className="text-base md:text-lg text-primary-500/80 leading-relaxed max-w-md"
+              >
                 {body}
-              </p>
-              <div className="flex flex-wrap gap-3">
+              </StaggerItem>
+              <StaggerItem className="flex flex-wrap gap-3">
                 <CtaLink
                   href={primaryHref}
                   className="rounded-round bg-primary-500 px-5 py-2 text-sm font-semibold text-white text-center transition hover:bg-primary-600"
@@ -85,13 +104,13 @@ export default function BuildingSection({
                 >
                   {secondaryLabel}
                 </CtaLink>
-              </div>
-            </div>
+              </StaggerItem>
+            </Stagger>
 
             {/* Right — a single video, or three portrait tiles (wider L→R) */}
             {videoSrc ? (
-              <div
-                data-reveal="scale"
+              <Reveal
+                preset="scale"
                 className="relative h-72 md:h-96 lg:h-112 overflow-hidden rounded-2xl bg-primary-500/5"
               >
                 <video
@@ -105,10 +124,10 @@ export default function BuildingSection({
                 >
                   <source src={videoSrc} />
                 </video>
-              </div>
+              </Reveal>
             ) : (
-              <div
-                data-reveal="scale"
+              <Reveal
+                preset="scale"
                 className="grid grid-cols-[0.7fr_1fr_1.4fr] gap-3 md:gap-4 h-72 md:h-96 lg:h-112"
               >
                 {tiles.map((tile, i) => (
@@ -127,7 +146,7 @@ export default function BuildingSection({
                     ) : null}
                   </div>
                 ))}
-              </div>
+              </Reveal>
             )}
           </div>
         </div>

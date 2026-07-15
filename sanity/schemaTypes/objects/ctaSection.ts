@@ -22,6 +22,13 @@ export const ctaSection = defineType({
   type: "object",
   fields: [
     defineField({
+      name: "enabled",
+      title: "Show this section",
+      description: "Turn the block off without deleting it.",
+      type: "boolean",
+      initialValue: true,
+    }),
+    defineField({
       name: "heading",
       title: "Heading",
       type: "internationalizedArrayString",

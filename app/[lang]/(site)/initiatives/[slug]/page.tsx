@@ -10,6 +10,7 @@ import BuildingSection from "@/app/components/BuildingSection";
 import CareersSection from "@/app/components/CareersSection";
 import CtaLink from "@/app/components/CtaLink";
 import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
+import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import { client } from "@/sanity/lib/client";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
 import { resolveImage, resolveMedia } from "@/sanity/lib/image";
@@ -317,11 +318,13 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
 
         {/* Top band — title left, excerpt + CTAs right. */}
         <div className="relative px-6 md:px-12 lg:px-20 xl:px-28 pt-24 md:pt-28 lg:pt-28 pb-10 md:pb-14 lg:pb-16">
-          <div
-            data-reveal-stagger
+          <Stagger
             className="mx-auto grid w-full max-w-page grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start"
           >
-            <h1 className="font-display text-[clamp(2.25rem,4.4vw,3.75rem)] font-bold leading-[1.04] tracking-[-0.03em] max-w-2xl">
+            <StaggerItem
+              as="h1"
+              className="font-display text-[clamp(2.25rem,4.4vw,3.75rem)] font-bold leading-[1.04] tracking-[-0.03em] max-w-2xl"
+            >
               <span style={{ color: heroAccent }}>{hStart}</span>
               {hMid ? (
                 <>
@@ -335,9 +338,9 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
                   <span style={{ color: heroAccent }}>{hEnd}</span>
                 </>
               ) : null}
-            </h1>
+            </StaggerItem>
 
-            <div className="flex flex-col gap-6 max-w-md lg:justify-self-end lg:pt-2">
+            <StaggerItem className="flex flex-col gap-6 max-w-md lg:justify-self-end lg:pt-2">
               {initiative.excerpt ? (
                 <p className="text-base md:text-lg text-white/75 leading-relaxed">
                   {initiative.excerpt}
@@ -357,14 +360,14 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
                   Explore Our Impact
                 </CtaLink>
               </div>
-            </div>
-          </div>
+            </StaggerItem>
+          </Stagger>
         </div>
 
         {/* Full-bleed cover image flush to the bottom of the blue band. */}
         {cover ? (
-          <div
-            data-reveal="scale"
+          <Reveal
+            preset="scale"
             className="relative w-full aspect-4/3 sm:aspect-video lg:aspect-2/1"
           >
             <Image
@@ -376,7 +379,7 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
               preload
               quality={90}
             />
-          </div>
+          </Reveal>
         ) : null}
       </section>
 
@@ -388,17 +391,19 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
           className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-28"
           style={{ backgroundColor: sectionBg }}
         >
-          <div
-            data-reveal-stagger
+          <Stagger
             className="mx-auto grid max-w-page grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-16 items-start"
           >
             {/* Left — title, sticks while the body scrolls. */}
-            <h2 className="lg:col-span-1 font-display text-2xl md:text-3xl font-bold text-primary-500 leading-tight tracking-tight lg:sticky lg:top-24 lg:self-start">
+            <StaggerItem
+              as="h2"
+              className="lg:col-span-1 font-display text-2xl md:text-3xl font-bold text-primary-500 leading-tight tracking-tight lg:sticky lg:top-24 lg:self-start"
+            >
               {initiative.title}
-            </h2>
+            </StaggerItem>
 
             {/* Right — subtitle as the large lead, then the body detail. */}
-            <div className="lg:col-span-2 flex flex-col gap-10 lg:gap-14">
+            <StaggerItem className="lg:col-span-2 flex flex-col gap-10 lg:gap-14">
               {initiative.subtitle ? (
                 <p className="text-xl md:text-2xl lg:text-[26px] text-primary-500 leading-normal tracking-[-0.01em]">
                   {initiative.subtitle}
@@ -412,8 +417,8 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
                   />
                 </div>
               ) : null}
-            </div>
-          </div>
+            </StaggerItem>
+          </Stagger>
         </section>
       ) : null}
 
@@ -425,12 +430,11 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
           className="px-6 md:px-12 lg:px-20 xl:px-28 py-14 md:py-20 lg:py-24"
           style={{ backgroundColor: quoteBg }}
         >
-          <div
-            data-reveal-stagger
+          <Stagger
             className="mx-auto grid max-w-page grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-stretch"
           >
             {/* Left — supporting note (top), attribution + quote (bottom). */}
-            <div className="flex flex-col justify-between gap-12 lg:gap-16">
+            <StaggerItem className="flex flex-col justify-between gap-12 lg:gap-16">
               {initiative.quoteSupporting ? (
                 <p className="max-w-xs text-sm text-white/55 leading-relaxed">
                   {initiative.quoteSupporting}
@@ -446,12 +450,12 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
                   {renderQuote(initiative.quoteText!)}
                 </blockquote>
               </div>
-            </div>
+            </StaggerItem>
 
             {/* Right — portrait. */}
             {quoteImg ? (
-              <div
-                data-reveal="scale"
+              <StaggerItem
+                preset="scale"
                 className="relative w-full aspect-4/5 lg:aspect-auto lg:h-full min-h-80 overflow-hidden rounded-2xl lg:rounded-3xl bg-white/10"
               >
                 <Image
@@ -461,9 +465,9 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
                   sizes="(min-width: 1024px) 45vw, 100vw"
                   className="object-cover"
                 />
-              </div>
+              </StaggerItem>
             ) : null}
-          </div>
+          </Stagger>
         </section>
       ) : null}
 
@@ -477,8 +481,8 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
           <div className="mx-auto max-w-page flex flex-col gap-16 lg:gap-24">
             {/* Why It Matters */}
             {whyMattersImg || initiative.whyMattersBody ? (
-              <div data-reveal-stagger className="flex flex-col gap-6 lg:gap-8">
-                <div className="flex flex-col gap-3 border-b border-white/15 pb-6 lg:pb-8">
+              <Stagger className="flex flex-col gap-6 lg:gap-8">
+                <StaggerItem className="flex flex-col gap-3 border-b border-white/15 pb-6 lg:pb-8">
                   <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight tracking-tight">
                     {initiative.whyMattersHeading ?? "Why It Matters"}
                   </h2>
@@ -487,10 +491,10 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
                       {initiative.whyMattersBody}
                     </p>
                   ) : null}
-                </div>
+                </StaggerItem>
                 {whyMattersImg ? (
-                  <div
-                    data-reveal="scale"
+                  <StaggerItem
+                    preset="scale"
                     className="relative w-full aspect-video lg:aspect-2/1 overflow-hidden rounded-lg lg:rounded-xl bg-white/5"
                     style={{ boxShadow: `0 0 0 2px ${ring}` }}
                   >
@@ -501,15 +505,15 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
                       sizes="100vw"
                       className="object-cover"
                     />
-                  </div>
+                  </StaggerItem>
                 ) : null}
-              </div>
+              </Stagger>
             ) : null}
 
             {/* Further Projected Impact */}
             {impactStats.length > 0 ? (
-              <div data-reveal-stagger className="flex flex-col gap-8 lg:gap-10">
-                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+              <Stagger className="flex flex-col gap-8 lg:gap-10">
+                <StaggerItem className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div className="max-w-xl">
                     <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight tracking-tight">
                       {initiative.impactHeading ?? "Further Projected Impact"}
@@ -526,8 +530,8 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
                   >
                     Partner With BPI
                   </CtaLink>
-                </div>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+                </StaggerItem>
+                <StaggerItem className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
                   {impactStats.map((stat, i) => (
                     <div
                       key={i}
@@ -546,8 +550,8 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
                       ) : null}
                     </div>
                   ))}
-                </div>
-              </div>
+                </StaggerItem>
+              </Stagger>
             ) : null}
           </div>
         </section>

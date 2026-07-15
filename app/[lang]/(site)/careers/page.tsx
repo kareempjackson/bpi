@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import CtaLink from "@/app/components/CtaLink";
 import MediaImage from "@/app/components/MediaImage";
+import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import PageSections from "@/app/components/PageSections";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
 import { resolveMedia } from "@/sanity/lib/image";
@@ -136,18 +137,18 @@ export default async function CareersPage({
           <div className="relative flex flex-1 flex-col px-6 md:px-12 lg:px-20 xl:px-28 pt-16 md:pt-20 lg:pt-20 pb-10 md:pb-12 lg:pb-12">
             <div className="mx-auto flex w-full max-w-page flex-1 flex-col">
               {/* "We are hiring." — white lead headline across the top. */}
-              <h1
-                data-reveal-stagger
+              <Stagger
+                as="h1"
                 className="font-display text-[clamp(2.75rem,5.5vw,5rem)] font-semibold leading-[0.92] tracking-[-0.035em] text-white"
               >
                 {headlineLead}
-              </h1>
+              </Stagger>
 
               {/* Image (left) + green headline / description / CTA (right). */}
               <div className="mt-6 md:mt-8 grid flex-1 grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-stretch">
                 {heroMedia ? (
-                  <div
-                    data-reveal="scale"
+                  <Reveal
+                    preset="scale"
                     className="group relative w-full aspect-4/5 sm:aspect-4/3 lg:aspect-auto lg:h-full rounded-3xl overflow-hidden bg-white/5 ring-1 ring-white/10 shadow-2xl shadow-black/40"
                   >
                     <MediaImage
@@ -161,15 +162,14 @@ export default async function CareersPage({
                       aria-hidden
                       className="pointer-events-none absolute inset-0 bg-linear-to-t from-error-950/40 via-transparent to-transparent"
                     />
-                  </div>
+                  </Reveal>
                 ) : null}
 
-                <div
-                  data-reveal-stagger
+                <Stagger
                   className="flex flex-col gap-8 lg:justify-between"
                 >
                   {headlineRest ? (
-                    <h2 className="font-display text-[clamp(2.5rem,5vw,4.5rem)] font-semibold leading-[0.92] tracking-[-0.035em] text-error-500">
+                    <StaggerItem as="h2" className="font-display text-[clamp(2.5rem,5vw,4.5rem)] font-semibold leading-[0.92] tracking-[-0.035em] text-error-500">
                       {headlineRestHead ? (
                         <>
                           {headlineRestHead}
@@ -177,10 +177,10 @@ export default async function CareersPage({
                         </>
                       ) : null}
                       {headlineRestTail}
-                    </h2>
+                    </StaggerItem>
                   ) : null}
 
-                  <div className="flex flex-col gap-7 max-w-sm lg:mt-auto">
+                  <StaggerItem className="flex flex-col gap-7 max-w-sm lg:mt-auto">
                     <p className="text-base md:text-lg text-white/65 leading-relaxed">
                       {data.heroDescription}
                     </p>
@@ -203,8 +203,8 @@ export default async function CareersPage({
                         <path d="M13 6l6 6-6 6" />
                       </svg>
                     </CtaLink>
-                  </div>
-                </div>
+                  </StaggerItem>
+                </Stagger>
               </div>
             </div>
           </div>
@@ -216,48 +216,47 @@ export default async function CareersPage({
         >
           <div className="mx-auto w-full max-w-page flex flex-col lg:flex-1 lg:min-h-0">
             {/* Heading + intro */}
-            <div data-reveal-stagger className="shrink-0 flex flex-col gap-3 max-w-2xl">
-              <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-error-500 leading-tight tracking-[-0.01em]">
+            <Stagger className="shrink-0 flex flex-col gap-3 max-w-2xl">
+              <StaggerItem as="h2" className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-error-500 leading-tight tracking-[-0.01em]">
                 {data.whyHeading}
-              </h2>
-              <p className="text-base lg:text-lg text-white/55 leading-relaxed max-w-xl">
+              </StaggerItem>
+              <StaggerItem as="p" className="text-base lg:text-lg text-white/55 leading-relaxed max-w-xl">
                 {data.whyIntro}
-              </p>
-            </div>
+              </StaggerItem>
+            </Stagger>
 
             {/* Portrait image (left) + narrative blocks (right). The grid takes
                 the remaining height and both columns stretch to match, so the
                 image is exactly as tall as the text column. */}
             <div className="mt-10 lg:mt-12 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-stretch lg:flex-1 lg:min-h-0">
               {whyMedia ? (
-                <div
-                  data-reveal="scale"
+                <Reveal
+                  preset="scale"
                   className="relative w-full aspect-4/5 lg:aspect-auto lg:h-full rounded-2xl overflow-hidden bg-white/5"
                 >
                   <MediaImage
                     media={whyMedia}
                     sizes="(min-width: 1024px) 45vw, 100vw"
                   />
-                </div>
+                </Reveal>
               ) : null}
 
-              <div
-                data-reveal-stagger
+              <Stagger
                 className="flex flex-col justify-between gap-5 lg:min-h-0"
               >
                 {(data.whySections ?? []).map((section, idx) => (
-                  <div key={section.heading + idx}>
+                  <StaggerItem key={section.heading + idx}>
                     <h3 className="font-display text-base lg:text-lg font-bold text-white leading-snug">
                       {section.heading}
                     </h3>
                     <p className="mt-1.5 text-sm lg:text-[15px] text-white/65 leading-relaxed">
                       {section.body}
                     </p>
-                  </div>
+                  </StaggerItem>
                 ))}
 
                 {(data.whyBullets?.length ?? 0) > 0 ? (
-                  <div>
+                  <StaggerItem>
                     <h3 className="font-display text-base lg:text-lg font-bold text-white leading-snug">
                       {data.whyBulletsHeading}
                     </h3>
@@ -266,9 +265,9 @@ export default async function CareersPage({
                         <li key={bullet + idx}>{bullet}</li>
                       ))}
                     </ul>
-                  </div>
+                  </StaggerItem>
                 ) : null}
-              </div>
+              </Stagger>
             </div>
           </div>
         </section>

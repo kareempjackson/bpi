@@ -48,6 +48,7 @@ const MENU_MEDIA_PROJECTION = `{
 const PAGE_SECTIONS_PROJECTION = `pageSections[]{
   _type,
   _key,
+  enabled,
   "eyebrow": ${loc("eyebrow")},
   "heading": ${loc("heading")},
   "lead": ${loc("lead")},
@@ -559,6 +560,245 @@ export const CAREERS_PAGE_QUERY = defineQuery(`
     "equalOpportunityParagraph1": ${loc("equalOpportunityParagraph1")},
     "equalOpportunityParagraph2": ${loc("equalOpportunityParagraph2")},
     equalOpportunityBg,
+    ${PAGE_SECTIONS_PROJECTION}
+  }
+`);
+
+export const PRIORITIES_PAGE_QUERY = defineQuery(`
+  *[_type == "prioritiesPage"][0]{
+    "seoTitle": ${loc("seoTitle")},
+    "seoDescription": ${loc("seoDescription")},
+
+    "heroBody": ${loc("heroBody")},
+    "heroHeadlineLine1": ${loc("heroHeadlineLine1")},
+    "heroHeadlineLine2": ${loc("heroHeadlineLine2")},
+    heroCta${CTA_PROJECTION},
+    heroImage${IMAGE_PROJECTION},
+
+    "statsIntro": ${loc("statsIntro")},
+    "statsHeading": ${loc("statsHeading")},
+    stats[]{
+      "value": ${loc("value")},
+      "description": ${loc("description")}
+    },
+
+    "prioritiesHeading": ${loc("prioritiesHeading")},
+    "prioritiesIntro": ${loc("prioritiesIntro")},
+    priorities[]{
+      "label": ${loc("label")}
+    },
+    prioritiesCta${CTA_PROJECTION},
+    prioritiesImage${IMAGE_PROJECTION},
+
+    "closingEyebrow": ${loc("closingEyebrow")},
+    "closingHeadlineLine1": ${loc("closingHeadlineLine1")},
+    "closingHeadlineLine2": ${loc("closingHeadlineLine2")},
+    "closingBody": ${loc("closingBody")},
+    closingCta${CTA_PROJECTION},
+
+    "latestHeading": ${loc("latestHeading")},
+    latestShowCount,
+    ${PAGE_SECTIONS_PROJECTION}
+  }
+`);
+
+// ── Strategic priorities ────────────────────────────────────────────────────
+// The numbered index on /priorities and the linked /priorities/[slug] detail
+// pages. Ordered by the editor-set `order`, then title.
+const PRIORITY_CARD_PROJECTION = `{
+  _id,
+  "title": ${loc("title")},
+  "slug": slug.current,
+  "subtitle": ${loc("subtitle")},
+  order,
+  heroImage${IMAGE_PROJECTION}
+}`;
+
+export const ALL_PRIORITIES_QUERY = defineQuery(`
+  *[_type == "priority" && defined(slug.current)]
+    | order(coalesce(order, 9999) asc, ${loc("title")} asc)${PRIORITY_CARD_PROJECTION}
+`);
+
+export const ALL_PRIORITY_SLUGS_QUERY = defineQuery(`
+  *[_type == "priority" && defined(slug.current)]{
+    "slug": slug.current
+  }
+`);
+
+export const PRIORITY_BY_SLUG_QUERY = defineQuery(`
+  *[_type == "priority" && slug.current == $slug][0]{
+    _id,
+    "title": ${loc("title")},
+    "slug": slug.current,
+    "subtitle": ${loc("subtitle")},
+    order,
+    heroLayout,
+    heroImage${IMAGE_PROJECTION},
+    "heroHeadlineLead": ${loc("heroHeadlineLead")},
+    "heroHeadlineEmphasis": ${loc("heroHeadlineEmphasis")},
+    "heroHeadlineTrail": ${loc("heroHeadlineTrail")},
+    pageColor,
+    sectionBgColor,
+
+    showOverview,
+    "overviewHeading": ${loc("overviewHeading")},
+    "overviewBody": ${loc("overviewBody")},
+
+    showPoints,
+    "pointsHeading": ${loc("pointsHeading")},
+    points[]{
+      "title": ${loc("title")},
+      "body": ${loc("body")}
+    },
+
+    showStats,
+    "statsHeading": ${loc("statsHeading")},
+    stats[]{
+      "value": ${loc("value")},
+      "description": ${loc("description")}
+    },
+
+    showQuote,
+    "quoteEyebrow": ${loc("quoteEyebrow")},
+    "quoteHeading": ${loc("quoteHeading")},
+    "quoteLead": ${loc("quoteLead")},
+    "quoteText": ${loc("quoteText")},
+    "quoteAttribution": ${loc("quoteAttribution")},
+    "quoteRole": ${loc("quoteRole")},
+    quotePortrait${IMAGE_PROJECTION},
+
+    showPractice,
+    "practiceEyebrow": ${loc("practiceEyebrow")},
+    "practiceStatementLead": ${loc("practiceStatementLead")},
+    "practiceStatementHighlight": ${loc("practiceStatementHighlight")},
+    "practiceStatementTrail": ${loc("practiceStatementTrail")},
+    "practiceBody": ${loc("practiceBody")},
+    practicePrimaryCta${CTA_PROJECTION},
+    practiceSecondaryCta${CTA_PROJECTION},
+
+    showPracticeDetail,
+    "practiceDetailHeading": ${loc("practiceDetailHeading")},
+    "practiceDetailBody": ${loc("practiceDetailBody")},
+    practiceDetailImage${IMAGE_PROJECTION},
+    practiceDetailCta${CTA_PROJECTION},
+
+    showPracticeTabs,
+    "practiceTabsHeading": ${loc("practiceTabsHeading")},
+    "practiceTabsLead": ${loc("practiceTabsLead")},
+    "practiceTabsStatement": ${loc("practiceTabsStatement")},
+    "practiceTabsTrail": ${loc("practiceTabsTrail")},
+    practiceTabsItems[]{
+      "label": ${loc("label")},
+      "body": ${loc("body")},
+      "bullets": ${loc("bullets")}
+    },
+
+    showMotion,
+    "motionHeading": ${loc("motionHeading")},
+    motionTone,
+    motionCta${CTA_PROJECTION},
+    motionImage${IMAGE_PROJECTION},
+    motionItems[]{
+      "title": ${loc("title")},
+      "body": ${loc("body")}
+    },
+
+    ${PAGE_SECTIONS_PROJECTION}
+  }
+`);
+
+// The /sectors landing page (singleton) — frames the sector cards below it.
+export const SECTORS_PAGE_QUERY = defineQuery(`
+  *[_type == "sectorsPage"][0]{
+    "seoTitle": ${loc("seoTitle")},
+    "seoDescription": ${loc("seoDescription")},
+
+    "heroHeading": ${loc("heroHeading")},
+    "heroBody": ${loc("heroBody")},
+    heroCta${CTA_PROJECTION},
+    heroImage${IMAGE_PROJECTION},
+
+    "sixHeading": ${loc("sixHeading")},
+    "sixIntro": ${loc("sixIntro")},
+
+    "latestHeading": ${loc("latestHeading")},
+    ${PAGE_SECTIONS_PROJECTION}
+  }
+`);
+
+// ── Sectors ─────────────────────────────────────────────────────────────────
+// The /sectors listing (the drawer stack) and the linked /sectors/[slug] detail
+// pages. Ordered by the editor-set `order`, then title. The card projection
+// carries just what the listing stack renders.
+const SECTOR_CARD_PROJECTION = `{
+  _id,
+  "title": ${loc("title")},
+  "slug": slug.current,
+  "subtitle": ${loc("subtitle")},
+  order,
+  cardImage${IMAGE_PROJECTION}
+}`;
+
+export const ALL_SECTORS_QUERY = defineQuery(`
+  *[_type == "sector" && defined(slug.current)]
+    | order(coalesce(order, 9999) asc, ${loc("title")} asc)${SECTOR_CARD_PROJECTION}
+`);
+
+export const ALL_SECTOR_SLUGS_QUERY = defineQuery(`
+  *[_type == "sector" && defined(slug.current)]{
+    "slug": slug.current
+  }
+`);
+
+export const SECTOR_BY_SLUG_QUERY = defineQuery(`
+  *[_type == "sector" && slug.current == $slug][0]{
+    _id,
+    "title": ${loc("title")},
+    "slug": slug.current,
+    "subtitle": ${loc("subtitle")},
+    order,
+    cardImage${IMAGE_PROJECTION},
+    heroImage${IMAGE_PROJECTION},
+    pageColor,
+    sectionBgColor,
+
+    showOverview,
+    "overviewHeading": ${loc("overviewHeading")},
+    "overviewBody": ${loc("overviewBody")},
+
+    showCapabilities,
+    "capabilitiesHeading": ${loc("capabilitiesHeading")},
+    capabilities[]{
+      "title": ${loc("title")},
+      "body": ${loc("body")}
+    },
+
+    showStats,
+    "statsHeading": ${loc("statsHeading")},
+    stats[]{
+      "value": ${loc("value")},
+      "description": ${loc("description")}
+    },
+
+    showQuote,
+    "quoteEyebrow": ${loc("quoteEyebrow")},
+    "quoteHeading": ${loc("quoteHeading")},
+    "quoteLead": ${loc("quoteLead")},
+    "quoteText": ${loc("quoteText")},
+    "quoteAttribution": ${loc("quoteAttribution")},
+    "quoteRole": ${loc("quoteRole")},
+    quotePortrait${IMAGE_PROJECTION},
+
+    showMotion,
+    "motionHeading": ${loc("motionHeading")},
+    motionTone,
+    motionCta${CTA_PROJECTION},
+    motionImage${IMAGE_PROJECTION},
+    motionItems[]{
+      "title": ${loc("title")},
+      "body": ${loc("body")}
+    },
+
     ${PAGE_SECTIONS_PROJECTION}
   }
 `);

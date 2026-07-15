@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
 import MediaImage from "@/app/components/MediaImage";
+import { Stagger, StaggerItem } from "@/app/components/motion";
 import PageSections from "@/app/components/PageSections";
 import { resolveMedia } from "@/sanity/lib/image";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
@@ -93,38 +94,36 @@ export default async function ContactPage({
               duplicates so the body copy can sit between them. */}
           <h1 className="sr-only">Partner with Us — Get in touch</h1>
 
-          <div
-            data-reveal-stagger
+          <Stagger
             aria-hidden
             className="font-display text-[clamp(2.5rem,6vw,6rem)] font-bold leading-[0.95] tracking-[-0.03em] text-error-300"
           >
             Partner with Us
-          </div>
+          </Stagger>
 
-          <p
-            data-reveal-stagger
+          <Stagger
+            as="p"
             className="mt-6 md:mt-8 max-w-xl text-base md:text-lg text-white/80 leading-relaxed"
           >
             Reach out about partnerships, investment, media, or careers.
             Wherever you are across the Caribbean and the wider world, we&apos;d
             love to hear from you and build the region&apos;s pharmaceutical
             future together.
-          </p>
+          </Stagger>
 
-          <div
-            data-reveal-stagger
+          <Stagger
             aria-hidden
             className="mt-8 md:mt-10 lg:mt-12 font-display text-[clamp(2.5rem,6vw,6rem)] font-bold leading-[0.95] tracking-[-0.03em] text-error-300 lg:ml-[28%]"
           >
             Get in touch
-          </div>
+          </Stagger>
 
-          <p
-            data-reveal-stagger
+          <Stagger
+            as="p"
             className="mt-12 md:mt-16 text-center text-lg md:text-xl text-white/85 leading-relaxed"
           >
             Together, we are advancing healthcare, innovation, and opportunity.
-          </p>
+          </Stagger>
         </div>
       </section>
 
@@ -194,16 +193,15 @@ export default async function ContactPage({
       >
         <div className="mx-auto w-full max-w-page">
           {/* Statement — eyebrow (left) + two-tone underlined headline. */}
-          <div
-            data-reveal-stagger
+          <Stagger
             className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12"
           >
-            <div className="lg:col-span-3">
+            <StaggerItem className="lg:col-span-3">
               <span className="text-sm font-bold text-primary-500">
                 For Investors
               </span>
-            </div>
-            <div className="lg:col-span-9">
+            </StaggerItem>
+            <StaggerItem className="lg:col-span-9">
               <h2 className="font-display text-[clamp(1.9rem,3.6vw,3.25rem)] font-bold leading-[1.4] tracking-[-0.02em]">
                 <span className="block text-primary-500/40">
                   We partner with investors
@@ -218,15 +216,15 @@ export default async function ContactPage({
                   Barbados
                 </span>
               </h2>
-            </div>
-          </div>
+            </StaggerItem>
+          </Stagger>
 
           {/* Why investors work with us — 4-up with vertical dividers. */}
-          <div data-reveal-stagger className="mt-16 md:mt-20 lg:mt-24">
-            <h3 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-primary-500 leading-tight tracking-[-0.02em]">
+          <Stagger className="mt-16 md:mt-20 lg:mt-24">
+            <StaggerItem as="h3" className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-primary-500 leading-tight tracking-[-0.02em]">
               Why Investors Work With Us
-            </h3>
-            <div className="mt-10 md:mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-y-10">
+            </StaggerItem>
+            <StaggerItem className="mt-10 md:mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-y-10">
               {WHY_ITEMS.map((item, i) => (
                 <div
                   key={item.title}
@@ -248,8 +246,8 @@ export default async function ContactPage({
                   </div>
                 </div>
               ))}
-            </div>
-          </div>
+            </StaggerItem>
+          </Stagger>
         </div>
       </section>
       <PageSections sections={data.pageSections} />

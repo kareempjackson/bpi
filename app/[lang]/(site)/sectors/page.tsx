@@ -1,16 +1,31 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 
+import BlogSection, { type BlogSectionPost } from "@/app/components/BlogSection";
 import BuildingSection from "@/app/components/BuildingSection";
+import CareersSection from "@/app/components/CareersSection";
 import CtaLink from "@/app/components/CtaLink";
+import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
+import MediaImage from "@/app/components/MediaImage";
+import PageSections from "@/app/components/PageSections";
+import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
+import { localizedHref } from "@/app/lib/locale";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
 import { resolveImage, resolveMedia } from "@/sanity/lib/image";
-import { HOME_PAGE_QUERY } from "@/sanity/lib/queries";
+import {
+  ALL_SECTORS_QUERY,
+  HOME_PAGE_QUERY,
+  LATEST_POSTS_QUERY,
+  SECTORS_PAGE_QUERY,
+} from "@/sanity/lib/queries";
 import type {
+  BlogPost,
   HomePage,
   ResolvedMedia,
   SectorNode,
+  SectorsPage,
+  SectorSummary,
 } from "@/sanity/lib/types";
+import SectorsStack, { type SectorSlide } from "./SectorsStack";
 
 export const revalidate = 3600;
 
@@ -18,6 +33,11 @@ export const revalidate = 3600;
 function mediaImageSrc(m: ResolvedMedia | null): string | undefined {
   if (!m) return undefined;
   return m.kind === "image" ? m.src : m.poster;
+}
+
+// Video src for a resolved media object (undefined for images).
+function mediaVideoSrc(m: ResolvedMedia | null): string | undefined {
+  return m?.kind === "video" ? m.src : undefined;
 }
 
 // The six sectors are authored on the Home page document (molecule diagram).
@@ -37,10 +57,31 @@ function sectorStill(node: SectorNode): { src: string; alt: string } | null {
   return img ? { src: img.src, alt: img.alt || node.title } : null;
 }
 
-export async function generateMetadata(): Promise<Metadata> {
+async function getSectorsPage(lang: string): Promise<SectorsPage | null> {
+  return loadQuery<SectorsPage | null>(SECTORS_PAGE_QUERY, {
+    params: { lang },
+    tags: [TAG.sectorsPage],
+  });
+}
+
+const DEFAULT_HERO_HEADING = "How Health Gets Here";
+const DEFAULT_HERO_BODY =
+  "Medicine doesn't reach a patient through one decision. It takes six systems working together: trade routes, a trained workforce, research infrastructure, innovation, regulation, and capital. This is where BPI builds each one.";
+const DEFAULT_SIX_HEADING = "The Six";
+const DEFAULT_SIX_INTRO =
+  "BPI works across six sectors to build the systems, routes, and infrastructure that determine whether essential medicines reach the Caribbean reliably and on time.";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  const page = await getSectorsPage(lang);
   return {
-    title: "Sectors — BPI",
+    title: page?.seoTitle ?? "Sectors — BPI",
     description:
+      page?.seoDescription ??
       "The six sectors BPI is building across — each a structural component of the Caribbean's pharmaceutical future.",
   };
 }
@@ -51,39 +92,173 @@ export default async function SectorsPage({
   params: Promise<{ lang: string }>;
 }) {
   const { lang } = await params;
-  const data = await getHomePage(lang);
+  const [data, page, sectors, latestPosts] = await Promise.all([
+    getHomePage(lang),
+    getSectorsPage(lang),
+    loadQuery<SectorSummary[] | null>(ALL_SECTORS_QUERY, {
+      params: { lang },
+      tags: [TAG.sector],
+    }),
+    loadQuery<BlogPost[] | null>(LATEST_POSTS_QUERY, {
+      params: { lang, limit: 3 },
+      tags: [TAG.post],
+    }),
+  ]);
   const nodes = data?.sectorsNodes ?? [];
   const buildingMedia = resolveMedia(data?.buildingImage, { width: 1600 });
+  const careersMedia = resolveMedia(data?.careersImage, { width: 1200 });
+  const heroMedia = resolveMedia(
+    page?.heroImage ?? data?.whyImage ?? data?.leaderQuoteImage,
+    { width: 1400 },
+  );
+
+  // Editable page copy — the singleton overrides, then the Home document's
+  // sector fields, then a sensible built-in default.
+  const heroHeading =
+    page?.heroHeading ?? data?.sectorsHeading ?? DEFAULT_HERO_HEADING;
+  const heroBody = page?.heroBody ?? data?.sectorsBody ?? DEFAULT_HERO_BODY;
+  const heroCtaLabel = page?.heroCta?.label ?? "Explore Sectors";
+  const heroCtaHref = page?.heroCta?.href
+    ? localizedHref(lang, page.heroCta.href)
+    : "#sectors";
+  const sixHeading = page?.sixHeading ?? DEFAULT_SIX_HEADING;
+  const sixIntro = page?.sixIntro ?? DEFAULT_SIX_INTRO;
+
+  // Still image for each molecule node, keyed by its slot id — used as a
+  // fallback so a seeded sector without its own card image still shows the
+  // matching diagram photo in the drawer.
+  const nodeStillById = new Map<string, ReturnType<typeof sectorStill>>(
+    nodes.map((node) => [node.nodeId, sectorStill(node)] as const),
+  );
+
+  // Latest from BPI — newest posts, mapped to the shared bento component.
+  const blogPosts: BlogSectionPost[] = (latestPosts ?? []).map((p) => {
+    const m = resolveMedia(p.coverImage, { width: 1200 });
+    return {
+      title: p.title,
+      excerpt: p.excerpt,
+      href: localizedHref(lang, p.externalLink ?? `/blog/${p.slug}`),
+      publishedAt: p.publishedAt,
+      imageSrc: mediaImageSrc(m),
+      videoSrc: mediaVideoSrc(m),
+      imageAlt: m?.alt,
+      tags: (p.tags ?? []).map((t) => t.title).slice(0, 2),
+      category: p.contentType
+        ? p.contentType[0].toUpperCase() + p.contentType.slice(1)
+        : undefined,
+    };
+  });
+
+  // The drawer stack prefers the dedicated Sector documents (each links to its
+  // own /sectors/[slug] detail page). When none are authored yet, it falls back
+  // to the six molecule nodes on the Home document so the page is never empty.
+  const sectorDocSlides: SectorSlide[] = (sectors ?? []).map((s) => {
+    const img = resolveImage(s.cardImage, { width: 800 });
+    const still = nodeStillById.get(s.slug) ?? null;
+    return {
+      nodeId: s.slug,
+      title: s.title,
+      description: s.subtitle ?? undefined,
+      href: localizedHref(lang, `/sectors/${s.slug}`),
+      imageSrc: img?.src ?? still?.src,
+      imageAlt: img?.alt || still?.alt || s.title,
+    };
+  });
+
+  const nodeSlides: SectorSlide[] = nodes.map((node) => {
+    const still = sectorStill(node);
+    return {
+      nodeId: node.nodeId,
+      title: node.title,
+      description: node.description ?? undefined,
+      href: node.href
+        ? localizedHref(lang, node.href)
+        : localizedHref(lang, `/sectors/${node.nodeId}`),
+      imageSrc: still?.src,
+      imageAlt: still?.alt,
+    };
+  });
+
+  const sectorSlides: SectorSlide[] =
+    sectorDocSlides.length > 0 ? sectorDocSlides : nodeSlides;
 
   return (
     <main className="bg-error-25">
-      {/* Header */}
-      <section className="px-6 md:px-12 lg:px-20 xl:px-28 pt-28 md:pt-32 lg:pt-36 pb-10 md:pb-14 lg:pb-16">
-        <div data-reveal-stagger className="mx-auto max-w-page">
-          <p className="text-xs md:text-sm font-semibold tracking-[0.18em] text-primary-500/65 uppercase">
-            Our Sectors
-          </p>
-          <h1 className="mt-3 font-display text-display-sm md:text-display-md lg:text-display-lg font-bold text-primary-500 leading-[1.04] tracking-[-0.02em] max-w-4xl">
-            {data?.sectorsHeading ?? "Building across six sectors"}
-          </h1>
-          {data?.sectorsBody ? (
-            <p className="mt-5 text-base md:text-lg text-primary-500/70 leading-relaxed max-w-2xl">
-              {data.sectorsBody}
-            </p>
-          ) : null}
+      {/* ── Hero ───────────────────────────────────────────────────── */}
+      <section
+        data-nav-theme="dark"
+        data-cursor="icon"
+        style={{ backgroundColor: "#01190d" }}
+        className="relative overflow-hidden pt-20 md:pt-24 lg:pt-24"
+      >
+        {/* Interactive rounded-tile grid backdrop — tiles light up on hover; the BPI logo mark replaces the cursor (via the global CustomCursor, data-cursor="icon"). */}
+        <GridHoverBackdrop />
+
+        {/* Heading — hugs the left content padding, above the image. */}
+        <div className="relative px-6 md:px-12 lg:px-20 xl:px-28">
+          <Stagger
+            as="h1"
+            className="font-display text-[clamp(2.75rem,7vw,5.5rem)] font-bold leading-[0.98] tracking-[-0.03em] text-error-500"
+          >
+            {heroHeading}
+          </Stagger>
+        </div>
+
+        {/* Row — image bleeds to the left screen edge; body + CTA on the right. */}
+        <div className="relative mt-6 md:mt-8 grid grid-cols-1 items-center gap-8 lg:mt-8 lg:grid-cols-[1.9fr_1fr] lg:gap-14">
+          {/* Left — team hero image, rounded on the right edge only. */}
+          <Reveal
+            preset="scale"
+            className="relative aspect-4/3 w-full overflow-hidden rounded-r-sm bg-primary-500 lg:aspect-video"
+          >
+            {heroMedia ? (
+              <MediaImage
+                media={heroMedia}
+                sizes="(min-width: 1024px) 65vw, 100vw"
+                preload
+                eager
+              />
+            ) : null}
+          </Reveal>
+
+          {/* Right — body + CTA. */}
+          <Stagger
+            className="flex max-w-md flex-col gap-8 px-6 md:px-12 lg:pl-0 lg:pr-20 xl:pr-28"
+          >
+            <StaggerItem as="p" className="text-lg md:text-xl text-white/85 leading-relaxed">
+              {heroBody}
+            </StaggerItem>
+            <StaggerItem>
+              <CtaLink
+                href={heroCtaHref}
+                className="inline-flex w-fit items-center rounded-round bg-error-500 px-6 py-2.5 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-(--ease-premium) hover:bg-error-400"
+              >
+                {heroCtaLabel}
+              </CtaLink>
+            </StaggerItem>
+          </Stagger>
         </div>
       </section>
 
-      {/* Sector grid */}
-      {nodes.length > 0 ? (
-        <section className="px-6 md:px-12 lg:px-20 xl:px-28 pb-16 md:pb-24 lg:pb-32">
-          <div
-            data-reveal-stagger
-            className="mx-auto grid max-w-page grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6 lg:gap-7"
-          >
-            {nodes.map((node) => (
-              <SectorCard key={node.nodeId} node={node} />
-            ))}
+      {/* The Six — sectors carousel */}
+      {sectorSlides.length > 0 ? (
+        <section
+          id="sectors"
+          className="scroll-mt-24 px-6 md:px-12 lg:px-20 xl:px-28 pt-16 md:pt-20 lg:pt-24 pb-16 md:pb-24 lg:pb-32"
+        >
+          <div className="mx-auto max-w-page">
+            <Stagger className="max-w-2xl">
+              <StaggerItem as="h2" className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-primary-500 leading-tight tracking-[-0.02em]">
+                {sixHeading}
+              </StaggerItem>
+              <StaggerItem as="p" className="mt-5 text-lg md:text-xl text-primary-500/80 leading-relaxed">
+                {sixIntro}
+              </StaggerItem>
+            </Stagger>
+
+            <Reveal className="mt-10 md:mt-14">
+              <SectorsStack slides={sectorSlides} />
+            </Reveal>
           </div>
         </section>
       ) : (
@@ -95,67 +270,55 @@ export default async function SectorsPage({
         </section>
       )}
 
-      {/* Footer CTA — reused from the Home page. */}
-      <BuildingSection
-        imageSrc={mediaImageSrc(buildingMedia)}
-        imageAlt={buildingMedia?.alt}
-        headlineLine1={data?.buildingHeadlineLine1}
-        headlineLine2={data?.buildingHeadlineLine2}
-        primaryLabel={data?.buildingPrimaryCta?.label ?? undefined}
-        primaryHref={data?.buildingPrimaryCta?.href ?? undefined}
-        secondaryLabel={data?.buildingSecondaryCta?.label ?? undefined}
-        secondaryHref={data?.buildingSecondaryCta?.href ?? undefined}
+      {/* Latest from BPI — newest posts (hides itself when there are none). */}
+      <BlogSection
+        heading={page?.latestHeading ?? data?.blogHeading ?? undefined}
+        viewAllHref={localizedHref(lang, "/blog")}
+        posts={blogPosts}
       />
-    </main>
-  );
-}
 
-function SectorCard({ node }: { node: SectorNode }) {
-  const still = sectorStill(node);
-  // Link out only when the editor set an explicit destination; otherwise the
-  // card is display-only (there are no per-sector detail pages yet).
-  const href = node.href ?? undefined;
-
-  const inner = (
-    <>
-      {still ? (
-        <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl lg:rounded-2xl bg-primary-500/5">
-          <Image
-            src={still.src}
-            alt={still.alt}
-            fill
-            sizes="(min-width: 1024px) 30vw, (min-width: 768px) 45vw, 100vw"
-            className="object-cover transition-transform duration-700 ease-[var(--ease-premium)] group-hover/sector:scale-[1.03] motion-reduce:transform-none"
+      {/* Modular tail — editor-managed blocks on the Sectors page document. When
+          none are set, fall back to the Home page's Careers + footer-CTA copy so
+          the page never ends abruptly. */}
+      {page?.pageSections && page.pageSections.length > 0 ? (
+        <PageSections sections={page.pageSections} />
+      ) : (
+        <>
+          <CareersSection
+            tone="mint"
+            eyebrow={data?.careersEyebrow ?? undefined}
+            heading={data?.careersHeading ?? undefined}
+            lead={data?.careersLead ?? undefined}
+            body={data?.careersBody ?? undefined}
+            imageSrc={
+              mediaImageSrc(careersMedia) ?? mediaImageSrc(buildingMedia)
+            }
+            imageAlt={careersMedia?.alt ?? buildingMedia?.alt}
+            primaryLabel={data?.careersPrimaryCta?.label ?? undefined}
+            primaryHref={
+              data?.careersPrimaryCta?.href
+                ? localizedHref(lang, data.careersPrimaryCta.href)
+                : undefined
+            }
+            secondaryLabel={data?.careersSecondaryCta?.label ?? undefined}
+            secondaryHref={
+              data?.careersSecondaryCta?.href
+                ? localizedHref(lang, data.careersSecondaryCta.href)
+                : undefined
+            }
           />
-        </div>
-      ) : null}
-      <div className="mt-5 flex flex-col gap-2">
-        <span className="text-xs font-semibold tracking-[0.14em] text-primary-500/55 uppercase">
-          {node.num}
-        </span>
-        <h2 className="font-display text-xl lg:text-2xl font-bold text-primary-500 leading-tight tracking-[-0.01em]">
-          {node.title}
-        </h2>
-        {node.description ? (
-          <p className="text-sm lg:text-base text-primary-500/75 leading-relaxed">
-            {node.description}
-          </p>
-        ) : null}
-      </div>
-    </>
-  );
-
-  const cls =
-    "group/sector block rounded-2xl lg:rounded-3xl bg-white p-5 lg:p-6 transition-shadow duration-300 hover:shadow-[0_18px_40px_-24px_rgba(0,0,54,0.25)]";
-
-  return href ? (
-    <CtaLink
-      href={href}
-      className={`${cls} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30`}
-    >
-      {inner}
-    </CtaLink>
-  ) : (
-    <div className={cls}>{inner}</div>
+          <BuildingSection
+            imageSrc={mediaImageSrc(buildingMedia)}
+            imageAlt={buildingMedia?.alt}
+            headlineLine1={data?.buildingHeadlineLine1}
+            headlineLine2={data?.buildingHeadlineLine2}
+            primaryLabel={data?.buildingPrimaryCta?.label ?? undefined}
+            primaryHref={data?.buildingPrimaryCta?.href ?? undefined}
+            secondaryLabel={data?.buildingSecondaryCta?.label ?? undefined}
+            secondaryHref={data?.buildingSecondaryCta?.href ?? undefined}
+          />
+        </>
+      )}
+    </main>
   );
 }

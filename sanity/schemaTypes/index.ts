@@ -15,6 +15,10 @@ import { portalPage } from "./documents/portalPage";
 import { portalResource } from "./documents/portalResource";
 import { portalUser } from "./documents/portalUser";
 import { post } from "./documents/post";
+import { priority } from "./documents/priority";
+import { prioritiesPage } from "./documents/prioritiesPage";
+import { sector } from "./documents/sector";
+import { sectorsPage } from "./documents/sectorsPage";
 import { siteSettings } from "./documents/siteSettings";
 import { tag } from "./documents/tag";
 import { careersSection } from "./objects/careersSection";
@@ -71,8 +75,12 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   initiativesPage,
   contactPage,
   careersPage,
+  prioritiesPage,
+  sectorsPage,
   blogPage,
   initiative,
+  priority,
+  sector,
   post,
   tag,
   job,

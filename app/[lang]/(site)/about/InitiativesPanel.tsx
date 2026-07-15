@@ -4,6 +4,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { Stagger, StaggerItem } from "@/app/components/motion";
+
 export type Initiative = {
   title: string;
   subtitle?: string;
@@ -94,13 +96,14 @@ export default function InitiativesPanel({ initiatives }: Props) {
         setActiveIndex(null);
       }}
     >
-      <ul ref={listRef} data-reveal-stagger className="flex flex-col">
+      <Stagger as="ul" ref={listRef} className="flex flex-col">
         {initiatives.map((item, idx) => {
           const isActive = idx === activeIndex;
           const showTopBorder =
             idx > 0 && activeIndex !== idx && activeIndex !== idx - 1;
           return (
-            <li
+            <StaggerItem
+              as="li"
               key={item.title}
               ref={(el) => {
                 rowRefs.current[idx] = el;
@@ -145,10 +148,10 @@ export default function InitiativesPanel({ initiatives }: Props) {
               >
                 {item.description}
               </p>
-            </li>
+            </StaggerItem>
           );
         })}
-      </ul>
+      </Stagger>
 
       <div
         aria-hidden={!active}

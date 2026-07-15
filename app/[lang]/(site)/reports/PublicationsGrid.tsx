@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import Logo from "@/app/components/Logo";
+import { Stagger, StaggerItem } from "@/app/components/motion";
 import type { ContentType } from "../blog/types";
 
 export type Publication = {
@@ -261,11 +262,16 @@ export default function PublicationsGrid({
             : "Nothing here yet."}
         </p>
       ) : isReports ? (
-        <div data-reveal-stagger>
+        <Stagger>
           {filtered.map((post, i) => (
-            <ReportRow key={`${post.title}-${i}`} post={post} />
+            <StaggerItem
+              key={`${post.title}-${i}`}
+              className={i === 0 ? "[&>article]:pt-0" : undefined}
+            >
+              <ReportRow post={post} />
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-x-5 gap-y-10 md:gap-y-14">
           {filtered.map((post, i) => (
@@ -279,7 +285,7 @@ export default function PublicationsGrid({
 
 function ReportRow({ post }: { post: Publication }) {
   return (
-    <article className="flex items-start gap-5 md:gap-10 border-b border-primary-500/10 py-7 first:pt-0">
+    <article className="flex items-start gap-5 md:gap-10 border-b border-primary-500/10 py-7">
       <span className="shrink-0 w-10 md:w-14 pt-1 font-display text-base md:text-lg font-semibold text-error-700">
         {post.year ?? ""}
       </span>

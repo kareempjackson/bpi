@@ -302,6 +302,7 @@ export type BlogPostDetail = BlogPost & {
 export type PageSection = {
   _type: "ctaSection" | "careersSection";
   _key: string;
+  enabled?: boolean | null;
   eyebrow?: string | null;
   heading?: string | null;
   lead?: string | null;
@@ -508,6 +509,189 @@ export type CareersPage = {
   equalOpportunityParagraph1: string;
   equalOpportunityParagraph2?: string | null;
   equalOpportunityBg?: string | null;
+};
+
+export type PrioritiesPage = {
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+
+  heroBody?: string | null;
+  heroHeadlineLine1?: string | null;
+  heroHeadlineLine2?: string | null;
+  heroCta?: Cta | null;
+  heroImage?: SanityImage | null;
+
+  statsIntro?: string | null;
+  statsHeading?: string | null;
+  stats?: { value?: string | null; description?: string | null }[] | null;
+
+  prioritiesHeading?: string | null;
+  prioritiesIntro?: string | null;
+  priorities?: { label?: string | null }[] | null;
+  prioritiesCta?: Cta | null;
+  prioritiesImage?: SanityImage | null;
+
+  closingEyebrow?: string | null;
+  closingHeadlineLine1?: string | null;
+  closingHeadlineLine2?: string | null;
+  closingBody?: string | null;
+  closingCta?: Cta | null;
+
+  latestHeading?: string | null;
+  latestShowCount?: number | null;
+  pageSections?: PageSection[] | null;
+};
+
+/** A strategic priority as shown in the /priorities numbered index. */
+export type PrioritySummary = {
+  _id: string;
+  title: string;
+  slug: string;
+  subtitle?: string | null;
+  order?: number | null;
+  heroImage?: SanityImage | null;
+};
+
+/** Full priority for the /priorities/[slug] detail page. */
+export type PriorityHeroLayout =
+  | "imageCard"
+  | "split"
+  | "textOnly"
+  | "feature"
+  | "cover"
+  | "featureSplit";
+
+export type PriorityDetail = PrioritySummary & {
+  heroLayout?: PriorityHeroLayout | null;
+  heroImage?: SanityImage | null;
+  heroHeadlineLead?: string | null;
+  heroHeadlineEmphasis?: string | null;
+  heroHeadlineTrail?: string | null;
+  pageColor?: string | null;
+  sectionBgColor?: string | null;
+
+  showOverview?: boolean | null;
+  overviewHeading?: string | null;
+  overviewBody?: string | null;
+
+  showPoints?: boolean | null;
+  pointsHeading?: string | null;
+  points?: { title?: string | null; body?: string | null }[] | null;
+
+  showStats?: boolean | null;
+  statsHeading?: string | null;
+  stats?: { value?: string | null; description?: string | null }[] | null;
+
+  showQuote?: boolean | null;
+  quoteEyebrow?: string | null;
+  quoteHeading?: string | null;
+  quoteLead?: string | null;
+  quoteText?: string | null;
+  quoteAttribution?: string | null;
+  quoteRole?: string | null;
+  quotePortrait?: SanityImage | null;
+
+  showPractice?: boolean | null;
+  practiceEyebrow?: string | null;
+  practiceStatementLead?: string | null;
+  practiceStatementHighlight?: string | null;
+  practiceStatementTrail?: string | null;
+  practiceBody?: string | null;
+  practicePrimaryCta?: Cta;
+  practiceSecondaryCta?: Cta;
+
+  showPracticeDetail?: boolean | null;
+  practiceDetailHeading?: string | null;
+  practiceDetailBody?: string | null;
+  practiceDetailImage?: SanityImage | null;
+  practiceDetailCta?: Cta;
+
+  showPracticeTabs?: boolean | null;
+  practiceTabsHeading?: string | null;
+  practiceTabsLead?: string | null;
+  practiceTabsStatement?: string | null;
+  practiceTabsTrail?: string | null;
+  practiceTabsItems?:
+    | {
+        label?: string | null;
+        body?: string | null;
+        bullets?: string | null;
+      }[]
+    | null;
+
+  showMotion?: boolean | null;
+  motionHeading?: string | null;
+  motionTone?: "light" | "dark" | null;
+  motionCta?: Cta;
+  motionImage?: SanityImage | null;
+  motionItems?: { title?: string | null; body?: string | null }[] | null;
+
+  pageSections?: PageSection[] | null;
+};
+
+// ── Sectors ──────────────────────────────────────────────────────────────────
+/** The /sectors landing page (singleton) that frames the sector cards. */
+export type SectorsPage = {
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+
+  heroHeading?: string | null;
+  heroBody?: string | null;
+  heroCta?: Cta | null;
+  heroImage?: SanityImage | null;
+
+  sixHeading?: string | null;
+  sixIntro?: string | null;
+
+  latestHeading?: string | null;
+  pageSections?: PageSection[] | null;
+};
+
+/** A sector as shown in the /sectors listing stack. */
+export type SectorSummary = {
+  _id: string;
+  title: string;
+  slug: string;
+  subtitle?: string | null;
+  order?: number | null;
+  cardImage?: SanityImage | null;
+};
+
+/** Full sector for the /sectors/[slug] detail page. */
+export type SectorDetail = SectorSummary & {
+  heroImage?: SanityImage | null;
+  pageColor?: string | null;
+  sectionBgColor?: string | null;
+
+  showOverview?: boolean | null;
+  overviewHeading?: string | null;
+  overviewBody?: string | null;
+
+  showCapabilities?: boolean | null;
+  capabilitiesHeading?: string | null;
+  capabilities?: { title?: string | null; body?: string | null }[] | null;
+
+  showStats?: boolean | null;
+  statsHeading?: string | null;
+  stats?: { value?: string | null; description?: string | null }[] | null;
+
+  showQuote?: boolean | null;
+  quoteEyebrow?: string | null;
+  quoteHeading?: string | null;
+  quoteLead?: string | null;
+  quoteText?: string | null;
+  quoteAttribution?: string | null;
+  quoteRole?: string | null;
+  quotePortrait?: SanityImage | null;
+
+  showMotion?: boolean | null;
+  motionHeading?: string | null;
+  motionTone?: "light" | "dark" | null;
+  motionCta?: Cta;
+  motionImage?: SanityImage | null;
+  motionItems?: { title?: string | null; body?: string | null }[] | null;
+
+  pageSections?: PageSection[] | null;
 };
 
 export type ContactPage = {

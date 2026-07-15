@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import ArrowCircle from "./ArrowCircle";
 import CtaLink from "./CtaLink";
 import InitiativesShape from "./shapes/InitiativesShape";
+import { Stagger, StaggerItem } from "./motion";
 
 type Initiative = {
   title: string;
@@ -136,40 +137,38 @@ export default function InitiativesSection({
       className="bg-[#EAFBF1] px-5 sm:px-8 md:px-12 lg:px-20 xl:px-28 py-20 md:py-32 lg:py-40"
     >
       {/* Header */}
-      <div
-        data-reveal-stagger
-        className="flex items-end justify-between gap-3 mb-6 md:mb-8"
-      >
-        <div>
+      <Stagger className="flex items-end justify-between gap-3 mb-6 md:mb-8">
+        <StaggerItem>
           <div className="text-xs md:text-sm font-semibold tracking-[0.18em] text-primary-500/70 uppercase">
             {eyebrow}
           </div>
           <h2 className="mt-2 md:mt-3 font-display text-display-xs md:text-display-sm lg:text-display-md font-bold leading-[1.05] tracking-[-0.02em] text-primary-500">
             {heading}
           </h2>
-        </div>
-        <CtaLink
-          href={viewAllHref}
-          className="group/viewall flex items-center gap-3 text-primary-500 transition-opacity duration-300 ease-[var(--ease-premium)] hover:opacity-80 focus-visible:outline-none focus-visible:opacity-100"
-        >
-          <span className="hidden sm:inline text-sm md:text-base font-medium transition-transform duration-300 ease-[var(--ease-premium)] group-hover/viewall:-translate-x-0.5 motion-reduce:transform-none">
-            View all
-          </span>
-          <ArrowCircle
-            size={40}
-            dashed={false}
-            className="text-primary-500 transition-transform duration-300 ease-[var(--ease-premium)] group-hover/viewall:translate-x-1 motion-reduce:transform-none"
-          />
-        </CtaLink>
-      </div>
+        </StaggerItem>
+        <StaggerItem>
+          <CtaLink
+            href={viewAllHref}
+            className="group/viewall flex items-center gap-3 text-primary-500 transition-opacity duration-300 ease-[var(--ease-premium)] hover:opacity-80 focus-visible:outline-none focus-visible:opacity-100"
+          >
+            <span className="hidden sm:inline text-sm md:text-base font-medium transition-transform duration-300 ease-[var(--ease-premium)] group-hover/viewall:-translate-x-0.5 motion-reduce:transform-none">
+              View all
+            </span>
+            <ArrowCircle
+              size={40}
+              dashed={false}
+              className="text-primary-500 transition-transform duration-300 ease-[var(--ease-premium)] group-hover/viewall:translate-x-1 motion-reduce:transform-none"
+            />
+          </CtaLink>
+        </StaggerItem>
+      </Stagger>
 
-      <div
-        data-reveal-stagger
+      <Stagger
         className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-7 items-stretch"
         onMouseLeave={handleListLeave}
       >
         {/* Image column — notched shape, top-aligned with the list. */}
-        <div data-reveal="scale" className="md:col-span-1 flex items-start">
+        <StaggerItem preset="scale" className="md:col-span-1 flex items-start">
           <InitiativesShape
             key={displayedVideoSrc ?? displayedImageSrc}
             size={500}
@@ -179,25 +178,28 @@ export default function InitiativesSection({
             cinematic
             className="w-full h-auto"
           />
-        </div>
+        </StaggerItem>
 
-        <div
-          data-reveal-stagger
+        <Stagger
           className="md:col-span-2 flex flex-col gap-3 lg:gap-4 h-full"
         >
           {initiatives.map((initiative, idx) => (
-            <InitiativeRow
+            <StaggerItem
               key={initiative.href ?? `${initiative.title}-${idx}`}
-              index={idx + 1}
-              initiative={initiative}
-              isActive={activeIndex === idx}
-              onEnter={() => handleEnter(idx)}
-              onLeave={() => handleLeave(idx)}
-              onFocus={() => handleFocus(idx)}
-            />
+              className="flex flex-1 min-h-0"
+            >
+              <InitiativeRow
+                index={idx + 1}
+                initiative={initiative}
+                isActive={activeIndex === idx}
+                onEnter={() => handleEnter(idx)}
+                onLeave={() => handleLeave(idx)}
+                onFocus={() => handleFocus(idx)}
+              />
+            </StaggerItem>
           ))}
-        </div>
-      </div>
+        </Stagger>
+      </Stagger>
     </section>
   );
 }

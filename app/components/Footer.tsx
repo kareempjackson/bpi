@@ -2,6 +2,7 @@ import CtaLink from "./CtaLink";
 import FooterWatermark from "./FooterWatermark";
 import Logo from "./Logo";
 import NewsletterForm from "./NewsletterForm";
+import { Stagger, StaggerItem } from "./motion";
 
 type NavLink = { label: string; href: string };
 type SocialName = "LinkedIn" | "X" | "Instagram" | "YouTube";
@@ -220,11 +221,8 @@ export default function Footer({
       {/* Newsletter row — spans the full footer width with just a
           gutter, so the logo sits flush to the left edge and the form
           stretches across the entire row, matching the reference. */}
-      <div
-        data-reveal-stagger
-        className="relative z-10 px-5 sm:px-8 md:px-16 lg:px-32 pt-12 sm:pt-16 md:pt-36 lg:pt-44"
-      >
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+      <Stagger className="relative z-10 px-5 sm:px-8 md:px-16 lg:px-32 pt-12 sm:pt-16 md:pt-36 lg:pt-44">
+        <StaggerItem className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
           <span aria-label="BPI" className="shrink-0">
             <Logo
               size={220}
@@ -232,8 +230,8 @@ export default function Footer({
             />
           </span>
           <NewsletterForm />
-        </div>
-      </div>
+        </StaggerItem>
+      </Stagger>
 
       {/* Centered content — title, columns, partners — stays capped at
           the 7xl page width so it sits in a comfortable reading band. */}

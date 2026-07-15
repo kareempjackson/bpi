@@ -20,7 +20,9 @@ import WhyBpiSection from "@/app/components/WhyBpiSection";
 import { resolveImage, resolveMedia } from "@/sanity/lib/image";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
 import { resolveMenuConfig } from "@/sanity/lib/menu";
+import { localizedHref } from "@/app/lib/locale";
 import {
+  ALL_PRIORITIES_QUERY,
   HOME_PAGE_QUERY,
   FEATURED_INITIATIVES_QUERY,
   LATEST_POSTS_QUERY,
@@ -30,6 +32,7 @@ import type {
   BlogPost,
   HomePage,
   Initiative,
+  PrioritySummary,
   ResolvedMedia,
   SiteSettings,
 } from "@/sanity/lib/types";
@@ -163,11 +166,32 @@ export default async function Home({
   }
 
   const showCount = data.blogShowCount ?? 3;
-  const [posts, settings, initiatives] = await Promise.all([
+  const [posts, settings, initiatives, priorities] = await Promise.all([
     getLatestPosts(lang, showCount),
     getSiteSettings(lang),
     getFeaturedInitiatives(lang),
+    loadQuery<PrioritySummary[] | null>(ALL_PRIORITIES_QUERY, {
+      params: { lang },
+      tags: [TAG.priority],
+    }),
   ]);
+
+  // "How We Work" rows come from the real Strategic Priority documents (ordered,
+  // numbered 1..N by the section), each linking to its /priorities/[slug] page.
+  // The row media uses the priority's hero image/video (shown on expand) when
+  // one is set in Sanity; otherwise the row is text-only.
+  const priorityItems = (priorities ?? []).map((p) => {
+    const m = resolveMedia(p.heroImage, { width: 700 });
+    return {
+      title: p.title,
+      description: p.subtitle ?? "",
+      href: localizedHref(lang, `/priorities/${p.slug}`),
+      imageSrc: mediaImageSrc(m) ?? "",
+      videoSrc: mediaVideoSrc(m),
+      imageAlt: m?.alt,
+      color: "#CAF1FF",
+    };
+  });
 
   const blogPosts: BlogSectionPost[] = posts.map((p) => {
     const m = resolveMedia(p.coverImage, { width: 1200 });
@@ -451,7 +475,7 @@ export default async function Home({
       <ArchitectureOfCareSection
         heading={data.architectureHeading}
         description={data.architectureDescription}
-        items={architectureItems}
+        items={priorityItems.length > 0 ? priorityItems : architectureItems}
         feature={architectureFeature}
       />
       <SectorsSection

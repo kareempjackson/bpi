@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
+import { Stagger, StaggerItem } from "@/app/components/motion";
 import NewsletterForm from "@/app/components/NewsletterForm";
 import { toLocale } from "@/app/lib/locale";
 import PublicationsGrid, { type Publication } from "./PublicationsGrid";
@@ -164,38 +165,36 @@ export default async function ReportsPage({
               duplicates so the body copy can sit between them. */}
           <h1 className="sr-only">Insights, Research &amp; Industry Perspectives</h1>
 
-          <div
-            data-reveal-stagger
+          <Stagger
             aria-hidden
             className="font-display text-[clamp(2.5rem,6vw,6rem)] font-bold leading-[0.95] tracking-[-0.03em] text-error-300"
           >
             Insights, Research &amp;
-          </div>
+          </Stagger>
 
-          <p
-            data-reveal-stagger
+          <Stagger
+            as="p"
             className="mt-6 md:mt-8 max-w-xl text-base md:text-lg text-white/80 leading-relaxed"
           >
             Explore reports, articles, research publications, and thought
             leadership content shaping the future of pharmaceuticals, healthcare
             innovation, and industry development across Barbados and the wider
             Caribbean.
-          </p>
+          </Stagger>
 
-          <div
-            data-reveal-stagger
+          <Stagger
             aria-hidden
             className="mt-8 md:mt-10 lg:mt-12 font-display text-[clamp(2.5rem,6vw,6rem)] font-bold leading-[0.95] tracking-[-0.03em] text-error-300 lg:ml-[28%]"
           >
             Industry Perspectives
-          </div>
+          </Stagger>
 
-          <p
-            data-reveal-stagger
+          <Stagger
+            as="p"
             className="mt-12 md:mt-16 text-center text-lg md:text-xl text-white/85 leading-relaxed"
           >
             Together, we are advancing healthcare, innovation, and opportunity.
-          </p>
+          </Stagger>
         </div>
       </section>
 
@@ -215,11 +214,10 @@ export default async function ReportsPage({
         className="px-6 md:px-12 lg:px-20 xl:px-28 pb-20 md:pb-28 lg:pb-32"
       >
         <div className="mx-auto w-full max-w-page">
-          <div
-            data-reveal-stagger
+          <Stagger
             className="flex flex-col items-center gap-8 rounded-3xl bg-primary-500 px-6 md:px-12 py-14 md:py-20 text-center"
           >
-            <div>
+            <StaggerItem>
               <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight tracking-[-0.02em]">
                 Never Miss a BPI Story
               </h2>
@@ -227,13 +225,15 @@ export default async function ReportsPage({
                 Stay updated about BPI news, initiatives and partnerships as it
                 happens
               </p>
-            </div>
-            <NewsletterForm
-              idPrefix="reports-newsletter"
-              heading={null}
-              className="md:justify-center"
-            />
-          </div>
+            </StaggerItem>
+            <StaggerItem>
+              <NewsletterForm
+                idPrefix="reports-newsletter"
+                heading={null}
+                className="md:justify-center"
+              />
+            </StaggerItem>
+          </Stagger>
         </div>
       </section>
     </main>

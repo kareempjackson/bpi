@@ -1,6 +1,7 @@
 import Image from "next/image";
 
 import CtaLink from "./CtaLink";
+import { Reveal, Stagger, StaggerItem } from "./motion";
 
 type Props = {
   eyebrow?: string;
@@ -16,6 +17,10 @@ type Props = {
   secondaryHref?: string;
   /** "mint" (default) or "blue" — recolors the section + primary button. */
   tone?: "mint" | "blue";
+  /** When true, adopt the priority page's gutter + max-w-page container and a
+   *  continuation (top-padding-dropped) rhythm so this block lines up with the
+   *  sections above it. Default keeps the standalone full-bleed styling. */
+  contained?: boolean;
 };
 
 export default function CareersSection({
@@ -31,6 +36,7 @@ export default function CareersSection({
   secondaryLabel = "Our initiatives",
   secondaryHref = "/initiatives",
   tone = "mint",
+  contained = false,
 }: Props) {
   const isBlue = tone === "blue";
   const primaryBtnClass = isBlue
@@ -39,24 +45,33 @@ export default function CareersSection({
   return (
     <section
       data-nav-theme="light"
-      className={`${
-        isBlue ? "bg-[#E7F9FF]" : "bg-[#EAFBF1]"
-      } px-5 sm:px-8 md:px-12 lg:px-20 xl:px-28 pt-16 md:pt-24 lg:pt-32 pb-4 lg:pb-8`}
+      className={`${isBlue ? "bg-[#E7F9FF]" : "bg-[#EAFBF1]"} ${
+        contained
+          ? "px-6 md:px-12 lg:px-20 xl:px-28 pb-16 md:pb-24 lg:pb-28"
+          : "px-5 sm:px-8 md:px-12 lg:px-20 xl:px-28 pt-16 md:pt-24 lg:pt-32 pb-4 lg:pb-8"
+      }`}
     >
+      <div className={contained ? "mx-auto max-w-page" : ""}>
       {/* Heading block */}
-      <div data-reveal-stagger className="flex flex-col gap-3 md:gap-4">
-        <p className="text-xs md:text-sm font-semibold tracking-[0.18em] text-primary-500/70 uppercase">
+      <Stagger className="flex flex-col gap-3 md:gap-4">
+        <StaggerItem
+          as="p"
+          className="text-xs md:text-sm font-semibold tracking-[0.18em] text-primary-500/70 uppercase"
+        >
           {eyebrow}
-        </p>
-        <h2 className="font-display text-4xl md:text-5xl lg:text-display-lg font-bold text-primary-500 leading-[1.02] tracking-[-0.02em]">
+        </StaggerItem>
+        <StaggerItem
+          as="h2"
+          className="font-display text-4xl md:text-5xl lg:text-display-lg font-bold text-primary-500 leading-[1.02] tracking-[-0.02em]"
+        >
           {heading}
-        </h2>
-      </div>
+        </StaggerItem>
+      </Stagger>
 
       {/* Image left, copy right */}
       <div className="mt-12 md:mt-16 lg:mt-20 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-        <div
-          data-reveal="scale"
+        <Reveal
+          preset="scale"
           className="relative aspect-4/3 overflow-hidden rounded-3xl bg-primary-500/5"
         >
           {videoSrc ? (
@@ -80,16 +95,22 @@ export default function CareersSection({
               className="object-cover"
             />
           ) : null}
-        </div>
+        </Reveal>
 
-        <div data-reveal-stagger className="flex flex-col gap-6 lg:gap-8">
-          <h3 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-primary-500 leading-[1.15] tracking-[-0.01em]">
+        <Stagger className="flex flex-col gap-6 lg:gap-8">
+          <StaggerItem
+            as="h3"
+            className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-primary-500 leading-[1.15] tracking-[-0.01em]"
+          >
             {lead}
-          </h3>
-          <p className="text-base md:text-lg text-primary-500/70 leading-relaxed max-w-xl">
+          </StaggerItem>
+          <StaggerItem
+            as="p"
+            className="text-base md:text-lg text-primary-500/70 leading-relaxed max-w-xl"
+          >
             {body}
-          </p>
-          <div className="flex flex-wrap gap-3 pt-2">
+          </StaggerItem>
+          <StaggerItem className="flex flex-wrap gap-3 pt-2">
             <CtaLink href={primaryHref} className={primaryBtnClass}>
               {primaryLabel}
             </CtaLink>
@@ -99,8 +120,9 @@ export default function CareersSection({
             >
               {secondaryLabel}
             </CtaLink>
-          </div>
-        </div>
+          </StaggerItem>
+        </Stagger>
+      </div>
       </div>
     </section>
   );

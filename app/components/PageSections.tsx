@@ -11,14 +11,20 @@ import CareersSection from "./CareersSection";
  */
 export default function PageSections({
   sections,
+  contained = false,
 }: {
   sections?: PageSection[] | null;
+  /** Align the blocks to the host page's gutter + max-w-page container
+   *  (used on priority detail pages). Off by default. */
+  contained?: boolean;
 }) {
-  if (!sections?.length) return null;
+  // A block with `enabled === false` is toggled off in Studio; skip it.
+  const visible = sections?.filter((s) => s.enabled !== false);
+  if (!visible?.length) return null;
 
   return (
     <>
-      {sections.map((section) => {
+      {visible.map((section) => {
         const media = resolveMedia(section.media, { width: 1600 });
         const imageSrc =
           media?.kind === "image" ? media.src : media?.poster;
@@ -41,6 +47,7 @@ export default function PageSections({
               secondaryLabel={section.secondaryCta?.label}
               secondaryHref={section.secondaryCta?.href}
               tone={section.tone === "blue" ? "blue" : "mint"}
+              contained={contained}
             />
           );
         }
@@ -59,6 +66,7 @@ export default function PageSections({
             secondaryLabel={section.secondaryCta?.label}
             secondaryHref={section.secondaryCta?.href}
             tone={section.tone === "blue" ? "blue" : "green"}
+            contained={contained}
           />
         );
       })}

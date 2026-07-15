@@ -3,6 +3,7 @@
 // body of sections on the light background.
 
 import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
+import { Stagger, StaggerItem } from "@/app/components/motion";
 
 export type LegalSection = {
   heading: string;
@@ -34,18 +35,18 @@ export default function LegalDocument({
         {/* Interactive rounded-tile grid backdrop — tiles light up on hover; the BPI logo mark replaces the cursor (via the global CustomCursor, data-cursor="icon"). */}
         <GridHoverBackdrop />
         <div className="relative mx-auto w-full max-w-page">
-          <h1
-            data-reveal-stagger
+          <Stagger
+            as="h1"
             className="font-display text-[clamp(2.5rem,5vw,4.5rem)] font-bold text-white leading-[1.02] tracking-[-0.03em] max-w-3xl"
           >
             {title}
-          </h1>
-          <p
-            data-reveal-stagger
+          </Stagger>
+          <Stagger
+            as="p"
             className="mt-5 text-sm md:text-base text-white/60"
           >
             Last updated: {lastUpdated}
-          </p>
+          </Stagger>
         </div>
       </section>
 
@@ -55,20 +56,23 @@ export default function LegalDocument({
         className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-24"
       >
         <div className="mx-auto w-full max-w-3xl">
-          <p
-            data-reveal-stagger
+          <Stagger
+            as="p"
             className="text-lg md:text-xl text-primary-500 leading-[1.6]"
           >
             {intro}
-          </p>
+          </Stagger>
 
           <div className="mt-12 lg:mt-16 flex flex-col gap-10 lg:gap-12">
             {sections.map((section, i) => (
-              <div key={section.heading} data-reveal-stagger>
-                <h2 className="font-display text-xl md:text-2xl font-bold text-primary-500 leading-snug tracking-[-0.01em]">
+              <Stagger key={section.heading}>
+                <StaggerItem
+                  as="h2"
+                  className="font-display text-xl md:text-2xl font-bold text-primary-500 leading-snug tracking-[-0.01em]"
+                >
                   {i + 1}. {section.heading}
-                </h2>
-                <div className="mt-3 flex flex-col gap-4">
+                </StaggerItem>
+                <StaggerItem className="mt-3 flex flex-col gap-4">
                   {section.body.map((para, j) => (
                     <p
                       key={j}
@@ -86,8 +90,8 @@ export default function LegalDocument({
                       ))}
                     </ul>
                   ) : null}
-                </div>
-              </div>
+                </StaggerItem>
+              </Stagger>
             ))}
           </div>
         </div>
