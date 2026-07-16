@@ -1,0 +1,411 @@
+import CtaLink from "@/app/components/CtaLink";
+import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
+import MediaImage from "@/app/components/MediaImage";
+import { MEDIA_OBJECT_POSITION } from "@/app/components/ViewTransitionProvider";
+import { Stagger, StaggerItem } from "@/app/components/motion";
+import { localizedHref } from "@/app/lib/locale";
+import type { ResolvedMedia } from "@/sanity/lib/types";
+
+/**
+ * Per-sector detail-page header. One of four layouts, chosen by the sector's
+ * `headerLayout` field, all sharing the same content (title, subtitle, two
+ * CTAs, hero image) and the same colour profile:
+ *
+ *  - `pageColor`     — the dark section/background colour (also the nav + footer tint).
+ *  - `headingColor`  — optional accent for the title + primary button. When unset,
+ *                      the title keeps the default mint (`text-error-500`) and the
+ *                      primary button is a plain white pill, so existing sectors are
+ *                      untouched.
+ *
+ * Layouts:
+ *  - split       — title left, subtitle + buttons right, full-bleed image below.
+ *  - centered    — everything centred, full-bleed image below.
+ *  - sideBySide  — text column beside a contained (rounded) image, no full bleed.
+ *  - overlay     — copy set over the hero image with a dark scrim.
+ *  - showcase    — full-height hero: copy anchored bottom-left beside a tall,
+ *                  contained image on the right.
+ *  - spotlight   — tall contained image on the LEFT, title top-right, and a
+ *                  portrait "pin" + subtitle + buttons anchored bottom-right.
+ *                  The title stays white here; the primary button still takes
+ *                  the profile accent.
+ *
+ * The hero image is always rendered static (no reveal) inside a
+ * `[data-sector-hero]` rect with `MEDIA_OBJECT_POSITION` framing — it is the
+ * landing target for the home-diagram "dive through the porthole" view
+ * transition (see app/components/ViewTransitionProvider.tsx), which needs a
+ * stable, fully-formed rect the moment the route commits.
+ */
+export type SectorHeaderLayout =
+  | "split"
+  | "centered"
+  | "sideBySide"
+  | "overlay"
+  | "showcase"
+  | "spotlight";
+
+type CtaValue = { label?: string | null; href?: string | null } | null | undefined;
+
+type Props = {
+  title: string;
+  subtitle?: string | null;
+  primaryCta?: CtaValue;
+  secondaryCta?: CtaValue;
+  heroMedia: ResolvedMedia | null;
+  pageColor: string;
+  headingColor?: string | null;
+  layout?: SectorHeaderLayout | null;
+  /** Small portrait shown inside the "pin" on the spotlight layout. */
+  portrait?: ResolvedMedia | null;
+  lang: string;
+};
+
+const CONTAINER = "relative mx-auto max-w-page px-6 md:px-12 lg:px-20 xl:px-28";
+const TITLE_BASE =
+  "font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-[-0.02em]";
+const SUBTITLE_BASE = "text-base md:text-lg text-white/80 leading-relaxed";
+const FULL_BLEED_ASPECT = "relative w-full aspect-4/3 sm:aspect-video lg:aspect-2/1";
+
+/** The two header pills. Primary tints to `headingColor` when present. */
+function HeaderCtas({
+  primaryCta,
+  secondaryCta,
+  headingColor,
+  pageColor,
+  lang,
+  align,
+}: {
+  primaryCta?: CtaValue;
+  secondaryCta?: CtaValue;
+  headingColor?: string | null;
+  pageColor: string;
+  lang: string;
+  align?: "start" | "center";
+}) {
+  const hasPrimary = !!primaryCta?.label;
+  const hasSecondary = !!secondaryCta?.label;
+  if (!hasPrimary && !hasSecondary) return null;
+
+  const primaryClass = headingColor
+    ? "inline-flex items-center justify-center rounded-round px-6 py-3 text-sm font-semibold transition-opacity duration-300 ease-[var(--ease-premium)] hover:opacity-90"
+    : "inline-flex items-center justify-center rounded-round bg-white/95 px-6 py-3 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-[var(--ease-premium)] hover:bg-white";
+
+  return (
+    <div
+      className={`flex flex-wrap items-center gap-3 ${
+        align === "center" ? "justify-center" : ""
+      }`}
+    >
+      {hasPrimary ? (
+        <CtaLink
+          href={localizedHref(lang, primaryCta!.href)}
+          className={primaryClass}
+          style={
+            headingColor
+              ? { backgroundColor: headingColor, color: pageColor }
+              : undefined
+          }
+        >
+          {primaryCta!.label}
+        </CtaLink>
+      ) : null}
+      {hasSecondary ? (
+        <CtaLink
+          href={localizedHref(lang, secondaryCta!.href)}
+          className="inline-flex items-center justify-center rounded-round border border-white/50 px-6 py-3 text-sm font-semibold text-white transition-colors duration-300 ease-[var(--ease-premium)] hover:border-white/80 hover:bg-white/10"
+        >
+          {secondaryCta!.label}
+        </CtaLink>
+      ) : null}
+    </div>
+  );
+}
+
+/** Static hero image + `[data-sector-hero]` transition target. */
+function HeroImage({
+  media,
+  className,
+  sizes = "100vw",
+}: {
+  media: ResolvedMedia;
+  className: string;
+  sizes?: string;
+}) {
+  return (
+    <div data-sector-hero className={className}>
+      <MediaImage
+        media={media}
+        sizes={sizes}
+        preload
+        eager
+        objectPositionStyle={MEDIA_OBJECT_POSITION}
+      />
+    </div>
+  );
+}
+
+export default function SectorHeader({
+  title,
+  subtitle,
+  primaryCta,
+  secondaryCta,
+  heroMedia,
+  pageColor,
+  headingColor,
+  layout,
+  portrait,
+  lang,
+}: Props) {
+  const titleColorClass = headingColor ? "" : "text-error-500";
+  const titleStyle = headingColor ? { color: headingColor } : undefined;
+  const hasCtas = !!primaryCta?.label || !!secondaryCta?.label;
+
+  const ctas = (
+    <HeaderCtas
+      primaryCta={primaryCta}
+      secondaryCta={secondaryCta}
+      headingColor={headingColor}
+      pageColor={pageColor}
+      lang={lang}
+    />
+  );
+
+  const sectionProps = {
+    "data-nav-theme": "dark" as const,
+    "data-cursor": "icon" as const,
+    "data-nav-bg": pageColor,
+    style: { backgroundColor: pageColor },
+    className: "relative overflow-hidden",
+  };
+
+  // ── Overlay: copy set over the hero image ──────────────────────────────────
+  if (layout === "overlay") {
+    return (
+      <section {...sectionProps}>
+        {heroMedia ? (
+          <div data-sector-hero className="absolute inset-0">
+            <MediaImage
+              media={heroMedia}
+              sizes="100vw"
+              preload
+              eager
+              objectPositionStyle={MEDIA_OBJECT_POSITION}
+            />
+            {/* Dark scrim so the copy stays legible over any photo. */}
+            <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/45 to-black/25" />
+          </div>
+        ) : (
+          <GridHoverBackdrop />
+        )}
+        <div
+          className={`${CONTAINER} flex min-h-[68vh] flex-col justify-end pt-40 pb-14 md:pb-16 lg:pb-20`}
+        >
+          <Stagger className="flex max-w-2xl flex-col gap-6">
+            <StaggerItem
+              as="h1"
+              className={`${TITLE_BASE} ${titleColorClass}`}
+              style={titleStyle}
+            >
+              {title}
+            </StaggerItem>
+            {subtitle ? (
+              <StaggerItem as="p" className={`max-w-xl ${SUBTITLE_BASE}`}>
+                {subtitle}
+              </StaggerItem>
+            ) : null}
+            {hasCtas ? <StaggerItem>{ctas}</StaggerItem> : null}
+          </Stagger>
+        </div>
+      </section>
+    );
+  }
+
+  // ── Showcase: full-height hero, copy bottom-left beside a tall image ───────
+  if (layout === "showcase") {
+    return (
+      <section {...sectionProps}>
+        <GridHoverBackdrop />
+        <div className="grid grid-cols-1 pt-28 md:pt-32 lg:min-h-svh lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
+          <Stagger className="order-2 flex flex-col justify-end gap-6 px-6 pb-16 md:px-12 lg:order-1 lg:pl-20 lg:pr-0 lg:pb-32 xl:pl-28">
+            <StaggerItem
+              as="h1"
+              className={`max-w-xl ${TITLE_BASE} ${titleColorClass}`}
+              style={titleStyle}
+            >
+              {title}
+            </StaggerItem>
+            {subtitle ? (
+              <StaggerItem as="p" className={`max-w-md ${SUBTITLE_BASE}`}>
+                {subtitle}
+              </StaggerItem>
+            ) : null}
+            {hasCtas ? <StaggerItem>{ctas}</StaggerItem> : null}
+          </Stagger>
+          {heroMedia ? (
+            <HeroImage
+              media={heroMedia}
+              sizes="(max-width: 1024px) 100vw, 45vw"
+              className="relative order-1 mx-6 aspect-3/4 min-h-80 overflow-hidden rounded-lg md:mx-12 lg:order-2 lg:mx-0 lg:mb-16 lg:aspect-auto lg:rounded-l-lg lg:rounded-r-none"
+            />
+          ) : null}
+        </div>
+      </section>
+    );
+  }
+
+  // ── Side-by-side: text column beside a contained image ─────────────────────
+  if (layout === "sideBySide") {
+    return (
+      <section {...sectionProps}>
+        <GridHoverBackdrop />
+        <div
+          className={`${CONTAINER} pt-24 md:pt-28 lg:pt-28 pb-14 md:pb-20 lg:pb-24`}
+        >
+          <Stagger className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
+            <div className="flex flex-col gap-8">
+              <StaggerItem
+                as="h1"
+                className={`max-w-xl ${TITLE_BASE} ${titleColorClass}`}
+                style={titleStyle}
+              >
+                {title}
+              </StaggerItem>
+              {subtitle ? (
+                <StaggerItem as="p" className={`max-w-md ${SUBTITLE_BASE}`}>
+                  {subtitle}
+                </StaggerItem>
+              ) : null}
+              {hasCtas ? <StaggerItem>{ctas}</StaggerItem> : null}
+            </div>
+            {heroMedia ? (
+              <HeroImage
+                media={heroMedia}
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="relative aspect-4/3 w-full overflow-hidden rounded-2xl lg:rounded-3xl"
+              />
+            ) : null}
+          </Stagger>
+        </div>
+      </section>
+    );
+  }
+
+  // ── Centered: everything centred, full-bleed image below ───────────────────
+  if (layout === "centered") {
+    return (
+      <section {...sectionProps}>
+        <GridHoverBackdrop />
+        <div
+          className={`${CONTAINER} pt-24 md:pt-28 lg:pt-28 pb-10 md:pb-14 lg:pb-16`}
+        >
+          <Stagger className="mx-auto flex max-w-3xl flex-col items-center gap-8 text-center">
+            <StaggerItem
+              as="h1"
+              className={`${TITLE_BASE} ${titleColorClass}`}
+              style={titleStyle}
+            >
+              {title}
+            </StaggerItem>
+            {subtitle ? (
+              <StaggerItem as="p" className={`max-w-xl ${SUBTITLE_BASE}`}>
+                {subtitle}
+              </StaggerItem>
+            ) : null}
+            {hasCtas ? (
+              <StaggerItem>
+                <HeaderCtas
+                  primaryCta={primaryCta}
+                  secondaryCta={secondaryCta}
+                  headingColor={headingColor}
+                  pageColor={pageColor}
+                  lang={lang}
+                  align="center"
+                />
+              </StaggerItem>
+            ) : null}
+          </Stagger>
+        </div>
+        {heroMedia ? (
+          <HeroImage media={heroMedia} className={FULL_BLEED_ASPECT} />
+        ) : null}
+      </section>
+    );
+  }
+
+  // ── Spotlight: tall image left, title top-right, pin + copy bottom-right ───
+  if (layout === "spotlight") {
+    // Teardrop "pin" (rounded on three corners, pointed bottom-left) holding a
+    // small portrait — the accent element above the subtitle in the mockup.
+    const pin = portrait ? (
+      <div className="relative size-14 shrink-0 md:size-16">
+        <div className="absolute inset-0 rounded-tl-full rounded-tr-full rounded-br-full bg-[#2f6fe4]" />
+        <div className="absolute inset-0.75 overflow-hidden rounded-tl-full rounded-tr-full rounded-br-full bg-white/5">
+          <MediaImage media={portrait} sizes="64px" />
+        </div>
+      </div>
+    ) : null;
+
+    return (
+      <section {...sectionProps}>
+        <GridHoverBackdrop />
+        <div
+          className={`${CONTAINER} pt-28 md:pt-32 lg:pt-32 pb-14 md:pb-20 lg:pb-24`}
+        >
+          <Stagger className="grid grid-cols-1 items-stretch gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
+            {heroMedia ? (
+              <HeroImage
+                media={heroMedia}
+                sizes="(max-width: 1024px) 100vw, 42vw"
+                className="relative order-2 aspect-4/5 w-full overflow-hidden rounded-2xl lg:order-1 lg:aspect-auto lg:h-full lg:min-h-120 lg:rounded-3xl"
+              />
+            ) : null}
+            <div className="order-1 flex flex-col lg:order-2">
+              <StaggerItem as="h1" className={`max-w-2xl ${TITLE_BASE} text-white`}>
+                {title}
+              </StaggerItem>
+              {pin || subtitle || hasCtas ? (
+                <div className="mt-auto flex flex-col gap-6 pt-12 md:pt-16">
+                  {pin ? <StaggerItem>{pin}</StaggerItem> : null}
+                  {subtitle ? (
+                    <StaggerItem as="p" className={`max-w-md ${SUBTITLE_BASE}`}>
+                      {subtitle}
+                    </StaggerItem>
+                  ) : null}
+                  {hasCtas ? <StaggerItem>{ctas}</StaggerItem> : null}
+                </div>
+              ) : null}
+            </div>
+          </Stagger>
+        </div>
+      </section>
+    );
+  }
+
+  // ── Split (default): title left, subtitle + buttons right ──────────────────
+  return (
+    <section {...sectionProps}>
+      <GridHoverBackdrop />
+      <div
+        className={`${CONTAINER} pt-24 md:pt-28 lg:pt-28 pb-10 md:pb-14 lg:pb-16`}
+      >
+        <Stagger className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-12">
+          <StaggerItem
+            as="h1"
+            className={`max-w-2xl ${TITLE_BASE} ${titleColorClass}`}
+            style={titleStyle}
+          >
+            {title}
+          </StaggerItem>
+          {subtitle || hasCtas ? (
+            <StaggerItem className="flex max-w-md flex-col gap-8 lg:justify-self-end lg:pt-2">
+              {subtitle ? <p className={SUBTITLE_BASE}>{subtitle}</p> : null}
+              {hasCtas ? ctas : null}
+            </StaggerItem>
+          ) : null}
+        </Stagger>
+      </div>
+      {heroMedia ? (
+        <HeroImage media={heroMedia} className={FULL_BLEED_ASPECT} />
+      ) : null}
+    </section>
+  );
+}

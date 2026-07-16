@@ -18,6 +18,8 @@ export const sector = defineType({
     { name: "content", title: "Content", default: true },
     { name: "header", title: "Header" },
     { name: "overview", title: "Overview" },
+    { name: "practice", title: "In practice" },
+    { name: "highlight", title: "Highlight" },
     { name: "capabilities", title: "Capabilities" },
     { name: "stats", title: "Stats" },
     { name: "quote", title: "Quote" },
@@ -69,6 +71,26 @@ export const sector = defineType({
 
     // ───────────────────────────────────────────────────────────── Header ──
     defineField({
+      name: "headerLayout",
+      title: "Header layout",
+      description:
+        "How the title, subtitle, buttons and hero image are arranged. Split = title left / copy right with a full-bleed photo below. Centered = everything centred. Side by side = text beside a contained image. Overlay = copy set over the photo. Showcase = full-height hero with the copy anchored bottom-left beside a tall image on the right. Spotlight = tall image on the left with the title top-right and a portrait pin + copy anchored bottom-right.",
+      type: "string",
+      group: "header",
+      options: {
+        list: [
+          { title: "Split (title left, copy right)", value: "split" },
+          { title: "Centered", value: "centered" },
+          { title: "Side by side", value: "sideBySide" },
+          { title: "Overlay (copy over image)", value: "overlay" },
+          { title: "Showcase (copy bottom-left, tall image right)", value: "showcase" },
+          { title: "Spotlight (tall image left, pin + copy bottom-right)", value: "spotlight" },
+        ],
+        layout: "radio",
+      },
+      initialValue: "split",
+    }),
+    defineField({
       name: "heroImage",
       title: "Hero image",
       description:
@@ -86,6 +108,14 @@ export const sector = defineType({
       initialValue: "#01190d",
     }),
     defineField({
+      name: "heroHeadingColor",
+      title: "Heading / accent color",
+      description:
+        "Accent for the header title and the primary button. Leave empty to use the default mint accent.",
+      type: "hexColor",
+      group: "header",
+    }),
+    defineField({
       name: "sectionBgColor",
       title: "Section background color (light)",
       description:
@@ -93,6 +123,22 @@ export const sector = defineType({
       type: "hexColor",
       group: "header",
       initialValue: "#E9F7EE",
+    }),
+    defineField({
+      name: "heroPrimaryCta",
+      title: "Header primary button",
+      description:
+        "Filled pill in the header, beside the subtitle (e.g. “Partner With BPI”).",
+      type: "cta",
+      group: "header",
+    }),
+    defineField({
+      name: "heroSecondaryCta",
+      title: "Header secondary button",
+      description:
+        "Outlined pill next to the primary button (e.g. “Explore Our Impact”).",
+      type: "cta",
+      group: "header",
     }),
 
     // ─────────────────────────────────────────────────────────── Overview ──
@@ -118,6 +164,162 @@ export const sector = defineType({
       type: "internationalizedArrayText",
       group: "overview",
       hidden: ({ parent }) => parent?.showOverview === false,
+    }),
+
+    // ─────────────────────────────────────────────────────── In practice ──
+    defineField({
+      name: "showPractice",
+      title: "Show “in practice” section",
+      type: "boolean",
+      group: "practice",
+      initialValue: false,
+    }),
+    defineField({
+      name: "practiceHeading",
+      title: "Heading",
+      description: "e.g. “What This Looks Like In Practice”.",
+      type: "internationalizedArrayString",
+      group: "practice",
+      hidden: ({ parent }) => !parent?.showPractice,
+    }),
+    defineField({
+      name: "practiceLead",
+      title: "Lead paragraph",
+      description: "Larger, emphasized paragraph shown first in the right column.",
+      type: "internationalizedArrayText",
+      group: "practice",
+      hidden: ({ parent }) => !parent?.showPractice,
+    }),
+    defineField({
+      name: "practiceBody",
+      title: "Body",
+      description:
+        "Supporting paragraphs. Separate paragraphs with a blank line — each becomes its own block.",
+      type: "internationalizedArrayText",
+      group: "practice",
+      hidden: ({ parent }) => !parent?.showPractice,
+    }),
+    defineField({
+      name: "practiceListHeading",
+      title: "List heading",
+      description: "Subheading above the bullet list (e.g. “Programs Underway”).",
+      type: "internationalizedArrayString",
+      group: "practice",
+      hidden: ({ parent }) => !parent?.showPractice,
+    }),
+    defineField({
+      name: "practiceList",
+      title: "List items",
+      description: "Bulleted items, each a bold term followed by a description.",
+      type: "array",
+      group: "practice",
+      hidden: ({ parent }) => !parent?.showPractice,
+      of: [
+        defineArrayMember({
+          type: "object",
+          name: "practiceListItem",
+          fields: [
+            defineField({
+              name: "term",
+              title: "Term (bold)",
+              type: "internationalizedArrayString",
+            }),
+            defineField({
+              name: "body",
+              title: "Description",
+              type: "internationalizedArrayText",
+            }),
+          ],
+          preview: {
+            select: { title: "term.0.value", subtitle: "body.0.value" },
+          },
+        }),
+      ],
+    }),
+    defineField({
+      name: "practiceCreatesLabel",
+      title: "Closing eyebrow",
+      description: "Small label above the closing statement (e.g. “What This Creates”).",
+      type: "internationalizedArrayString",
+      group: "practice",
+      hidden: ({ parent }) => !parent?.showPractice,
+    }),
+    defineField({
+      name: "practiceCreatesStatement",
+      title: "Closing statement",
+      description: "Large statement shown full-width below the columns.",
+      type: "internationalizedArrayText",
+      group: "practice",
+      hidden: ({ parent }) => !parent?.showPractice,
+    }),
+    defineField({
+      name: "practicePrimaryCta",
+      title: "Primary button",
+      description: "Filled button (e.g. “Partner With BPI”).",
+      type: "cta",
+      group: "practice",
+      hidden: ({ parent }) => !parent?.showPractice,
+    }),
+    defineField({
+      name: "practiceSecondaryCta",
+      title: "Secondary button",
+      description: "Outlined button beside the primary (e.g. “Contact us”).",
+      type: "cta",
+      group: "practice",
+      hidden: ({ parent }) => !parent?.showPractice,
+    }),
+    defineField({
+      name: "practiceImage",
+      title: "Image",
+      description:
+        "Full-width image below the text. Falls back to a Home/sector photo when empty.",
+      type: "imageWithAlt",
+      group: "practice",
+      hidden: ({ parent }) => !parent?.showPractice,
+    }),
+
+    // ────────────────────────────────────────────────────────── Highlight ──
+    defineField({
+      name: "showHighlight",
+      title: "Show highlight section",
+      type: "boolean",
+      group: "highlight",
+      initialValue: false,
+    }),
+    defineField({
+      name: "highlightHeading",
+      title: "Heading",
+      description: "e.g. “What This Looks Like In Practice”.",
+      type: "internationalizedArrayString",
+      group: "highlight",
+      hidden: ({ parent }) => !parent?.showHighlight,
+    }),
+    defineField({
+      name: "highlightBody",
+      title: "Body",
+      description:
+        "Supporting paragraph(s), shown first at regular weight. Separate paragraphs with a blank line.",
+      type: "internationalizedArrayText",
+      group: "highlight",
+      hidden: ({ parent }) => !parent?.showHighlight,
+    }),
+    defineField({
+      name: "highlightStatement",
+      title: "Emphasized statement",
+      description:
+        "The single takeaway line, rendered bold + italic below the body.",
+      type: "internationalizedArrayText",
+      group: "highlight",
+      hidden: ({ parent }) => !parent?.showHighlight,
+    }),
+    defineField({
+      name: "highlightImage",
+      title: "Image",
+      description:
+        "Wide image below the text. Falls back to a Home/sector photo when empty.",
+      type: "imageWithAlt",
+      group: "highlight",
+      hidden: ({ parent }) => !parent?.showHighlight,
     }),
 
     // ─────────────────────────────────────────────────────── Capabilities ──

@@ -149,7 +149,12 @@ export default function StickyTopNav({
   const [overHero, setOverHero] = useState(initialHasHero);
   const [bg, setBg] = useState<string>(initialTheme.bg);
   const [isDark, setIsDark] = useState(initialTheme.dark);
+  // Tracks whether the page has scrolled past the top. Inner (non-hero)
+  // pages render an enlarged logo while pinned at the top, then shrink it
+  // to the default size once the user scrolls.
+  const [scrolled, setScrolled] = useState(false);
   const visibleRef = useRef(!initialHasHero);
+  const scrolledRef = useRef(false);
   const overHeroRef = useRef(initialHasHero);
   const bgRef = useRef<string>(initialTheme.bg);
   const isDarkRef = useRef<boolean>(initialTheme.dark);
@@ -172,6 +177,7 @@ export default function StickyTopNav({
     setHasHero(nextHasHero);
     setVisible(!nextHasHero);
     setOverHero(nextHasHero);
+    setScrolled(false);
     setBg(nextTheme.bg);
     setIsDark(nextTheme.dark);
     // Pause CSS transitions for the brief window between this reset
@@ -284,6 +290,14 @@ export default function StickyTopNav({
 
     const update = () => {
       const y = window.scrollY;
+
+      // Shrink the enlarged inner-page logo once the user leaves the very
+      // top of the page. Small threshold so the transition triggers early.
+      const nextScrolled = y > 12;
+      if (nextScrolled !== scrolledRef.current) {
+        scrolledRef.current = nextScrolled;
+        setScrolled(nextScrolled);
+      }
 
       // Sections marked `[data-hide-nav]` (e.g. the immersive Sectors
       // pinned diagram) take over the viewport — the nav must hide
@@ -408,6 +422,10 @@ export default function StickyTopNav({
 
   const txt = overHero ? "text-white" : isDark ? "text-white" : "text-primary-500";
 
+  // Inner (non-hero) pages show an enlarged logo while pinned at the top;
+  // it scales back down to the default size (100px) once the user scrolls.
+  const enlarged = !hasHero && !scrolled;
+
   return (
     <div
       data-page-header
@@ -440,7 +458,18 @@ export default function StickyTopNav({
             aria-label="BPI home"
             className="inline-flex items-center shrink-0"
           >
-            <Logo size={100} className="block" />
+            {/* Base size is the enlarged size; scale down to the default
+                100px (100/140 ≈ 0.714) once scrolled. Transform-based so the
+                resize is a smooth, composited transition anchored to the
+                left edge. */}
+            <Logo
+              size={140}
+              className={`block origin-left transform-gpu will-change-transform ${
+                ready
+                  ? "transition-transform duration-700 ease-[var(--ease-emphasized)]"
+                  : ""
+              } ${enlarged ? "scale-100" : "scale-[0.714]"}`}
+            />
           </Link>
 
           <nav

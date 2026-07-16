@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
-import MediaImage from "@/app/components/MediaImage";
-import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
+import { Stagger, StaggerItem } from "@/app/components/motion";
 import MotionSection from "@/app/components/MotionSection";
 import PageSections from "@/app/components/PageSections";
 import QuoteSpotlightSection from "@/app/components/QuoteSpotlightSection";
@@ -15,7 +13,10 @@ import {
   HOME_PAGE_QUERY,
   SECTOR_BY_SLUG_QUERY,
 } from "@/sanity/lib/queries";
-import type { HomePage, SectorDetail, SocialLink } from "@/sanity/lib/types";
+import type { Cta, HomePage, SectorDetail, SocialLink } from "@/sanity/lib/types";
+import SectorHeader from "./SectorHeader";
+import SectorHighlightSection from "./SectorHighlightSection";
+import SectorPracticeSection from "./SectorPracticeSection";
 
 // Attribution socials fall back to these when the Home leader has none set.
 const DEFAULT_SOCIALS: SocialLink[] = [
@@ -29,6 +30,19 @@ export const revalidate = 3600;
 
 const DEFAULT_PAGE_COLOR = "#01190d";
 const DEFAULT_SECTION_BG = "#E9F7EE";
+
+// Per-slug header button defaults, used when the sector document leaves them
+// unset. Lets the market-access page render its "Partner With BPI" / "Explore
+// Our Impact" pills out of the box while staying overridable from the CMS.
+const HERO_CTA_FALLBACKS: Record<
+  string,
+  { primary: NonNullable<Cta>; secondary: NonNullable<Cta> }
+> = {
+  "market-access": {
+    primary: { label: "Partner With BPI", href: "/contact" },
+    secondary: { label: "Explore Our Impact", href: "/impact" },
+  },
+};
 
 type RouteProps = {
   params: Promise<{ lang: string; slug: string }>;
@@ -86,6 +100,17 @@ export default async function SectorDetailPage({ params }: RouteProps) {
 
   const pageColor = sector.pageColor ?? DEFAULT_PAGE_COLOR;
   const sectionBg = sector.sectionBgColor ?? DEFAULT_SECTION_BG;
+  // Optional accent for the header title + primary button. Also recolours the
+  // footer headings / Subscribe button so the whole page reads as one profile.
+  const headingColor = sector.heroHeadingColor ?? null;
+  const footerAccent = headingColor ?? "#8CF5B8";
+
+  // Header CTAs — CMS values win, else the per-slug fallback (so market-access
+  // ships with its two pills). A CTA renders only when it has a label.
+  const ctaFallback = HERO_CTA_FALLBACKS[slug];
+  const heroPrimaryCta = sector.heroPrimaryCta ?? ctaFallback?.primary ?? null;
+  const heroSecondaryCta =
+    sector.heroSecondaryCta ?? ctaFallback?.secondary ?? null;
 
   // Full-bleed hero image; prefer the sector's own hero, then its card image,
   // then the Home page's photography, so the header never renders bare.
@@ -98,6 +123,13 @@ export default async function SectorDetailPage({ params }: RouteProps) {
     { width: 2200 },
   );
 
+  // Small portrait for the "pin" in the spotlight header — the Home leader,
+  // falling back to any leader photo. Ignored by every other layout.
+  const headerPortrait = resolveMedia(
+    homeData?.leaderPortraitImage ?? homeData?.leaderQuoteImage,
+    { width: 160 },
+  );
+
   // Each section renders only when its toggle is on AND it has content.
   // `showOverview` defaults on (null → shown); the rest default off.
   const overviewParagraphs = (sector.overviewBody ?? "")
@@ -107,6 +139,53 @@ export default async function SectorDetailPage({ params }: RouteProps) {
   const showOverview =
     sector.showOverview !== false &&
     !!(sector.overviewHeading || overviewParagraphs.length > 0);
+
+  // "In practice" — heading + lead + supporting paragraphs, two CTAs, and a
+  // full-width image. The image falls back to a Home/sector photo so the
+  // section never renders bare before an editor uploads the real shot.
+  const practiceParagraphs = (sector.practiceBody ?? "")
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  const showPractice =
+    !!sector.showPractice &&
+    !!(sector.practiceHeading || sector.practiceLead || practiceParagraphs.length > 0);
+  // Bottom slot is either a full-width image or the "What This Creates" block.
+  // An explicit image always wins; otherwise fall back to a photo only when
+  // there's no closing statement taking that slot.
+  const practiceMedia = resolveMedia(
+    sector.practiceImage ??
+      (sector.practiceCreatesStatement
+        ? null
+        : (sector.heroImage ??
+          homeData?.buildingImage ??
+          homeData?.whyImage ??
+          homeData?.leaderQuoteImage)),
+    { width: 2000 },
+  );
+
+  // "Highlight" — supporting paragraph(s) that land on one emphasized
+  // statement, with a wide image beneath. The image falls back to a Home/sector
+  // photo so the section never renders bare before an editor uploads the shot.
+  const highlightParagraphs = (sector.highlightBody ?? "")
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  const showHighlight =
+    !!sector.showHighlight &&
+    !!(
+      sector.highlightHeading ||
+      sector.highlightStatement ||
+      highlightParagraphs.length > 0
+    );
+  const highlightMedia = resolveMedia(
+    sector.highlightImage ??
+      sector.heroImage ??
+      homeData?.buildingImage ??
+      homeData?.whyImage ??
+      homeData?.leaderQuoteImage,
+    { width: 2000 },
+  );
 
   const capabilities = (sector.capabilities ?? []).filter(
     (c) => c.title || c.body,
@@ -151,44 +230,22 @@ export default async function SectorDetailPage({ params }: RouteProps) {
       style={{ backgroundColor: pageColor }}
     >
       {/* Recolour the shared footer to this page: the sector's dark background,
-          and a light-green accent for the footer headings + Subscribe button. */}
-      <style>{`:root{--footer-bg:${pageColor};--brand-accent:#8CF5B8;--brand-accent-strong:#8CF5B8;}`}</style>
+          and the profile accent for the footer headings + Subscribe button. */}
+      <style>{`:root{--footer-bg:${pageColor};--brand-accent:${footerAccent};--brand-accent-strong:${footerAccent};}`}</style>
 
       {/* ── Header ─────────────────────────────────────────────────── */}
-      <section
-        data-nav-theme="dark"
-        data-cursor="icon"
-        data-nav-bg={pageColor}
-        style={{ backgroundColor: pageColor }}
-        className="relative overflow-hidden"
-      >
-        {/* Interactive rounded-tile grid backdrop — tiles light up on hover; the BPI logo mark replaces the cursor (via the global CustomCursor, data-cursor="icon"). */}
-        <GridHoverBackdrop />
-
-        <div className="relative mx-auto max-w-page px-6 md:px-12 lg:px-20 xl:px-28 pt-24 md:pt-28 lg:pt-28 pb-10 md:pb-14 lg:pb-16">
-          <Stagger
-            className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-12"
-          >
-            <StaggerItem as="h1" className="max-w-2xl font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-[-0.02em] text-error-500">
-              {sector.title}
-            </StaggerItem>
-            {sector.subtitle ? (
-              <StaggerItem as="p" className="max-w-md text-base md:text-lg text-white/80 leading-relaxed lg:justify-self-end lg:pt-2">
-                {sector.subtitle}
-              </StaggerItem>
-            ) : null}
-          </Stagger>
-        </div>
-
-        {heroMedia ? (
-          <Reveal
-            preset="scale"
-            className="relative w-full aspect-4/3 sm:aspect-video lg:aspect-2/1"
-          >
-            <MediaImage media={heroMedia} sizes="100vw" preload eager />
-          </Reveal>
-        ) : null}
-      </section>
+      <SectorHeader
+        title={sector.title}
+        subtitle={sector.subtitle}
+        primaryCta={heroPrimaryCta}
+        secondaryCta={heroSecondaryCta}
+        heroMedia={heroMedia}
+        pageColor={pageColor}
+        headingColor={headingColor}
+        layout={sector.headerLayout}
+        portrait={headerPortrait}
+        lang={lang}
+      />
 
       {/* ── Overview ───────────────────────────────────────────────── */}
       {showOverview ? (
@@ -215,6 +272,37 @@ export default async function SectorDetailPage({ params }: RouteProps) {
             ) : null}
           </Stagger>
         </section>
+      ) : null}
+
+      {/* ── In practice ────────────────────────────────────────────── */}
+      {showPractice ? (
+        <SectorPracticeSection
+          heading={sector.practiceHeading}
+          lead={sector.practiceLead}
+          paragraphs={practiceParagraphs}
+          listHeading={sector.practiceListHeading}
+          list={sector.practiceList ?? undefined}
+          createsLabel={sector.practiceCreatesLabel}
+          createsStatement={sector.practiceCreatesStatement}
+          primaryCta={sector.practicePrimaryCta}
+          secondaryCta={sector.practiceSecondaryCta}
+          media={practiceMedia}
+          bg={sectionBg}
+          ink={pageColor}
+          lang={lang}
+        />
+      ) : null}
+
+      {/* ── Highlight ──────────────────────────────────────────────── */}
+      {showHighlight ? (
+        <SectorHighlightSection
+          heading={sector.highlightHeading}
+          paragraphs={highlightParagraphs}
+          statement={sector.highlightStatement}
+          media={highlightMedia}
+          bg={sectionBg}
+          ink={pageColor}
+        />
       ) : null}
 
       {/* ── Capabilities ───────────────────────────────────────────── */}
@@ -296,20 +384,6 @@ export default async function SectorDetailPage({ params }: RouteProps) {
         </section>
       ) : null}
 
-      {/* ── In motion ──────────────────────────────────────────────── */}
-      {showMotion ? (
-        <MotionSection
-          heading={sector.motionHeading ?? undefined}
-          items={motionItems}
-          bg={motionDark ? pageColor : sectionBg}
-          ink={pageColor}
-          tone={motionDark ? "dark" : "light"}
-          ctaLabel={sector.motionCta?.label}
-          ctaHref={sector.motionCta?.href}
-          media={motionMedia}
-        />
-      ) : null}
-
       {/* ── Quote spotlight ────────────────────────────────────────── */}
       {showQuote ? (
         <QuoteSpotlightSection
@@ -323,6 +397,20 @@ export default async function SectorDetailPage({ params }: RouteProps) {
           socials={quoteSocials}
           bg={sectionBg}
           cardBg={pageColor}
+        />
+      ) : null}
+
+      {/* ── In motion ──────────────────────────────────────────────── */}
+      {showMotion ? (
+        <MotionSection
+          heading={sector.motionHeading ?? undefined}
+          items={motionItems}
+          bg={motionDark ? pageColor : sectionBg}
+          ink={pageColor}
+          tone={motionDark ? "dark" : "light"}
+          ctaLabel={sector.motionCta?.label}
+          ctaHref={sector.motionCta?.href}
+          media={motionMedia}
         />
       ) : null}
 

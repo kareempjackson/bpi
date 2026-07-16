@@ -758,9 +758,13 @@ export const SECTOR_BY_SLUG_QUERY = defineQuery(`
     "subtitle": ${loc("subtitle")},
     order,
     cardImage${IMAGE_PROJECTION},
+    headerLayout,
     heroImage${IMAGE_PROJECTION},
     pageColor,
+    heroHeadingColor,
     sectionBgColor,
+    heroPrimaryCta${CTA_PROJECTION},
+    heroSecondaryCta${CTA_PROJECTION},
 
     showOverview,
     "overviewHeading": ${loc("overviewHeading")},
@@ -788,6 +792,27 @@ export const SECTOR_BY_SLUG_QUERY = defineQuery(`
     "quoteAttribution": ${loc("quoteAttribution")},
     "quoteRole": ${loc("quoteRole")},
     quotePortrait${IMAGE_PROJECTION},
+
+    showPractice,
+    "practiceHeading": ${loc("practiceHeading")},
+    "practiceLead": ${loc("practiceLead")},
+    "practiceBody": ${loc("practiceBody")},
+    "practiceListHeading": ${loc("practiceListHeading")},
+    practiceList[]{
+      "term": ${loc("term")},
+      "body": ${loc("body")}
+    },
+    "practiceCreatesLabel": ${loc("practiceCreatesLabel")},
+    "practiceCreatesStatement": ${loc("practiceCreatesStatement")},
+    practicePrimaryCta${CTA_PROJECTION},
+    practiceSecondaryCta${CTA_PROJECTION},
+    practiceImage${IMAGE_PROJECTION},
+
+    showHighlight,
+    "highlightHeading": ${loc("highlightHeading")},
+    "highlightBody": ${loc("highlightBody")},
+    "highlightStatement": ${loc("highlightStatement")},
+    highlightImage${IMAGE_PROJECTION},
 
     showMotion,
     "motionHeading": ${loc("motionHeading")},

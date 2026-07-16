@@ -12,13 +12,18 @@ import { useEffect, useRef, useState } from "react";
  * React re-render. The layer is `pointer-events-none` so it never blocks
  * links/buttons. Purely decorative (`aria-hidden`); pair with
  * `data-cursor="icon"` for the logo cursor.
+ *
+ * The glow colour follows the page's accent via `--brand-accent` (set per-page
+ * on `:root`), so a green page glows green and a blue page glows blue. Falls
+ * back to brand green (#06FE83) where no accent is set.
  */
-const GREEN = "6, 254, 131"; // #06FE83 (error-500)
+const DEFAULT_ACCENT = "var(--brand-accent, #06FE83)"; // brand green (error-500)
 
 export default function GridHoverBackdrop({
   cell = 112,
   className = "",
   tone = "dark",
+  accent = DEFAULT_ACCENT,
 }: {
   /** Tile size in px. */
   cell?: number;
@@ -26,6 +31,9 @@ export default function GridHoverBackdrop({
   /** "dark" (default) draws faint white tile borders for navy backgrounds;
    *  "light" draws faint navy borders for pale backgrounds. */
   tone?: "dark" | "light";
+  /** CSS colour for the hover glow. Defaults to the page accent
+   *  (`var(--brand-accent, #06FE83)`). */
+  accent?: string;
 }) {
   const borderClass = tone === "light" ? "border-primary-500/10" : "border-white/5";
   const ref = useRef<HTMLDivElement>(null);
@@ -87,10 +95,10 @@ export default function GridHoverBackdrop({
       if (target === activeTile) return;
       if (activeTile) clearTile(activeTile);
       if (target) {
-        target.style.backgroundColor = `rgb(${GREEN})`;
-        target.style.borderColor = `rgb(${GREEN})`;
+        target.style.backgroundColor = accent;
+        target.style.borderColor = accent;
         if (!reduce) {
-          target.style.boxShadow = `0 0 16px rgba(${GREEN}, 0.35)`;
+          target.style.boxShadow = `0 0 16px color-mix(in srgb, ${accent} 35%, transparent)`;
           target.style.transform = "scale(1.03)";
           target.style.zIndex = "1";
         }
@@ -122,7 +130,7 @@ export default function GridHoverBackdrop({
       document.removeEventListener("mouseleave", clear);
       window.removeEventListener("blur", clear);
     };
-  }, [cell, grid.cols, grid.rows]);
+  }, [cell, grid.cols, grid.rows, accent]);
 
   const total = grid.cols * grid.rows;
 
@@ -130,7 +138,7 @@ export default function GridHoverBackdrop({
     <div
       ref={ref}
       aria-hidden
-      className={`pointer-events-none absolute inset-0 overflow-hidden ${className}`}
+      className={`pointer-events-none absolute inset-0 isolate overflow-hidden ${className}`}
     >
       <div
         ref={gridRef}

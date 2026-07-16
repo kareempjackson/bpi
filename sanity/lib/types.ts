@@ -659,9 +659,20 @@ export type SectorSummary = {
 
 /** Full sector for the /sectors/[slug] detail page. */
 export type SectorDetail = SectorSummary & {
+  headerLayout?:
+    | "split"
+    | "centered"
+    | "sideBySide"
+    | "overlay"
+    | "showcase"
+    | "spotlight"
+    | null;
   heroImage?: SanityImage | null;
   pageColor?: string | null;
+  heroHeadingColor?: string | null;
   sectionBgColor?: string | null;
+  heroPrimaryCta?: Cta;
+  heroSecondaryCta?: Cta;
 
   showOverview?: boolean | null;
   overviewHeading?: string | null;
@@ -683,6 +694,24 @@ export type SectorDetail = SectorSummary & {
   quoteAttribution?: string | null;
   quoteRole?: string | null;
   quotePortrait?: SanityImage | null;
+
+  showPractice?: boolean | null;
+  practiceHeading?: string | null;
+  practiceLead?: string | null;
+  practiceBody?: string | null;
+  practiceListHeading?: string | null;
+  practiceList?: { term?: string | null; body?: string | null }[] | null;
+  practiceCreatesLabel?: string | null;
+  practiceCreatesStatement?: string | null;
+  practicePrimaryCta?: Cta;
+  practiceSecondaryCta?: Cta;
+  practiceImage?: SanityImage | null;
+
+  showHighlight?: boolean | null;
+  highlightHeading?: string | null;
+  highlightBody?: string | null;
+  highlightStatement?: string | null;
+  highlightImage?: SanityImage | null;
 
   showMotion?: boolean | null;
   motionHeading?: string | null;

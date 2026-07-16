@@ -61,12 +61,12 @@ export function externalAudioUrlField(gateByKind = true) {
 export function sanityVideoField(gateByKind = true) {
   return defineField({
     name: "video",
-    title: "Sanity video (legacy — locked, use the R2 field above)",
+    title: "Sanity video (legacy — unlocked for cleanup, use the R2 field above)",
     type: "file",
     options: { accept: "video/mp4,video/webm" },
-    readOnly: true,
+    readOnly: false,
     description:
-      "Locked. Upload new videos via the Cloudflare R2 field above to keep them off Sanity's bandwidth.",
+      "Legacy Sanity upload. Unlocked so you can delete it — upload new videos via the Cloudflare R2 field above to keep them off Sanity's bandwidth.",
     hidden: ({ parent, value }) => {
       if (
         gateByKind &&
@@ -86,12 +86,12 @@ export function sanityVideoField(gateByKind = true) {
 export function sanityAudioField() {
   return defineField({
     name: "audio",
-    title: "Sanity audio (legacy — locked, use the R2 field above)",
+    title: "Sanity audio (legacy — unlocked for cleanup, use the R2 field above)",
     type: "file",
     options: { accept: "audio/*" },
-    readOnly: true,
+    readOnly: false,
     description:
-      "Locked. Upload new audio via the Cloudflare R2 field above to keep it off Sanity's bandwidth.",
+      "Legacy Sanity upload. Unlocked so you can delete it — upload new audio via the Cloudflare R2 field above to keep it off Sanity's bandwidth.",
     hidden: ({ parent, value }) => {
       if ((parent as { kind?: string } | undefined)?.kind !== "audio")
         return true;

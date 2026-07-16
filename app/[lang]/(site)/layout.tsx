@@ -5,6 +5,7 @@ import BfcacheReset from "@/app/components/BfcacheReset";
 import CustomCursor from "@/app/components/CustomCursor";
 import Footer from "@/app/components/Footer";
 import LenisProvider from "@/app/components/LenisProvider";
+import ViewTransitionProvider from "@/app/components/ViewTransitionProvider";
 import { SanityLive } from "@/sanity/lib/live";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
 import { resolveMenuConfig } from "@/sanity/lib/menu";
@@ -54,7 +55,9 @@ export default async function SiteLayout({
       <BfcacheReset />
       <CustomCursor />
       <StickyTopNavSlot navLinks={navLinks} menuConfig={menuConfig} />
-      <div className="flex-1">{children}</div>
+      <ViewTransitionProvider>
+        <div className="flex-1">{children}</div>
+      </ViewTransitionProvider>
       <Footer
         navGroups={settings?.footerNavGroups}
         legalLinks={settings?.footerLegalLinks}

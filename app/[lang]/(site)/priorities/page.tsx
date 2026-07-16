@@ -8,6 +8,7 @@ import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
 import Logo from "@/app/components/Logo";
 import MediaImage from "@/app/components/MediaImage";
 import PageSections from "@/app/components/PageSections";
+import PrioritiesIndex from "@/app/components/PrioritiesIndex";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import { localizedHref, toLocale } from "@/app/lib/locale";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
@@ -188,11 +189,12 @@ export default async function PrioritiesPage({
   // Prefer real Priority documents (each links to a /priorities/[slug] detail
   // page); fall back to the page document's plain labels, then the built-in
   // defaults (both non-linking).
-  const priorities: { label: string; href?: string }[] =
+  const priorities: { label: string; href?: string; subtitle?: string | null }[] =
     priorityDocs && priorityDocs.length > 0
       ? priorityDocs.map((p) => ({
           label: p.title,
           href: `/${lang}/priorities/${p.slug}`,
+          subtitle: p.subtitle,
         }))
       : (pageData?.priorities && pageData.priorities.length > 0
           ? pageData.priorities
@@ -361,41 +363,11 @@ export default async function PrioritiesPage({
               </StaggerItem>
             </Stagger>
 
-            {/* Right — numbered index of priorities + CTA. */}
+            {/* Right — numbered index of priorities + CTA. Each row springs
+                open on hover to reveal its subtitle (see PrioritiesIndex). */}
             <Stagger className="flex flex-col">
-              <StaggerItem as="ul" className="flex flex-col">
-                {priorities.map((item, i) => {
-                  const num = String(i + 1).padStart(2, "0");
-                  const inner = (
-                    <>
-                      <span className="text-base md:text-lg font-semibold text-primary-500">
-                        {item.label}
-                      </span>
-                      <span className="text-sm text-primary-500/60 tabular-nums">
-                        {num}
-                      </span>
-                    </>
-                  );
-                  return (
-                    <li
-                      key={`${i}-${item.label}`}
-                      className="border-t border-primary-500/15"
-                    >
-                      {item.href ? (
-                        <CtaLink
-                          href={item.href}
-                          className="group flex items-center justify-between gap-6 py-5 lg:py-6 transition-colors hover:text-primary-500"
-                        >
-                          {inner}
-                        </CtaLink>
-                      ) : (
-                        <div className="flex items-center justify-between gap-6 py-5 lg:py-6">
-                          {inner}
-                        </div>
-                      )}
-                    </li>
-                  );
-                })}
+              <StaggerItem>
+                <PrioritiesIndex items={priorities} />
               </StaggerItem>
               <StaggerItem>
                 <CtaLink

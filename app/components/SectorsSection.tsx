@@ -11,6 +11,7 @@ import {
 } from "motion/react";
 import { useRouter } from "next/navigation";
 import CtaLink from "./CtaLink";
+import { useViewTransitionNav } from "./ViewTransitionProvider";
 import LogoShape, { LOGO_SHAPE_PATH_D } from "./shapes/LogoShape";
 
 type Node = {
@@ -119,8 +120,8 @@ export default function SectorsSection({
   // to jump backward after the Initiatives slide-over.
   const TALL_VH = (nodes.length + 1) * 70;
   const router = useRouter();
+  const viewTransition = useViewTransitionNav();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const [portalIndex, setPortalIndex] = useState<number | null>(null);
   // `step` (0..nodes.length) stays React state: it gates DISCRETE, structural
   // things (which nodes accept pointer events, the one-shot shine sweep, the
   // idle "breathing" once fully revealed). It changes ~6 times per traversal,
@@ -800,10 +801,30 @@ export default function SectorsSection({
                 const onClickNode = (e: React.MouseEvent) => {
                   e.preventDefault();
                   if (!activated) return;
-                  // Trigger the portal-zoom transition, then navigate
-                  // once the animation has had time to register.
-                  setPortalIndex(i);
-                  window.setTimeout(() => router.push(href), 650);
+                  // "Dive through the porthole" — zoom the node's live media to
+                  // full-screen, then dissolve into the sector page. Compute the
+                  // node's on-screen circle so the zoom starts exactly on it.
+                  const diagram = sectionRef.current?.querySelector<HTMLElement>(
+                    "div.aspect-3\\/2",
+                  );
+                  if (viewTransition && diagram) {
+                    const rect = diagram.getBoundingClientRect();
+                    viewTransition.zoomReveal({
+                      href,
+                      centerX: rect.left + (n.cx / VIEWBOX_W) * rect.width,
+                      centerY: rect.top + (n.cy / VIEWBOX_H) * rect.height,
+                      diameter: (n.r / VIEWBOX_W) * rect.width * 2,
+                      videoSrc: n.videoSrc,
+                      imageSrc: n.imageSrc,
+                    });
+                  } else if (viewTransition) {
+                    viewTransition.navigate(href, {
+                      x: e.clientX,
+                      y: e.clientY,
+                    });
+                  } else {
+                    router.push(href);
+                  }
                 };
                 // Cinematic focus pull — when any node is hovered, the
                 // others desaturate and dim slightly so the eye is
@@ -1056,30 +1077,9 @@ export default function SectorsSection({
         </div>
       </div>
 
-      {/* Portal transition — when a node is clicked, a fixed overlay
-          paints a dark veil that fades in while the chosen node's
-          photo scales out from its origin to fill the viewport. Route
-          push fires ~650 ms in so the new page lands as the zoom
-          completes — reads as stepping through the porthole into a
-          new dimension. */}
-      {portalIndex !== null && pinned && (
-        <div
-          className="fixed inset-0 z-60 pointer-events-none overflow-hidden"
-          aria-hidden
-        >
-          <div
-            className="absolute inset-0 bg-primary-500"
-            style={{
-              animation:
-                "care-portal-veil 700ms var(--ease-premium) forwards",
-            }}
-          />
-          <PortalBloom
-            node={nodes[portalIndex]}
-            sectionEl={sectionRef.current}
-          />
-        </div>
-      )}
+      {/* Node clicks navigate via the native View Transitions crossfade
+          (ViewTransitionProvider in app/[lang]/(site)/layout.tsx) — the page
+          dissolves straight into the sector page, no overlay. See onClickNode. */}
 
       {/* Exit buffer — small visual margin below the sticky range. The
           scroll-coupled `exitP` calculation uses this buffer's position
@@ -1147,63 +1147,5 @@ export default function SectorsSection({
         ))}
       </div>
     </section>
-  );
-}
-
-/**
- * Portal bloom — a circle that starts at the chosen node's on-screen
- * position and scales up to fill the viewport, painted with the
- * node's image. Reads as the porthole opening into a new space.
- */
-function PortalBloom({
-  node,
-  sectionEl,
-}: {
-  node: Node;
-  sectionEl: HTMLElement | null;
-}) {
-  // Find the node's pixel position on screen so the portal grows from
-  // exactly where the user clicked. Falls back to viewport centre.
-  let originX = 0.5;
-  let originY = 0.5;
-  let startPx = 160;
-  if (sectionEl) {
-    // The diagram wrapper is `.aspect-3/2` inside the perspective box.
-    // Its viewBox is 1190 × 702; we need the on-screen pixel rect for
-    // the node circle (cx/cy/r) relative to the viewport.
-    const diagram = sectionEl.querySelector<HTMLElement>(
-      "div.aspect-3\\/2"
-    );
-    if (diagram) {
-      const rect = diagram.getBoundingClientRect();
-      const px = rect.left + (node.cx / 1190) * rect.width;
-      const py = rect.top + (node.cy / 702) * rect.height;
-      originX = px / window.innerWidth;
-      originY = py / window.innerHeight;
-      startPx = (node.r / 1190) * rect.width * 2;
-    }
-  }
-
-  return (
-    <div
-      className="absolute"
-      style={{
-        left: `${originX * 100}%`,
-        top: `${originY * 100}%`,
-        width: `${startPx}px`,
-        height: `${startPx}px`,
-        marginLeft: `-${startPx / 2}px`,
-        marginTop: `-${startPx / 2}px`,
-        borderRadius: "9999px",
-        overflow: "hidden",
-        backgroundColor: "#042D2B",
-        backgroundImage: `url(${node.imageSrc})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        animation:
-          "care-portal-zoom 700ms cubic-bezier(0.65, 0, 0.35, 1) forwards",
-        boxShadow: "0 0 80px rgba(56, 254, 156, 0.45)",
-      }}
-    />
   );
 }

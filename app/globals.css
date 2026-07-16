@@ -273,32 +273,65 @@ html.lenis {
   }
 }
 
-/* ─── Care-map portal transition ───────────────────────────────
-   Click → "going to a new dimension". The chosen node's clip
-   region scales up to fill the viewport while its surrounding
-   stage fades to black with a slight zoom-in of the perspective
-   wrapper. The route push fires partway through, so the new
-   page lands as the portal completes. ──────────────────────── */
-@keyframes care-portal-zoom {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  60% {
-    transform: scale(8);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(14);
-    opacity: 0;
-  }
+/* ─── Cinematic page reveal (View Transitions API) ─────────────
+   Driven by app/components/ViewTransitionProvider.tsx. The browser
+   snapshots the whole outgoing page (`root`) and the incoming page; the
+   incoming page then IRISES OUT from the clicked point (a growing
+   clip-path circle) over the outgoing page, which recedes and dims
+   behind it. You step through the porthole into the *real* destination —
+   no full-screen colour field at any point.
+
+   `--vt-origin-x/y` are set to the click position by the provider; the
+   pseudo-elements inherit them from :root. Default to centre. ───── */
+::view-transition-old(root),
+::view-transition-new(root) {
+  /* Both layers occupy the same frame for the full duration. */
+  animation-duration: 680ms;
+  animation-timing-function: var(--ease-premium);
+  animation-fill-mode: both;
 }
-@keyframes care-portal-veil {
+/* Outgoing page — recede + dim behind the opening porthole (depth). */
+::view-transition-old(root) {
+  animation-name: bpi-reveal-recede;
+  transform-origin: var(--vt-origin-x, 50%) var(--vt-origin-y, 50%);
+  z-index: 1;
+}
+/* Incoming page — the real destination, revealed by a growing circle
+   from the click point, un-blurring as it opens. Sits above the old. */
+::view-transition-new(root) {
+  animation-name: bpi-reveal-iris;
+  z-index: 2;
+}
+@keyframes bpi-reveal-recede {
   from {
-    opacity: 0;
+    transform: scale(1);
+    filter: brightness(1);
   }
   to {
-    opacity: 1;
+    transform: scale(0.96);
+    filter: brightness(0.74);
+  }
+}
+@keyframes bpi-reveal-iris {
+  from {
+    /* 0-radius circle at the click point → destination hidden. */
+    clip-path: circle(0% at var(--vt-origin-x, 50%) var(--vt-origin-y, 50%));
+    filter: blur(8px);
+  }
+  to {
+    /* 160% guarantees the circle reaches every corner, even from an
+       edge/corner click (farthest-corner ≈ 141% of the circle unit). */
+    clip-path: circle(160% at var(--vt-origin-x, 50%) var(--vt-origin-y, 50%));
+    filter: blur(0);
+  }
+}
+/* Motion sensitivity — swap instantly (the browser default) rather than
+   scaling/clipping the whole viewport. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
   }
 }
 
