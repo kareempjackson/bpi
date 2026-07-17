@@ -9,6 +9,7 @@ import { event } from "./documents/event";
 import { homePage } from "./documents/homePage";
 import { initiative } from "./documents/initiative";
 import { initiativesPage } from "./documents/initiativesPage";
+import { investorsPage } from "./documents/investorsPage";
 import { job } from "./documents/job";
 import { newsletterSubscription } from "./documents/newsletterSubscription";
 import { portalPage } from "./documents/portalPage";
@@ -27,6 +28,10 @@ import { cta } from "./objects/cta";
 import { ctaSection } from "./objects/ctaSection";
 import { hexColor } from "./objects/hexColor";
 import { imageWithAlt } from "./objects/imageWithAlt";
+import { investorCard } from "./objects/investorCard";
+import { investorNote } from "./objects/investorNote";
+import { investorQuote } from "./objects/investorQuote";
+import { investorRole } from "./objects/investorRole";
 import { jobSection } from "./objects/jobSection";
 import { leader } from "./objects/leader";
 import { menuLink } from "./objects/menuLink";
@@ -68,6 +73,10 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   portalFile,
   statCard,
   metricsTable,
+  investorCard,
+  investorRole,
+  investorNote,
+  investorQuote,
   // Documents
   siteSettings,
   homePage,
@@ -78,6 +87,7 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   prioritiesPage,
   sectorsPage,
   blogPage,
+  investorsPage,
   initiative,
   priority,
   sector,

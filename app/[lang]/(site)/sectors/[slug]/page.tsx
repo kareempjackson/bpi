@@ -123,13 +123,6 @@ export default async function SectorDetailPage({ params }: RouteProps) {
     { width: 2200 },
   );
 
-  // Small portrait for the "pin" in the spotlight header — the Home leader,
-  // falling back to any leader photo. Ignored by every other layout.
-  const headerPortrait = resolveMedia(
-    homeData?.leaderPortraitImage ?? homeData?.leaderQuoteImage,
-    { width: 160 },
-  );
-
   // Each section renders only when its toggle is on AND it has content.
   // `showOverview` defaults on (null → shown); the rest default off.
   const overviewParagraphs = (sector.overviewBody ?? "")
@@ -150,12 +143,15 @@ export default async function SectorDetailPage({ params }: RouteProps) {
   const showPractice =
     !!sector.showPractice &&
     !!(sector.practiceHeading || sector.practiceLead || practiceParagraphs.length > 0);
-  // Bottom slot is either a full-width image or the "What This Creates" block.
-  // An explicit image always wins; otherwise fall back to a photo only when
-  // there's no closing statement taking that slot.
+  // Bottom slot is a full-width image, the "What This Creates" block, or the
+  // cards row. An explicit image always wins; otherwise fall back to a photo
+  // only when neither a closing statement nor cards are taking that slot.
+  const practiceCards = (sector.practiceCards ?? []).filter(
+    (c) => c.title || c.body,
+  );
   const practiceMedia = resolveMedia(
     sector.practiceImage ??
-      (sector.practiceCreatesStatement
+      (sector.practiceCreatesStatement || practiceCards.length > 0
         ? null
         : (sector.heroImage ??
           homeData?.buildingImage ??
@@ -243,7 +239,6 @@ export default async function SectorDetailPage({ params }: RouteProps) {
         pageColor={pageColor}
         headingColor={headingColor}
         layout={sector.headerLayout}
-        portrait={headerPortrait}
         lang={lang}
       />
 
@@ -286,6 +281,7 @@ export default async function SectorDetailPage({ params }: RouteProps) {
           createsStatement={sector.practiceCreatesStatement}
           primaryCta={sector.practicePrimaryCta}
           secondaryCta={sector.practiceSecondaryCta}
+          cards={practiceCards}
           media={practiceMedia}
           bg={sectionBg}
           ink={pageColor}

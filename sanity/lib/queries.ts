@@ -350,6 +350,7 @@ export const ALL_INITIATIVES_QUERY = defineQuery(`
     "title": ${loc("title")},
     "slug": slug.current,
     "subtitle": ${loc("subtitle")},
+    "tag": ${loc("tag")},
     "excerpt": ${loc("excerpt")},
     publishedAt,
     featured,
@@ -379,6 +380,17 @@ export const INITIATIVE_BY_SLUG_QUERY = defineQuery(`
     featured,
     hasDetailPage,
     coverImage${IMAGE_PROJECTION},
+    headerType,
+    "headerTitle": ${loc("headerTitle")},
+    "headerTitleTail": ${loc("headerTitleTail")},
+    "headerSubtitle": ${loc("headerSubtitle")},
+    headerImage${IMAGE_PROJECTION},
+    headerPrimaryCta${CTA_PROJECTION},
+    headerSecondaryCta${CTA_PROJECTION},
+    showDefaultSections,
+    showBlog,
+    showCareers,
+    showCta,
     externalLink,
     "body": ${loc("body")},
     pageColor,
@@ -395,7 +407,63 @@ export const INITIATIVE_BY_SLUG_QUERY = defineQuery(`
     "impactStats": impactStats[]{
       "value": ${loc("value")},
       "label": ${loc("label")}
-    }
+    },
+    showWhatThisIs,
+    whatThisIsLayout,
+    "whatThisIsHeading": ${loc("whatThisIsHeading")},
+    "whatThisIsBody": ${loc("whatThisIsBody")},
+    whatThisIsImage${IMAGE_PROJECTION},
+    whatThisIsCta${CTA_PROJECTION},
+    "metricsHeading": ${loc("metricsHeading")},
+    "keyMetrics": keyMetrics[]{
+      "value": ${loc("value")},
+      "note": ${loc("note")},
+      "label": ${loc("label")}
+    },
+    showDevelopments,
+    developmentsLayout,
+    "developmentsHeading": ${loc("developmentsHeading")},
+    developmentsImage${IMAGE_PROJECTION},
+    "developmentsBody": ${loc("developmentsBody")},
+    developmentsCta${CTA_PROJECTION},
+    showWhyBarbados,
+    "whyBarbadosHeading": ${loc("whyBarbadosHeading")},
+    "whyBarbadosBody": ${loc("whyBarbadosBody")},
+    whyBarbadosCta${CTA_PROJECTION},
+    whyBarbadosImage${IMAGE_PROJECTION},
+    "ecosystemHeading": ${loc("ecosystemHeading")},
+    "ecosystemBody": ${loc("ecosystemBody")},
+    ecosystemCta${CTA_PROJECTION},
+    showCurrentStatus,
+    "currentStatusHeading": ${loc("currentStatusHeading")},
+    currentStatusImage${IMAGE_PROJECTION},
+    "currentStatusLead": ${loc("currentStatusLead")},
+    "currentStatusBody": ${loc("currentStatusBody")},
+    currentStatusPrimaryCta${CTA_PROJECTION},
+    currentStatusSecondaryCta${CTA_PROJECTION},
+    "outlookHeading": ${loc("outlookHeading")},
+    "outlookBody": ${loc("outlookBody")},
+    showNextSteps,
+    showNextStepsCta,
+    "nextStepsHeading": ${loc("nextStepsHeading")},
+    "nextStepsBody": ${loc("nextStepsBody")},
+    nextStepsCta${CTA_PROJECTION},
+    showRoadmap,
+    "roadmapEyebrow": ${loc("roadmapEyebrow")},
+    "roadmapHeading": ${loc("roadmapHeading")},
+    "roadmapStatement": ${loc("roadmapStatement")},
+    roadmapCta${CTA_PROJECTION},
+    roadmapImage${IMAGE_PROJECTION},
+    showPhases,
+    "phasesHeading": ${loc("phasesHeading")},
+    "phases": phases[]{
+      "title": ${loc("title")},
+      "body": ${loc("body")}
+    },
+    phasesImage${IMAGE_PROJECTION},
+    "relevanceHeading": ${loc("relevanceHeading")},
+    "relevanceBody": ${loc("relevanceBody")},
+    relevanceCta${CTA_PROJECTION}
   }
 `);
 
@@ -496,7 +564,6 @@ export const INITIATIVES_PAGE_QUERY = defineQuery(`
     "otherWorksFeaturedTitle": ${loc("otherWorksFeaturedTitle")},
     otherWorksFeaturedImage${IMAGE_PROJECTION},
     otherWorksFeaturedHref,
-    otherWorksViewAllHref,
 
     "buildingFutureHeading": ${loc("buildingFutureHeading")},
     "buildingFutureBody": ${loc("buildingFutureBody")},
@@ -560,6 +627,124 @@ export const CAREERS_PAGE_QUERY = defineQuery(`
     "equalOpportunityParagraph1": ${loc("equalOpportunityParagraph1")},
     "equalOpportunityParagraph2": ${loc("equalOpportunityParagraph2")},
     equalOpportunityBg,
+    ${PAGE_SECTIONS_PROJECTION}
+  }
+`);
+
+export const INVESTORS_PAGE_QUERY = defineQuery(`
+  *[_type == "investorsPage"][0]{
+    "seoTitle": ${loc("seoTitle")},
+    "seoDescription": ${loc("seoDescription")},
+
+    "heroTitle": ${loc("heroTitle")},
+    "heroTagline": ${loc("heroTagline")},
+    heroCta${CTA_PROJECTION},
+    heroImage${IMAGE_PROJECTION},
+
+    "opportunityEyebrow": ${loc("opportunityEyebrow")},
+    "opportunityHeading": ${loc("opportunityHeading")},
+    "opportunityBody": ${loc("opportunityBody")},
+    "opportunityCardLead": ${loc("opportunityCardLead")},
+    opportunityStats[]{
+      "value": ${loc("value")},
+      "description": ${loc("description")}
+    },
+    opportunityCardBg,
+
+    "whyHeading": ${loc("whyHeading")},
+    "whyIntro": ${loc("whyIntro")},
+    whyCards[]{
+      "title": ${loc("title")},
+      "body": ${loc("body")},
+      bg,
+      watermark
+    },
+    "whyClosing": ${loc("whyClosing")},
+    whyImage${IMAGE_PROJECTION},
+
+    "howHeading": ${loc("howHeading")},
+    "howIntro": ${loc("howIntro")},
+    howRoles[]{
+      "label": ${loc("label")},
+      "description": ${loc("description")}
+    },
+    howImage${IMAGE_PROJECTION},
+    "howBody": ${loc("howBody")},
+    howBg,
+
+    "sitesHeading": ${loc("sitesHeading")},
+    "sitesBody": ${loc("sitesBody")},
+    sitesList,
+    "sitesNote": ${loc("sitesNote")},
+
+    incentivesImage${IMAGE_PROJECTION},
+    "incentivesHeading": ${loc("incentivesHeading")},
+    "incentivesLead": ${loc("incentivesLead")},
+    incentivesItems[]{
+      "body": ${loc("body")}
+    },
+
+    "bridgeEyebrow": ${loc("bridgeEyebrow")},
+    "bridgeTitle": ${loc("bridgeTitle")},
+    "bridgeTitleTail": ${loc("bridgeTitleTail")},
+    "bridgeBody": ${loc("bridgeBody")},
+    bridgeCta${CTA_PROJECTION},
+    bridgeBg,
+
+    "marketHeading": ${loc("marketHeading")},
+    "marketLead": ${loc("marketLead")},
+    marketStats[]{
+      "value": ${loc("value")},
+      "description": ${loc("description")}
+    },
+    "marketClosing": ${loc("marketClosing")},
+    marketImage${IMAGE_PROJECTION},
+
+    "tractionEyebrow": ${loc("tractionEyebrow")},
+    "tractionHeading": ${loc("tractionHeading")},
+    tractionItems[]{
+      "label": ${loc("label")},
+      "description": ${loc("description")}
+    },
+
+    "whyNowHeading": ${loc("whyNowHeading")},
+    "whyNowBody": ${loc("whyNowBody")},
+    whyNowPrimaryCta${CTA_PROJECTION},
+    whyNowSecondaryCta${CTA_PROJECTION},
+    whyNowImage${IMAGE_PROJECTION},
+    whyNowBg,
+
+    "climateHeading": ${loc("climateHeading")},
+    climateCards[]{
+      "title": ${loc("title")},
+      "body": ${loc("body")},
+      bg,
+      watermark
+    },
+
+    "voicesEyebrow": ${loc("voicesEyebrow")},
+    "voicesHeading": ${loc("voicesHeading")},
+    "voicesHeadingTail": ${loc("voicesHeadingTail")},
+    voicesQuotes[]{
+      "quote": ${loc("quote")},
+      "name": ${loc("name")},
+      "title": ${loc("title")},
+      image${IMAGE_PROJECTION},
+      bg
+    },
+
+    "deeperHeading": ${loc("deeperHeading")},
+    "deeperBody": ${loc("deeperBody")},
+    deeperImage${IMAGE_PROJECTION},
+    "timelineHeading": ${loc("timelineHeading")},
+    timelineItems[]{
+      "label": ${loc("label")},
+      "description": ${loc("description")}
+    },
+    deeperPrimaryCta${CTA_PROJECTION},
+    deeperSecondaryCta${CTA_PROJECTION},
+
+    "blogHeading": ${loc("blogHeading")},
     ${PAGE_SECTIONS_PROJECTION}
   }
 `);
@@ -807,6 +992,11 @@ export const SECTOR_BY_SLUG_QUERY = defineQuery(`
     practicePrimaryCta${CTA_PROJECTION},
     practiceSecondaryCta${CTA_PROJECTION},
     practiceImage${IMAGE_PROJECTION},
+    practiceCards[]{
+      "title": ${loc("title")},
+      "body": ${loc("body")},
+      tone
+    },
 
     showHighlight,
     "highlightHeading": ${loc("highlightHeading")},

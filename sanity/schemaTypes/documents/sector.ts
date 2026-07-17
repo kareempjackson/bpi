@@ -74,7 +74,7 @@ export const sector = defineType({
       name: "headerLayout",
       title: "Header layout",
       description:
-        "How the title, subtitle, buttons and hero image are arranged. Split = title left / copy right with a full-bleed photo below. Centered = everything centred. Side by side = text beside a contained image. Overlay = copy set over the photo. Showcase = full-height hero with the copy anchored bottom-left beside a tall image on the right. Spotlight = tall image on the left with the title top-right and a portrait pin + copy anchored bottom-right.",
+        "How the title, subtitle, buttons and hero image are arranged. Split = title left / copy right with a full-bleed photo below. Centered = everything centred. Side by side = text beside a contained image. Overlay = copy set over the photo. Showcase = full-height hero with the copy anchored bottom-left beside a tall image on the right. Spotlight = tall image on the left with the title top-right and a portrait pin + copy anchored bottom-right. Masthead = the title's first word sits above a tall left image and the rest flows to its right, with a portrait pin + copy bottom-right.",
       type: "string",
       group: "header",
       options: {
@@ -85,6 +85,7 @@ export const sector = defineType({
           { title: "Overlay (copy over image)", value: "overlay" },
           { title: "Showcase (copy bottom-left, tall image right)", value: "showcase" },
           { title: "Spotlight (tall image left, pin + copy bottom-right)", value: "spotlight" },
+          { title: "Masthead (split title around a tall image, pin + copy)", value: "masthead" },
         ],
         layout: "radio",
       },
@@ -272,10 +273,55 @@ export const sector = defineType({
       name: "practiceImage",
       title: "Image",
       description:
-        "Full-width image below the text. Falls back to a Home/sector photo when empty.",
+        "Full-width image below the text. Falls back to a Home/sector photo when empty (suppressed when Cards are set).",
       type: "imageWithAlt",
       group: "practice",
       hidden: ({ parent }) => !parent?.showPractice,
+    }),
+    defineField({
+      name: "practiceCards",
+      title: "Cards",
+      description:
+        "Up to three colour-toned cards shown in a row below the buttons (e.g. Milestones / International Partnerships / What’s Next). When present they replace the fallback image.",
+      type: "array",
+      group: "practice",
+      hidden: ({ parent }) => !parent?.showPractice,
+      validation: (Rule) => Rule.max(3),
+      of: [
+        defineArrayMember({
+          type: "object",
+          name: "practiceCard",
+          fields: [
+            defineField({
+              name: "title",
+              title: "Title",
+              type: "internationalizedArrayString",
+            }),
+            defineField({
+              name: "body",
+              title: "Body",
+              type: "internationalizedArrayText",
+            }),
+            defineField({
+              name: "tone",
+              title: "Tone",
+              type: "string",
+              options: {
+                list: [
+                  { title: "White", value: "default" },
+                  { title: "Blue", value: "blue" },
+                  { title: "Green", value: "green" },
+                ],
+                layout: "radio",
+              },
+              initialValue: "default",
+            }),
+          ],
+          preview: {
+            select: { title: "title.0.value", subtitle: "body.0.value" },
+          },
+        }),
+      ],
     }),
 
     // ────────────────────────────────────────────────────────── Highlight ──

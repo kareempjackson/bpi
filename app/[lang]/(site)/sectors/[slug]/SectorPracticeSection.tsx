@@ -26,6 +26,16 @@ type CtaValue = { label?: string | null; href?: string | null } | null | undefin
 
 type ListItem = { term?: string | null; body?: string | null };
 
+type Card = { title?: string | null; body?: string | null; tone?: string | null };
+
+// Card background per tone. Text stays on the sector ink (navy) in every tone,
+// which reads on white, the blue tint, and the green.
+const CARD_TONE_BG: Record<string, string> = {
+  default: "#FFFFFF",
+  blue: "#CBE7FB",
+  green: "#5BDE8C",
+};
+
 /**
  * Stack the heading so the final word sits on its own line — e.g.
  * "What This Looks Like In" / "Practice". Deterministic regardless of column
@@ -58,6 +68,8 @@ type Props = {
   createsStatement?: string | null;
   primaryCta?: CtaValue;
   secondaryCta?: CtaValue;
+  /** Up to three colour-toned cards shown in a row below the buttons. */
+  cards?: Card[];
   media: ResolvedMedia | null;
   /** Section canvas colour (light). */
   bg: string;
@@ -76,6 +88,7 @@ export default function SectorPracticeSection({
   createsStatement,
   primaryCta,
   secondaryCta,
+  cards,
   media,
   bg,
   ink,
@@ -86,6 +99,7 @@ export default function SectorPracticeSection({
   const listItems = (list ?? []).filter((it) => it.term || it.body);
   const hasList = !!listHeading || listItems.length > 0;
   const hasCreates = !!createsLabel || !!createsStatement;
+  const cardItems = (cards ?? []).filter((c) => c.title || c.body);
 
   // Reused in one of two placements: the right column (default), or under the
   // "What This Creates" statement when that block is present.
@@ -208,7 +222,28 @@ export default function SectorPracticeSection({
           </Stagger>
         ) : null}
 
-        {media ? (
+        {cardItems.length > 0 ? (
+          <Stagger className="mt-16 md:mt-20 lg:mt-24 grid grid-cols-1 gap-4 md:gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {cardItems.map((c, i) => (
+              <StaggerItem
+                key={i}
+                className="flex flex-col gap-5 rounded-2xl lg:rounded-3xl p-7 md:p-8 lg:p-9"
+                style={{ backgroundColor: CARD_TONE_BG[c.tone ?? "default"] ?? CARD_TONE_BG.default }}
+              >
+                {c.title ? (
+                  <h3 className="font-display text-xl md:text-2xl font-bold text-(--ink) leading-snug tracking-[-0.01em] md:min-h-15">
+                    {c.title}
+                  </h3>
+                ) : null}
+                {c.body ? (
+                  <p className="text-sm md:text-base text-(--ink)/75 leading-[1.7]">
+                    {c.body}
+                  </p>
+                ) : null}
+              </StaggerItem>
+            ))}
+          </Stagger>
+        ) : media ? (
           <Reveal
             preset="scale"
             className="relative mt-16 md:mt-20 lg:mt-24 w-full aspect-4/3 sm:aspect-video lg:aspect-2/1 overflow-hidden rounded-2xl lg:rounded-3xl"

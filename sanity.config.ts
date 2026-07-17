@@ -26,6 +26,7 @@ const SINGLETON_TYPES = new Set<string>([
   "contactPage",
   "careersPage",
   "blogPage",
+  "investorsPage",
 ]);
 const DISABLED_SINGLETON_ACTIONS = new Set<string>([
   "unpublish",
@@ -108,6 +109,14 @@ export default defineConfig({
             resolve: (doc) => ({
               locations: [
                 { title: doc?.title ?? "Careers page", href: "/careers" },
+              ],
+            }),
+          }),
+          investorsPage: defineLocations({
+            select: { title: "seoTitle" },
+            resolve: (doc) => ({
+              locations: [
+                { title: doc?.title ?? "Investors page", href: "/investors" },
               ],
             }),
           }),

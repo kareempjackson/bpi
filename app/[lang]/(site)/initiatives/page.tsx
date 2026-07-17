@@ -8,9 +8,11 @@ import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
 import Logo from "@/app/components/Logo";
 import PageSections from "@/app/components/PageSections";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
+import { localizedHref } from "@/app/lib/locale";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
 import { resolveImage } from "@/sanity/lib/image";
 import {
+  ALL_INITIATIVES_QUERY,
   INITIATIVES_PAGE_QUERY,
   INITIATIVE_POSTS_QUERY,
 } from "@/sanity/lib/queries";
@@ -21,7 +23,35 @@ import type {
   InitiativesPage,
 } from "@/sanity/lib/types";
 
+import OtherWorksCards from "./OtherWorksCards";
+
 export const revalidate = 3600;
+
+/**
+ * Locale-prefix an optional href. Keeps "unset" as `undefined` so `CtaLink`
+ * renders its non-navigating fallback — `localizedHref` turns a null href into
+ * `"#"`, which `CtaLink` would treat as external and open in a new tab.
+ */
+function localCta(
+  lang: string,
+  href: string | null | undefined,
+): string | undefined {
+  return href ? localizedHref(lang, href) : undefined;
+}
+
+/**
+ * Where an initiative card points: `externalLink` wins; otherwise its detail
+ * page, unless the editor turned that off. Absent `hasDetailPage` means true
+ * (legacy data). Returns `undefined` for display-only initiatives.
+ */
+function initiativeHref(
+  initiative: Initiative,
+  lang: string,
+): string | undefined {
+  if (initiative.externalLink) return initiative.externalLink;
+  if (initiative.hasDetailPage === false) return undefined;
+  return localizedHref(lang, `/initiatives/${initiative.slug}`);
+}
 
 /**
  * Split the hero headline so the first two and last two words render light
@@ -64,6 +94,14 @@ async function getInitiativePosts(
   return data ?? [];
 }
 
+async function getAllInitiatives(lang: string): Promise<Initiative[]> {
+  const data = await loadQuery<Initiative[] | null>(ALL_INITIATIVES_QUERY, {
+    params: { lang },
+    tags: [TAG.initiative],
+  });
+  return data ?? [];
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -87,18 +125,22 @@ export default async function InitiativesPage({
   const { lang } = await params;
   const page = await getInitiativesPage(lang);
   const featured = page?.featuredInitiative ?? null;
-  const posts = await getInitiativePosts(
-    lang,
-    page?.motionStoriesShowCount ?? 6,
-  );
+  const [posts, allInitiatives] = await Promise.all([
+    getInitiativePosts(lang, page?.motionStoriesShowCount ?? 6),
+    getAllInitiatives(lang),
+  ]);
 
   return (
     <main className="bg-error-25">
-      <HeroHeader page={page} />
-      <WorkInMotion page={page} />
-      <FeaturedSpotlight featured={featured} page={page} />
-      <MotionStoriesSection page={page} posts={posts} />
-      <OtherWorksSection page={page} />
+      <HeroHeader page={page} lang={lang} />
+      <WorkInMotion page={page} lang={lang} />
+      <FeaturedSpotlight featured={featured} page={page} lang={lang} />
+      <MotionStoriesSection page={page} posts={posts} lang={lang} />
+      <OtherWorksSection
+        page={page}
+        allInitiatives={allInitiatives}
+        lang={lang}
+      />
       <BuildingFutureSection page={page} />
       <PageSections sections={page?.pageSections} />
     </main>
@@ -107,7 +149,13 @@ export default async function InitiativesPage({
 
 // ─────────────────────────────────────────────────────────── Hero ──
 
-function HeroHeader({ page }: { page: InitiativesPage | null }) {
+function HeroHeader({
+  page,
+  lang,
+}: {
+  page: InitiativesPage | null;
+  lang: string;
+}) {
   const heroImage = resolveImage(page?.heroImage, { width: 1800 });
   const imageSrc = heroImage?.src;
   const imageAlt = heroImage?.alt ?? "";
@@ -203,7 +251,7 @@ function HeroHeader({ page }: { page: InitiativesPage | null }) {
           <StaggerItem className="flex flex-wrap items-center gap-2.5 shrink-0">
             {primary ? (
               <CtaLink
-                href={primary.href}
+                href={localCta(lang, primary.href)}
                 className="inline-flex w-fit items-center rounded-round bg-error-500 px-5 py-2 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-(--ease-premium) hover:bg-error-400"
               >
                 {primary.label}
@@ -211,7 +259,7 @@ function HeroHeader({ page }: { page: InitiativesPage | null }) {
             ) : null}
             {secondary ? (
               <CtaLink
-                href={secondary.href}
+                href={localCta(lang, secondary.href)}
                 className="inline-flex w-fit items-center rounded-round border border-white/60 bg-transparent px-5 py-2 text-sm font-semibold text-white transition-colors duration-300 ease-(--ease-premium) hover:border-white/80 hover:bg-white/10"
               >
                 {secondary.label}
@@ -226,7 +274,13 @@ function HeroHeader({ page }: { page: InitiativesPage | null }) {
 
 // ─────────────────────────────────────────────────── Work in Motion ──
 
-function WorkInMotion({ page }: { page: InitiativesPage | null }) {
+function WorkInMotion({
+  page,
+  lang,
+}: {
+  page: InitiativesPage | null;
+  lang: string;
+}) {
   // Editor can hide the whole section via the `showWorkInMotion` toggle.
   // Defaults to true so existing pages keep rendering.
   if (page && page.showWorkInMotion === false) return null;
@@ -292,7 +346,7 @@ function WorkInMotion({ page }: { page: InitiativesPage | null }) {
           <div className="flex flex-wrap items-center gap-3">
             {primary ? (
               <CtaLink
-                href={primary.href}
+                href={localCta(lang, primary.href)}
                 className="inline-flex w-fit items-center rounded-round bg-primary-500 px-6 py-2.5 text-sm font-semibold text-white transition-colors duration-300 ease-(--ease-premium) hover:bg-primary-600"
               >
                 {primary.label}
@@ -300,7 +354,7 @@ function WorkInMotion({ page }: { page: InitiativesPage | null }) {
             ) : null}
             {secondary ? (
               <CtaLink
-                href={secondary.href}
+                href={localCta(lang, secondary.href)}
                 className="inline-flex w-fit items-center rounded-round border border-primary-500 bg-transparent px-6 py-2.5 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-(--ease-premium) hover:bg-primary-500/5"
               >
                 {secondary.label}
@@ -340,9 +394,11 @@ const SUPPORTING_CARD_BG = "#A5F9D2";
 function FeaturedSpotlight({
   featured,
   page,
+  lang,
 }: {
   featured: Initiative | null;
   page: InitiativesPage | null;
+  lang: string;
 }) {
   const supporting = page?.featuredSupportingInitiatives ?? [];
   if (!featured && supporting.length === 0) return null;
@@ -350,17 +406,9 @@ function FeaturedSpotlight({
   const coverImage = resolveImage(featured?.coverImage, { width: 1600 });
   const imageSrc = coverImage?.src;
   const imageAlt = coverImage?.alt ?? featured?.title ?? "";
-  // Featured initiative gets a CTA only when there's somewhere to send the
-  // user: externalLink wins; otherwise an internal detail page when the
-  // editor hasn't turned the toggle off. Treat absent `hasDetailPage` as
-  // true (legacy data).
-  const detailHref = featured
-    ? featured.externalLink
-      ? featured.externalLink
-      : featured.hasDetailPage === false
-        ? undefined
-        : `/initiatives/${featured.slug}`
-    : undefined;
+  // The featured initiative gets a CTA only when there's somewhere to send
+  // the user.
+  const detailHref = featured ? initiativeHref(featured, lang) : undefined;
 
   return (
     <section
@@ -429,7 +477,7 @@ function FeaturedSpotlight({
                       </CtaLink>
                     ) : null}
                     <CtaLink
-                      href="/contact"
+                      href={localizedHref(lang, "/contact")}
                       className="inline-flex w-fit items-center rounded-round border border-primary-500 bg-transparent px-6 py-2.5 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-(--ease-premium) hover:bg-primary-500/5"
                     >
                       Partner With BPI
@@ -449,6 +497,7 @@ function FeaturedSpotlight({
               <StaggerItem key={initiative._id}>
                 <SupportingInitiativeCard
                   initiative={initiative}
+                  lang={lang}
                   watermark={idx === arr.length - 1}
                 />
               </StaggerItem>
@@ -561,18 +610,14 @@ function FeaturedMedia({
 
 function SupportingInitiativeCard({
   initiative,
+  lang,
   watermark,
 }: {
   initiative: Initiative;
+  lang: string;
   watermark: boolean;
 }) {
-  // Same href rules as the home page: externalLink wins; otherwise an
-  // internal slug page when the detail toggle hasn't been turned off.
-  const href = initiative.externalLink
-    ? initiative.externalLink
-    : initiative.hasDetailPage === false
-      ? undefined
-      : `/initiatives/${initiative.slug}`;
+  const href = initiativeHref(initiative, lang);
   // Custom per-initiative tag drives the eyebrow ("Initiative", "Partnership",
   // "Research", …). Falls back to a generic label when none is set.
   const eyebrow = initiative.tag ?? "Initiative";
@@ -637,9 +682,11 @@ function SupportingInitiativeCard({
 function MotionStoriesSection({
   page,
   posts,
+  lang,
 }: {
   page: InitiativesPage | null;
   posts: InitiativePost[];
+  lang: string;
 }) {
   // Editor can hide the whole section via the `showMotionStories`
   // toggle. Defaults to true so existing pages keep rendering.
@@ -661,7 +708,7 @@ function MotionStoriesSection({
           </h2>
           {viewAllHref ? (
             <CtaLink
-              href={viewAllHref}
+              href={localCta(lang, viewAllHref)}
               className="group/viewall inline-flex items-center gap-2 md:gap-3 text-sm md:text-base font-medium text-primary-500 focus-visible:outline-none focus-visible:opacity-100"
             >
               <span className="transition-transform duration-300 ease-[var(--ease-premium)] group-hover/viewall:-translate-x-0.5 motion-reduce:transform-none">
@@ -686,9 +733,9 @@ function MotionStoriesSection({
             return (
               <StaggerItem key={post._id}>
                 {isLarge ? (
-                  <LargeStoryTile post={post} />
+                  <LargeStoryTile post={post} lang={lang} />
                 ) : (
-                  <CompactStoryTile post={post} />
+                  <CompactStoryTile post={post} lang={lang} />
                 )}
               </StaggerItem>
             );
@@ -699,8 +746,8 @@ function MotionStoriesSection({
   );
 }
 
-function postHref(post: InitiativePost): string {
-  return post.externalLink ?? `/blog/${post.slug}`;
+function postHref(post: InitiativePost, lang: string): string {
+  return localizedHref(lang, post.externalLink ?? `/blog/${post.slug}`);
 }
 
 function postEyebrow(post: InitiativePost): string {
@@ -715,11 +762,17 @@ function postImage(post: InitiativePost, width: number) {
   };
 }
 
-function LargeStoryTile({ post }: { post: InitiativePost }) {
+function LargeStoryTile({
+  post,
+  lang,
+}: {
+  post: InitiativePost;
+  lang: string;
+}) {
   const img = postImage(post, 1200);
   return (
     <CtaLink
-      href={postHref(post)}
+      href={postHref(post, lang)}
       className="group/tile relative md:col-span-2 rounded-2xl lg:rounded-3xl overflow-hidden aspect-4/3 md:aspect-2/1 lg:aspect-4/3 bg-primary-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30"
     >
       {img.src ? (
@@ -751,12 +804,18 @@ function LargeStoryTile({ post }: { post: InitiativePost }) {
   );
 }
 
-function CompactStoryTile({ post }: { post: InitiativePost }) {
+function CompactStoryTile({
+  post,
+  lang,
+}: {
+  post: InitiativePost;
+  lang: string;
+}) {
   const img = postImage(post, 600);
   const bg = post.initiativeTileAccent ? "#38FE9C" : "#FFFFFF";
   return (
     <CtaLink
-      href={postHref(post)}
+      href={postHref(post, lang)}
       className="relative flex flex-col rounded-2xl lg:rounded-3xl p-4 md:p-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30"
       style={{ backgroundColor: bg }}
     >
@@ -790,20 +849,43 @@ function CompactStoryTile({ post }: { post: InitiativePost }) {
 
 // ──────────────────────────────────────────────────── Other Works ──
 
-function OtherWorksSection({ page }: { page: InitiativesPage | null }) {
+/** How many more cards each "View More" click reveals. */
+const OTHER_WORKS_STEP = 4;
+
+function OtherWorksSection({
+  page,
+  allInitiatives,
+  lang,
+}: {
+  page: InitiativesPage | null;
+  allInitiatives: Initiative[];
+  lang: string;
+}) {
   // Editor can hide the whole section via the `showOtherWorks` toggle.
   // Defaults to true so existing pages keep rendering.
   if (page && page.showOtherWorks === false) return null;
   const eyebrow = page?.otherWorksEyebrow ?? "Barbados Pharmaceuticals Inc.";
   const heading =
     page?.otherWorksHeading ?? "Other Initiatives You Should Know at BPI";
-  const cards = page?.otherWorksInitiatives ?? [];
   const featuredImg = resolveImage(page?.otherWorksFeaturedImage, {
     width: 1600,
   });
   const featuredTitle = page?.otherWorksFeaturedTitle ?? undefined;
-  const featuredHref = page?.otherWorksFeaturedHref ?? undefined;
-  const viewMoreHref = page?.otherWorksViewAllHref ?? "/initiatives";
+  const featuredHref = localCta(lang, page?.otherWorksFeaturedHref);
+
+  // The editor's curated picks open the section, in their order; every other
+  // published initiative queues up behind them so "View More" has something
+  // left to reveal. Curated stays first so the section still leads with what
+  // the editor chose.
+  const curated = page?.otherWorksInitiatives ?? [];
+  const curatedIds = new Set(curated.map((initiative) => initiative._id));
+  const cards = [
+    ...curated,
+    ...allInitiatives.filter((initiative) => !curatedIds.has(initiative._id)),
+  ];
+  // Show exactly the curated set up front — an uncurated page still needs a
+  // sensible first batch rather than a lone "View More".
+  const initialCount = curated.length > 0 ? curated.length : OTHER_WORKS_STEP;
 
   // Nothing configured yet — skip rather than render an empty dark band.
   if (cards.length === 0 && !featuredImg) return null;
@@ -861,44 +943,45 @@ function OtherWorksSection({ page }: { page: InitiativesPage | null }) {
           </StaggerItem>
         </Stagger>
 
-        {/* Right — mint card masonry + featured tile + View More. */}
+        {/* Right — mint card masonry + featured tile + View More. The cards are
+            rendered here (server-side) and handed to the client component, which
+            only decides how many of them are on screen. */}
         <Stagger
           className="lg:col-span-2 flex flex-col gap-6 lg:gap-7"
         >
-          {cards.length > 0 ? (
-            <StaggerItem className="columns-1 md:columns-2 gap-5 lg:gap-6">
-              {cards.map((initiative, idx) => (
-                <OtherWorkCard
-                  key={initiative._id}
-                  initiative={initiative}
-                  // Every 5th card is the larger "feature" layout.
-                  variant={(idx + 1) % 5 === 0 ? "feature" : "compact"}
+          <OtherWorksCards
+            initialCount={initialCount}
+            step={OTHER_WORKS_STEP}
+            cards={cards.map((initiative, idx) => {
+              // Every 5th card is the larger "feature" layout. The variant
+              // travels alongside the node so the client wrapper can own the
+              // masonry class (`column-span:all` must sit on the direct child
+              // of the multicol container it animates).
+              const variant = (idx + 1) % 5 === 0 ? "feature" : "compact";
+              return {
+                key: initiative._id,
+                variant,
+                node: (
+                  <OtherWorkCard
+                    initiative={initiative}
+                    lang={lang}
+                    variant={variant}
+                  />
+                ),
+              };
+            })}
+          >
+            {featuredImg ? (
+              <StaggerItem>
+                <OtherWorksFeaturedTile
+                  src={featuredImg.src}
+                  alt={featuredImg.alt}
+                  title={featuredTitle}
+                  href={featuredHref}
                 />
-              ))}
-            </StaggerItem>
-          ) : null}
-
-          {featuredImg ? (
-            <StaggerItem>
-              <OtherWorksFeaturedTile
-                src={featuredImg.src}
-                alt={featuredImg.alt}
-                title={featuredTitle}
-                href={featuredHref}
-              />
-            </StaggerItem>
-          ) : null}
-
-          {viewMoreHref ? (
-            <StaggerItem className="flex justify-end">
-              <CtaLink
-                href={viewMoreHref}
-                className="inline-flex w-fit items-center rounded-round border border-white/50 px-6 py-2.5 text-sm font-semibold text-white transition-colors duration-300 ease-(--ease-premium) hover:border-white/80 hover:bg-white/10"
-              >
-                View More
-              </CtaLink>
-            </StaggerItem>
-          ) : null}
+              </StaggerItem>
+            ) : null}
+          </OtherWorksCards>
         </Stagger>
       </div>
     </section>
@@ -912,25 +995,24 @@ function OtherWorksSection({ page }: { page: InitiativesPage | null }) {
 //     title overlaid on the cover image (the every-5th break).
 function OtherWorkCard({
   initiative,
+  lang,
   variant,
 }: {
   initiative: Initiative;
+  lang: string;
   variant: "compact" | "feature";
 }) {
-  const href = initiative.externalLink
-    ? initiative.externalLink
-    : initiative.hasDetailPage === false
-      ? undefined
-      : `/initiatives/${initiative.slug}`;
+  const href = initiativeHref(initiative, lang);
   const img = resolveImage(initiative.coverImage, {
     width: variant === "feature" ? 1600 : 700,
   });
   const tag = initiative.tag ?? "Initiative";
 
-  // Full-width dark media tile (spans all masonry columns).
+  // Full-width dark media tile. The `column-span:all` + bottom margin that
+  // place it in the masonry live on the wrapper in `OtherWorksCards`.
   if (variant === "feature") {
     const featCls =
-      "[column-span:all] mb-5 lg:mb-6 group/feat relative block overflow-hidden rounded-2xl lg:rounded-3xl aspect-video lg:aspect-2/1 bg-primary-500";
+      "group/feat relative block overflow-hidden rounded-2xl lg:rounded-3xl aspect-video lg:aspect-2/1 bg-primary-500";
     const featInner = (
       <>
         {img ? (
@@ -960,9 +1042,10 @@ function OtherWorkCard({
     );
   }
 
-  // Compact mint card.
+  // Compact mint card. The `break-inside-avoid` + bottom margin that place it
+  // in the masonry live on the wrapper in `OtherWorksCards`.
   const cls =
-    "flex flex-col break-inside-avoid mb-5 lg:mb-6 rounded-2xl lg:rounded-3xl p-6 lg:p-7 min-h-96 lg:min-h-112";
+    "flex flex-col h-full rounded-2xl lg:rounded-3xl p-6 lg:p-7 min-h-96 lg:min-h-112";
   const inner = (
     <>
       <div className="flex items-start justify-between gap-5">

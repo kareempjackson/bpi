@@ -6,11 +6,17 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
+import BlogSection, { type BlogSectionPost } from "@/app/components/BlogSection";
 import BuildingSection from "@/app/components/BuildingSection";
 import CareersSection from "@/app/components/CareersSection";
 import CtaLink from "@/app/components/CtaLink";
 import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
+import { localizedHref } from "@/app/lib/locale";
+import InitiativeHeaderType1 from "./InitiativeHeaderType1";
+import InitiativeHeaderType2 from "./InitiativeHeaderType2";
+import InitiativeHeaderType3 from "./InitiativeHeaderType3";
+import InitiativeHeaderType4 from "./InitiativeHeaderType4";
 import { client } from "@/sanity/lib/client";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
 import { resolveImage, resolveMedia } from "@/sanity/lib/image";
@@ -18,8 +24,10 @@ import {
   ALL_INITIATIVE_SLUGS_QUERY,
   HOME_PAGE_QUERY,
   INITIATIVE_BY_SLUG_QUERY,
+  LATEST_POSTS_QUERY,
 } from "@/sanity/lib/queries";
 import type {
+  BlogPost,
   HomePage,
   InitiativeDetail,
   ResolvedMedia,
@@ -29,6 +37,9 @@ import type {
 function mediaImageSrc(m: ResolvedMedia | null): string | undefined {
   if (!m) return undefined;
   return m.kind === "image" ? m.src : m.poster;
+}
+function mediaVideoSrc(m: ResolvedMedia | null): string | undefined {
+  return m?.kind === "video" ? m.src : undefined;
 }
 
 type RouteProps = {
@@ -70,6 +81,9 @@ function pagePalette(base: string) {
     heroAccent: mixWhite(base, 0.5),
     // Pale "white" section band — a fixed soft blue.
     sectionBg: "#E7F9FF",
+    // A step deeper than sectionBg, for a band that needs to separate from it —
+    // the same blue the blog bento uses for its cards.
+    accentBg: "#CAF1FF",
     quoteBg: "#0094C9",
     whyBg: mixWhite(base, 0.12),
     ring: mixWhite(base, 0.42),
@@ -139,6 +153,15 @@ async function getHomePage(lang: string): Promise<HomePage | null> {
     params: { lang },
     tags: [TAG.homePage],
   });
+}
+
+// "Latest from BPI" — newest posts for the optional blog section.
+async function getLatestPosts(lang: string, limit = 3): Promise<BlogPost[]> {
+  const data = await loadQuery<BlogPost[] | null>(LATEST_POSTS_QUERY, {
+    params: { lang, limit },
+    tags: [TAG.post],
+  });
+  return data ?? [];
 }
 
 
@@ -274,9 +297,31 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
   // as true so legacy data still renders.)
   if (initiative.hasDetailPage === false) notFound();
 
-  const homeData = await getHomePage(lang);
+  const [homeData, latestPosts] = await Promise.all([
+    getHomePage(lang),
+    initiative.showBlog ? getLatestPosts(lang, 3) : Promise.resolve([]),
+  ]);
   const careersMedia = resolveMedia(homeData?.careersImage, { width: 1200 });
   const buildingMedia = resolveMedia(homeData?.buildingImage, { width: 1600 });
+
+  // Latest from BPI — mapped to the shared bento component (same as the
+  // sectors/home pages). Hides itself when there are no posts.
+  const blogPosts: BlogSectionPost[] = latestPosts.map((p) => {
+    const m = resolveMedia(p.coverImage, { width: 1200 });
+    return {
+      title: p.title,
+      excerpt: p.excerpt,
+      href: localizedHref(lang, p.externalLink ?? `/blog/${p.slug}`),
+      publishedAt: p.publishedAt,
+      imageSrc: mediaImageSrc(m),
+      videoSrc: mediaVideoSrc(m),
+      imageAlt: m?.alt,
+      tags: (p.tags ?? []).map((t) => t.title).slice(0, 2),
+      category: p.contentType
+        ? p.contentType[0].toUpperCase() + p.contentType.slice(1)
+        : undefined,
+    };
+  });
 
   const cover = resolveImage(initiative.coverImage, { width: 2000 });
   const hasBody = !!initiative.body && initiative.body.length > 0;
@@ -295,9 +340,179 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
   } = splitTitleEnds(initiative.title);
 
   // One Sanity colour drives the whole page (plus the footer, via a CSS var).
-  const { base, heroAccent, sectionBg, quoteBg, whyBg, ring } = pagePalette(
-    initiative.pageColor || DEFAULT_PAGE_COLOR,
+  const { base, heroAccent, sectionBg, accentBg, quoteBg, whyBg, ring } =
+    pagePalette(initiative.pageColor || DEFAULT_PAGE_COLOR);
+
+  // Header type. "type1" swaps the editorial hero for a title + tall-image
+  // layout, "type2" for the split-title lockup, "type3" for the copy-on-top /
+  // big-title-bottom layout; everything falls back so an editor only has to
+  // flip the toggle.
+  const isType1Header = initiative.headerType === "type1";
+  const isType2Header = initiative.headerType === "type2";
+  const isType3Header = initiative.headerType === "type3";
+  const isType4Header = initiative.headerType === "type4";
+  const headerTitle = initiative.headerTitle || initiative.title;
+  const headerSubtitle = initiative.headerSubtitle || initiative.excerpt;
+  const headerImg = resolveImage(initiative.headerImage ?? initiative.coverImage, {
+    width: 1800,
+  });
+  // headerImage → coverImage → the Home building photo, so the slot is filled.
+  const headerImageSrc = headerImg?.src ?? mediaImageSrc(buildingMedia);
+  const headerImageAlt = headerImg?.alt ?? buildingMedia?.alt ?? "";
+  const headerPrimaryCta = {
+    label: initiative.headerPrimaryCta?.label || "Partner With BPI",
+    href: initiative.headerPrimaryCta?.href || "/contact",
+  };
+  const headerSecondaryCta = initiative.headerSecondaryCta?.label
+    ? {
+        label: initiative.headerSecondaryCta.label,
+        href: initiative.headerSecondaryCta.href || "#",
+      }
+    : null;
+
+  // "What This Is" + Key Metrics — a toggleable white section.
+  const whatThisIsParagraphs = (initiative.whatThisIsBody ?? "")
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  const keyMetrics = (initiative.keyMetrics ?? []).filter(
+    (m) => m.value || m.label,
   );
+  const showWhatThisIs =
+    !!initiative.showWhatThisIs &&
+    (whatThisIsParagraphs.length > 0 || keyMetrics.length > 0);
+  // "beside" pairs the heading with the body as a large italic lead; absent/
+  // anything else keeps the original stacked, full-width block.
+  const whatThisIsBeside = initiative.whatThisIsLayout === "beside";
+  // "stackedLead" keeps the stacked block but sizes the body as a statement
+  // rather than body copy — the same lead scale "beside" uses, minus the italic.
+  const whatThisIsLead = initiative.whatThisIsLayout === "stackedLead";
+  // "imageBeside": heading across the top, image left, body + button right, on
+  // the deeper blue band so it separates from the pale sections around it.
+  const whatThisIsImageBeside = initiative.whatThisIsLayout === "imageBeside";
+  const whatThisIsImg = resolveImage(
+    initiative.whatThisIsImage ?? initiative.coverImage,
+    { width: 1200 },
+  );
+  const whatThisIsImageSrc = whatThisIsImg?.src ?? mediaImageSrc(buildingMedia);
+  const whatThisIsImageAlt = whatThisIsImg?.alt ?? buildingMedia?.alt ?? "";
+  const whatThisIsCta = {
+    label: initiative.whatThisIsCta?.label || "Partner With BPI",
+    href: initiative.whatThisIsCta?.href || "/contact",
+  };
+
+  // Phased Approach + Strategic Relevance — a toggleable dark band.
+  const phases = (initiative.phases ?? []).filter((p) => p.title || p.body);
+  const showPhases =
+    !!initiative.showPhases &&
+    (phases.length > 0 || !!initiative.relevanceBody);
+  const phasesImg = resolveImage(
+    initiative.phasesImage ?? initiative.coverImage,
+    { width: 2000 },
+  );
+  const relevanceCta = {
+    label: initiative.relevanceCta?.label || "Partner With BPI",
+    href: initiative.relevanceCta?.href || "/contact",
+  };
+
+  // Key Developments — a toggleable light-blue section (image + bullet list).
+  const developmentBullets = (initiative.developmentsBody ?? "")
+    .split(/\n+/)
+    .map((b) => b.trim())
+    .filter(Boolean);
+  const developmentsImg = resolveImage(initiative.developmentsImage, {
+    width: 1200,
+  });
+  const developmentsImageSrc =
+    developmentsImg?.src ?? mediaImageSrc(buildingMedia);
+  const developmentsImageAlt = developmentsImg?.alt ?? buildingMedia?.alt ?? "";
+  const developmentsCta = {
+    label: initiative.developmentsCta?.label || "Partner With BPI",
+    href: initiative.developmentsCta?.href || "/contact",
+  };
+  const showDevelopments =
+    !!initiative.showDevelopments && developmentBullets.length > 0;
+  // "imageBelow" pairs the heading with the bullets and drops a wide image
+  // under both; "noImage" is the same pair with the image dropped entirely;
+  // absent/anything else keeps the original tall-image-beside grid.
+  const developmentsImageBelow = initiative.developmentsLayout === "imageBelow";
+  const developmentsNoImage = initiative.developmentsLayout === "noImage";
+
+  // Next Steps — a toggleable card in the page colour, on the same light-blue
+  // band as Key Developments (bullets, one per line).
+  const nextStepsBullets = (initiative.nextStepsBody ?? "")
+    .split(/\n+/)
+    .map((b) => b.trim())
+    .filter(Boolean);
+  const nextStepsCta = {
+    label: initiative.nextStepsCta?.label || "Partner With BPI",
+    href: initiative.nextStepsCta?.href || "/contact",
+  };
+  const showNextSteps =
+    !!initiative.showNextSteps && nextStepsBullets.length > 0;
+  const showNextStepsCta = initiative.showNextStepsCta !== false;
+
+  // Roadmap — a toggleable mid-blue band closing the story: eyebrow + heading
+  // left; a single italic statement, a button and a wide image right. Unrelated
+  // to the `outlook*` note that closes Current Status.
+  const roadmapImg = resolveImage(
+    initiative.roadmapImage ?? initiative.coverImage,
+    { width: 1200 },
+  );
+  const roadmapCta = {
+    label: initiative.roadmapCta?.label || "Partner With BPI",
+    href: initiative.roadmapCta?.href || "/contact",
+  };
+  const showRoadmap =
+    !!initiative.showRoadmap &&
+    (!!initiative.roadmapHeading || !!initiative.roadmapStatement);
+
+  // "Why Barbados" + Ecosystem Approach — a toggleable pale-blue section: a
+  // heading + bullets, then a wide image sitting flush on a navy panel.
+  const whyBarbadosBullets = (initiative.whyBarbadosBody ?? "")
+    .split(/\n+/)
+    .map((b) => b.trim())
+    .filter(Boolean);
+  const whyBarbadosImg = resolveImage(
+    initiative.whyBarbadosImage ?? initiative.coverImage,
+    { width: 1800 },
+  );
+  const whyBarbadosCta = {
+    label: initiative.whyBarbadosCta?.label || "Partner With BPI",
+    href: initiative.whyBarbadosCta?.href || "/contact",
+  };
+  const ecosystemCta = {
+    label: initiative.ecosystemCta?.label || "Partner With BPI",
+    href: initiative.ecosystemCta?.href || "/contact",
+  };
+  const showWhyBarbados =
+    !!initiative.showWhyBarbados &&
+    (whyBarbadosBullets.length > 0 || !!initiative.ecosystemBody);
+
+  // "Current Status" + the closing "Next Steps" note — a toggleable pale-blue
+  // band: image left, lead + detail + buttons right, then a large italic note.
+  const currentStatusImg = resolveImage(
+    initiative.currentStatusImage ?? initiative.coverImage,
+    { width: 1400 },
+  );
+  const currentStatusPrimaryCta = {
+    label: initiative.currentStatusPrimaryCta?.label || "Partner with us",
+    href: initiative.currentStatusPrimaryCta?.href || "/contact",
+  };
+  const currentStatusSecondaryCta = initiative.currentStatusSecondaryCta?.label
+    ? {
+        label: initiative.currentStatusSecondaryCta.label,
+        href: initiative.currentStatusSecondaryCta.href || "#",
+      }
+    : null;
+  const showCurrentStatus =
+    !!initiative.showCurrentStatus &&
+    (!!initiative.currentStatusLead || !!initiative.outlookBody);
+
+  // The standard body/quote/why-matters/careers blocks below the custom
+  // sections. Absent (legacy docs) → still shown; only an explicit false hides
+  // them, so the page can end at the custom sections.
+  const showDefaultSections = initiative.showDefaultSections !== false;
 
   return (
     <main className="bg-error-25">
@@ -305,8 +520,51 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
           button, nav menu button) to match this page (SSR-safe, no flash).
           Falls back to brand teal/green on every other page. */}
       <style>{`:root{--footer-bg:${base};--brand-accent:#ABE8FE;--brand-accent-strong:${quoteBg};}`}</style>
-      {/* Royal-blue editorial hero — two-tone title (left), excerpt + CTAs
-          (right), then a full-bleed cover image flush to the bottom. */}
+      {/* Header — the "Type 1" title + tall-image layout, the "Type 2" split
+          title lockup, the "Type 3" copy-top / big-title-bottom layout, or the
+          default royal-blue editorial hero (two-tone title left, excerpt + CTAs
+          right, then a full-bleed cover image flush to the bottom). */}
+      {isType1Header ? (
+        <InitiativeHeaderType1
+          title={headerTitle}
+          subtitle={headerSubtitle}
+          imageSrc={headerImageSrc}
+          imageAlt={headerImageAlt}
+          base={base}
+          primaryCta={headerPrimaryCta}
+          secondaryCta={headerSecondaryCta}
+        />
+      ) : isType2Header ? (
+        <InitiativeHeaderType2
+          title={headerTitle}
+          titleTail={initiative.headerTitleTail}
+          subtitle={headerSubtitle}
+          imageSrc={headerImageSrc}
+          imageAlt={headerImageAlt}
+          base={base}
+          primaryCta={headerPrimaryCta}
+          secondaryCta={headerSecondaryCta}
+        />
+      ) : isType3Header ? (
+        <InitiativeHeaderType3
+          title={headerTitle}
+          subtitle={headerSubtitle}
+          imageSrc={headerImageSrc}
+          imageAlt={headerImageAlt}
+          base={base}
+          primaryCta={headerPrimaryCta}
+          secondaryCta={headerSecondaryCta}
+        />
+      ) : isType4Header ? (
+        <InitiativeHeaderType4
+          eyebrow={headerTitle}
+          headline={headerSubtitle}
+          imageSrc={headerImageSrc}
+          imageAlt={headerImageAlt}
+          base={base}
+          accent={heroAccent}
+        />
+      ) : (
       <section
         data-nav-theme="dark"
         data-cursor="icon"
@@ -382,11 +640,651 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
           </Reveal>
         ) : null}
       </section>
+      )}
+
+      {/* "Why Barbados" + Ecosystem Approach — toggleable pale-blue section:
+          heading + bullets, then a wide image sitting flush on a navy panel
+          (both halves of one rounded card). */}
+      {showWhyBarbados ? (
+        <section
+          className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-24"
+          style={{ backgroundColor: sectionBg }}
+        >
+          <div className="mx-auto max-w-page flex flex-col gap-12 lg:gap-16">
+            {whyBarbadosBullets.length > 0 ? (
+              <Stagger className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start">
+                {initiative.whyBarbadosHeading ? (
+                  <StaggerItem
+                    as="h2"
+                    className="font-display text-2xl md:text-3xl font-bold text-primary-500 leading-tight tracking-tight"
+                  >
+                    {initiative.whyBarbadosHeading}
+                  </StaggerItem>
+                ) : null}
+                <div className="flex flex-col gap-8">
+                  <Stagger
+                    as="ul"
+                    className="flex flex-col gap-4 list-disc list-outside pl-5 marker:text-primary-500/50 text-sm lg:text-base text-primary-500/85 leading-[1.6]"
+                  >
+                    {whyBarbadosBullets.map((b, i) => (
+                      <StaggerItem as="li" key={i} className="pl-1">
+                        {b}
+                      </StaggerItem>
+                    ))}
+                  </Stagger>
+                  <CtaLink
+                    href={whyBarbadosCta.href}
+                    className="inline-flex w-fit items-center rounded-round bg-warning-25 px-6 py-2.5 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-(--ease-premium) hover:bg-white"
+                  >
+                    {whyBarbadosCta.label}
+                  </CtaLink>
+                </div>
+              </Stagger>
+            ) : null}
+
+            {/* Wide image + navy panel — one rounded card, image flush on top. */}
+            <Reveal
+              preset="scale"
+              className="overflow-hidden rounded-lg lg:rounded-xl"
+            >
+              {whyBarbadosImg ? (
+                <div className="relative aspect-video lg:aspect-2/1 w-full">
+                  <Image
+                    src={whyBarbadosImg.src}
+                    alt={whyBarbadosImg.alt}
+                    fill
+                    sizes="100vw"
+                    className="object-cover"
+                  />
+                </div>
+              ) : null}
+              {initiative.ecosystemHeading || initiative.ecosystemBody ? (
+                <div
+                  className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 px-6 md:px-10 lg:px-12 py-10 md:py-12 lg:py-14"
+                  style={{ backgroundColor: base }}
+                >
+                  {initiative.ecosystemHeading ? (
+                    <h2 className="font-display text-2xl md:text-3xl font-bold text-white leading-tight tracking-tight">
+                      {initiative.ecosystemHeading}
+                    </h2>
+                  ) : null}
+                  <div className="flex flex-col gap-8">
+                    {initiative.ecosystemBody ? (
+                      <p className="text-base lg:text-lg text-white/85 leading-[1.6]">
+                        {initiative.ecosystemBody}
+                      </p>
+                    ) : null}
+                    <CtaLink
+                      href={ecosystemCta.href}
+                      className="inline-flex w-fit items-center rounded-round bg-warning-25 px-6 py-2.5 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-(--ease-premium) hover:bg-white"
+                    >
+                      {ecosystemCta.label}
+                    </CtaLink>
+                  </div>
+                </div>
+              ) : null}
+            </Reveal>
+          </div>
+        </section>
+      ) : null}
+
+      {/* "Current Status" + the closing "Next Steps" note — toggleable pale-blue
+          band: heading, image left / lead + detail + buttons right, then a
+          quiet closing note in large italic type. */}
+      {showCurrentStatus ? (
+        <section
+          className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-24"
+          style={{ backgroundColor: sectionBg }}
+        >
+          <div className="mx-auto max-w-page">
+            {initiative.currentStatusLead ? (
+              <Stagger className="flex flex-col gap-10 lg:gap-14">
+                {initiative.currentStatusHeading ? (
+                  <StaggerItem
+                    as="h2"
+                    className="font-display text-2xl md:text-3xl font-bold text-primary-500 leading-tight tracking-tight"
+                  >
+                    {initiative.currentStatusHeading}
+                  </StaggerItem>
+                ) : null}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-24 items-start">
+                  {currentStatusImg ? (
+                    <StaggerItem
+                      preset="scale"
+                      className="relative aspect-3/2 w-full overflow-hidden rounded-lg lg:rounded-xl bg-primary-500/5"
+                    >
+                      <Image
+                        src={currentStatusImg.src}
+                        alt={currentStatusImg.alt}
+                        fill
+                        sizes="(min-width: 1024px) 45vw, 100vw"
+                        className="object-cover"
+                      />
+                    </StaggerItem>
+                  ) : null}
+                  <div className="flex flex-col gap-6">
+                    <StaggerItem
+                      as="p"
+                      className="font-display text-xl md:text-2xl lg:text-[28px] font-semibold text-primary-500 leading-[1.3] tracking-[-0.01em] balance-text"
+                    >
+                      {initiative.currentStatusLead}
+                    </StaggerItem>
+                    {initiative.currentStatusBody ? (
+                      <StaggerItem
+                        as="p"
+                        className="text-sm lg:text-[15px] text-primary-500/75 leading-[1.7]"
+                      >
+                        {initiative.currentStatusBody}
+                      </StaggerItem>
+                    ) : null}
+                    <StaggerItem className="flex flex-wrap items-center gap-3 pt-2">
+                      <CtaLink
+                        href={currentStatusPrimaryCta.href}
+                        className="inline-flex items-center rounded-round px-6 py-2.5 text-sm font-semibold text-white transition-opacity duration-300 ease-(--ease-premium) hover:opacity-85"
+                        style={{ backgroundColor: base }}
+                      >
+                        {currentStatusPrimaryCta.label}
+                      </CtaLink>
+                      {currentStatusSecondaryCta ? (
+                        <CtaLink
+                          href={currentStatusSecondaryCta.href}
+                          className="inline-flex items-center rounded-round border border-primary-500/25 bg-white px-6 py-2.5 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-(--ease-premium) hover:border-primary-500/50"
+                        >
+                          {currentStatusSecondaryCta.label}
+                        </CtaLink>
+                      ) : null}
+                    </StaggerItem>
+                  </div>
+                </div>
+              </Stagger>
+            ) : null}
+
+            {/* Closing note — heading left, one large italic paragraph right. */}
+            {initiative.outlookBody ? (
+              <Stagger
+                className={`grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-16 items-start ${
+                  initiative.currentStatusLead ? "mt-20 lg:mt-28" : ""
+                }`}
+              >
+                {initiative.outlookHeading ? (
+                  <StaggerItem
+                    as="h2"
+                    className="lg:col-span-1 font-display text-2xl md:text-3xl font-bold text-primary-500 leading-tight tracking-tight"
+                  >
+                    {initiative.outlookHeading}
+                  </StaggerItem>
+                ) : null}
+                <StaggerItem
+                  as="p"
+                  className="lg:col-span-2 font-display text-2xl md:text-3xl lg:text-[32px] italic text-primary-500/55 leading-[1.45] tracking-[-0.01em]"
+                >
+                  {initiative.outlookBody}
+                </StaggerItem>
+              </Stagger>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+
+      {/* "What This Is" + Key Metrics — toggleable white section. Four layouts,
+          picked per initiative (whatThisIsLayout): the heading stacks above the
+          body full-width at body-copy size ("stacked") or at lead size
+          ("stackedLead"), sits left of a large italic lead ("beside"), or tops
+          an image + body pair on the deeper band ("imageBeside"). */}
+      {showWhatThisIs ? (
+        <section
+          className={`px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-24 ${
+            whatThisIsImageBeside ? "" : "bg-white"
+          }`}
+          style={
+            whatThisIsImageBeside ? { backgroundColor: accentBg } : undefined
+          }
+        >
+          <div className="mx-auto max-w-page">
+            {whatThisIsImageBeside ? (
+              <Stagger className="flex flex-col gap-8 lg:gap-10">
+                {initiative.whatThisIsHeading ? (
+                  <StaggerItem
+                    as="h2"
+                    className="font-display text-2xl md:text-3xl font-bold text-primary-500 leading-tight tracking-tight"
+                  >
+                    {initiative.whatThisIsHeading}
+                  </StaggerItem>
+                ) : null}
+                <div className="grid grid-cols-1 lg:grid-cols-[0.42fr_0.58fr] gap-8 lg:gap-16 items-start">
+                  {whatThisIsImageSrc ? (
+                    <StaggerItem
+                      preset="scale"
+                      className="relative aspect-4/3 w-full overflow-hidden rounded-sm bg-white/40"
+                    >
+                      <Image
+                        src={whatThisIsImageSrc}
+                        alt={whatThisIsImageAlt}
+                        fill
+                        sizes="(min-width: 1024px) 42vw, 100vw"
+                        className="object-cover"
+                      />
+                    </StaggerItem>
+                  ) : null}
+                  <div className="flex flex-col gap-5">
+                    {whatThisIsParagraphs.map((p, i) => (
+                      <StaggerItem
+                        as="p"
+                        key={i}
+                        className="text-sm lg:text-base text-primary-500/85 leading-[1.75]"
+                      >
+                        {p}
+                      </StaggerItem>
+                    ))}
+                    <StaggerItem className="pt-2">
+                      <CtaLink
+                        href={whatThisIsCta.href}
+                        className="inline-flex w-fit items-center rounded-round bg-white px-6 py-2.5 text-sm font-semibold text-primary-500 transition-opacity duration-300 ease-(--ease-premium) hover:opacity-90"
+                      >
+                        {whatThisIsCta.label}
+                      </CtaLink>
+                    </StaggerItem>
+                  </div>
+                </div>
+              </Stagger>
+            ) : whatThisIsParagraphs.length > 0 ? (
+              <Stagger
+                className={
+                  whatThisIsBeside
+                    ? "grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start"
+                    : "flex flex-col gap-5"
+                }
+              >
+                {initiative.whatThisIsHeading ? (
+                  <StaggerItem
+                    as="h2"
+                    className="font-display text-2xl md:text-3xl font-bold text-primary-500 leading-tight tracking-tight"
+                  >
+                    {initiative.whatThisIsHeading}
+                  </StaggerItem>
+                ) : null}
+                {whatThisIsBeside ? (
+                  <div className="flex flex-col gap-5">
+                    {whatThisIsParagraphs.map((p, i) => (
+                      <StaggerItem
+                        as="p"
+                        key={i}
+                        className="text-lg md:text-xl lg:text-2xl italic text-primary-500/60 leading-normal tracking-[-0.01em]"
+                      >
+                        {p}
+                      </StaggerItem>
+                    ))}
+                  </div>
+                ) : (
+                  whatThisIsParagraphs.map((p, i) => (
+                    <StaggerItem
+                      as="p"
+                      key={i}
+                      className={
+                        whatThisIsLead
+                          ? "max-w-5xl text-lg md:text-xl lg:text-2xl text-primary-500/60 leading-relaxed tracking-[-0.01em]"
+                          : "max-w-4xl text-base lg:text-lg text-primary-500/85 leading-[1.75]"
+                      }
+                    >
+                      {p}
+                    </StaggerItem>
+                  ))
+                )}
+              </Stagger>
+            ) : null}
+
+            {keyMetrics.length > 0 ? (
+              <div className="mt-14 lg:mt-20">
+                {initiative.metricsHeading ? (
+                  <h2 className="font-display text-2xl md:text-3xl font-bold text-primary-500 leading-tight tracking-tight">
+                    {initiative.metricsHeading}
+                  </h2>
+                ) : null}
+                <Stagger
+                  as="dl"
+                  className="mt-8 lg:mt-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-8"
+                >
+                  {keyMetrics.map((m, i) => (
+                    <StaggerItem
+                      key={i}
+                      className={`flex flex-col gap-2 lg:px-6 lg:first:pl-0 ${
+                        i > 0 ? "lg:border-l lg:border-primary-500/15" : ""
+                      }`}
+                    >
+                      <dt className="font-display text-xl lg:text-[22px] font-bold text-primary-500 leading-tight tracking-tight">
+                        {m.value}
+                        {m.note ? (
+                          <span className="ml-0.5 align-baseline text-[10px] font-normal text-primary-500/55">
+                            {m.note}
+                          </span>
+                        ) : null}
+                      </dt>
+                      {m.label ? (
+                        <dd className="text-xs lg:text-sm text-primary-500/70 leading-snug">
+                          {m.label}
+                        </dd>
+                      ) : null}
+                    </StaggerItem>
+                  ))}
+                </Stagger>
+              </div>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+
+      {/* Key Developments — toggleable light-blue section. Two layouts, picked
+          per initiative (developmentsLayout): the heading either spans the top
+          with a tall image beside the bullets, or sits beside the bullets with
+          a wide image under both. */}
+      {showDevelopments ? (
+        <section
+          className={`px-6 md:px-12 lg:px-20 xl:px-28 pt-16 md:pt-20 lg:pt-24 ${
+            // Next Steps docks under this section's image — drop the bottom
+            // padding so the two read as one stacked block. With no image the
+            // section ends on the button instead, which the card would collide
+            // with, so keep the normal spacing there.
+            showNextSteps && !developmentsNoImage
+              ? "pb-0"
+              : "pb-16 md:pb-20 lg:pb-24"
+          }`}
+          style={{ backgroundColor: sectionBg }}
+        >
+          {(() => {
+            const heading = initiative.developmentsHeading ? (
+              <Stagger
+                as="h2"
+                className="font-display text-3xl md:text-4xl font-bold text-primary-500 leading-tight tracking-tight"
+              >
+                {initiative.developmentsHeading}
+              </Stagger>
+            ) : null;
+
+            const bullets = (
+              <div className="flex flex-col gap-8">
+                <Stagger
+                  as="ul"
+                  className="flex flex-col gap-4 list-disc list-outside pl-5 marker:text-primary-500/50 text-base lg:text-lg text-primary-500/85 leading-[1.6]"
+                >
+                  {developmentBullets.map((b, i) => (
+                    <StaggerItem as="li" key={i} className="pl-1">
+                      {b}
+                    </StaggerItem>
+                  ))}
+                </Stagger>
+                <CtaLink
+                  href={developmentsCta.href}
+                  className="inline-flex w-fit items-center rounded-round bg-warning-25 px-6 py-2.5 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-(--ease-premium) hover:bg-white"
+                >
+                  {developmentsCta.label}
+                </CtaLink>
+              </div>
+            );
+
+            const image = (className: string, sizes: string) =>
+              developmentsImageSrc ? (
+                <Reveal
+                  preset="scale"
+                  className={`relative w-full overflow-hidden rounded-lg lg:rounded-xl bg-primary-500/5 ${className}`}
+                >
+                  <Image
+                    src={developmentsImageSrc}
+                    alt={developmentsImageAlt}
+                    fill
+                    sizes={sizes}
+                    className="object-cover"
+                  />
+                </Reveal>
+              ) : null;
+
+            if (developmentsImageBelow || developmentsNoImage) {
+              return (
+                <div className="mx-auto max-w-page flex flex-col gap-10 lg:gap-14">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start">
+                    {heading}
+                    {bullets}
+                  </div>
+                  {developmentsNoImage
+                    ? null
+                    : image("aspect-4/3 sm:aspect-video", "100vw")}
+                </div>
+              );
+            }
+
+            return (
+              <div className="mx-auto max-w-page flex flex-col gap-10 lg:gap-14">
+                {heading}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
+                  {image(
+                    "aspect-square lg:aspect-4/5",
+                    "(min-width: 1024px) 45vw, 100vw",
+                  )}
+                  {bullets}
+                </div>
+              </div>
+            );
+          })()}
+        </section>
+      ) : null}
+
+      {/* Next Steps — toggleable card in the page colour: heading left, bullets
+          + optional button right. Same light-blue band as Key Developments, and
+          when that section is on with an image this drops its top padding so
+          the card docks straight under that image. */}
+      {showNextSteps ? (
+        <section
+          className={`px-6 md:px-12 lg:px-20 xl:px-28 pb-16 md:pb-20 lg:pb-24 ${
+            showDevelopments && !developmentsNoImage
+              ? "pt-2"
+              : "pt-16 md:pt-20 lg:pt-24"
+          }`}
+          style={{ backgroundColor: sectionBg }}
+        >
+          <div
+            className="mx-auto max-w-page rounded-lg lg:rounded-xl px-6 md:px-10 lg:px-14 py-12 md:py-14 lg:py-16"
+            style={{ backgroundColor: base }}
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start">
+              {initiative.nextStepsHeading ? (
+                <Stagger
+                  as="h2"
+                  className="font-display text-2xl md:text-3xl font-bold text-white leading-tight tracking-tight"
+                >
+                  {initiative.nextStepsHeading}
+                </Stagger>
+              ) : null}
+              <div className="flex flex-col gap-10">
+                <Stagger
+                  as="ul"
+                  className="flex flex-col gap-4 list-disc list-outside pl-5 marker:text-white/50 text-base lg:text-lg text-white/80 leading-[1.6]"
+                >
+                  {nextStepsBullets.map((b, i) => (
+                    <StaggerItem as="li" key={i} className="pl-1">
+                      {b}
+                    </StaggerItem>
+                  ))}
+                </Stagger>
+                {showNextStepsCta ? (
+                  <CtaLink
+                    href={nextStepsCta.href}
+                    className="inline-flex w-fit items-center rounded-round bg-warning-25 px-6 py-2.5 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-(--ease-premium) hover:bg-white"
+                  >
+                    {nextStepsCta.label}
+                  </CtaLink>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* Roadmap — toggleable mid-blue band closing the story: eyebrow +
+          heading left; a single italic statement over a rule, then the button
+          and a wide image, right. The button fills with the page colour — the
+          light-blue pill used elsewhere would disappear on this band. */}
+      {showRoadmap ? (
+        <section
+          className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-24"
+          style={
+            { backgroundColor: accentBg, "--ink": base } as React.CSSProperties
+          }
+        >
+          <div className="mx-auto max-w-page grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start">
+            <Stagger className="flex flex-col gap-2">
+              {initiative.roadmapEyebrow ? (
+                <StaggerItem
+                  as="p"
+                  className="text-xs lg:text-sm text-primary-500/70"
+                >
+                  {initiative.roadmapEyebrow}
+                </StaggerItem>
+              ) : null}
+              {initiative.roadmapHeading ? (
+                <StaggerItem
+                  as="h2"
+                  className="font-display text-xl md:text-2xl font-bold text-primary-500 leading-tight tracking-tight"
+                >
+                  {initiative.roadmapHeading}
+                </StaggerItem>
+              ) : null}
+            </Stagger>
+
+            <Stagger className="flex flex-col gap-6">
+              {initiative.roadmapStatement ? (
+                <StaggerItem
+                  as="p"
+                  className="text-xl md:text-2xl italic text-primary-500 leading-normal tracking-[-0.01em]"
+                >
+                  {initiative.roadmapStatement}
+                </StaggerItem>
+              ) : null}
+              <StaggerItem
+                as="div"
+                className="w-full border-t border-primary-500/20"
+              />
+              <CtaLink
+                href={roadmapCta.href}
+                className="inline-flex w-fit items-center rounded-round bg-(--ink) px-6 py-2.5 text-sm font-semibold text-white transition-opacity duration-300 ease-(--ease-premium) hover:opacity-90"
+              >
+                {roadmapCta.label}
+              </CtaLink>
+              {roadmapImg ? (
+                <Reveal
+                  preset="scale"
+                  className="relative mt-2 w-full aspect-4/3 sm:aspect-video overflow-hidden rounded-lg lg:rounded-xl"
+                >
+                  <Image
+                    src={roadmapImg.src}
+                    alt={roadmapImg.alt}
+                    fill
+                    sizes="(min-width: 1024px) 50vw, 100vw"
+                    className="object-cover"
+                  />
+                </Reveal>
+              ) : null}
+            </Stagger>
+          </div>
+        </section>
+      ) : null}
+
+      {/* Phased Approach — dark band: heading, a row of phase cards (colours
+          cycle white → light blue → green, same palette as the impact stats), a
+          wide image, then the Strategic Relevance closing statement. */}
+      {showPhases ? (
+        <section
+          className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-24"
+          style={{ backgroundColor: base }}
+        >
+          <div className="mx-auto max-w-page flex flex-col gap-10 lg:gap-14">
+            {initiative.phasesHeading ? (
+              <Stagger
+                as="h2"
+                className="font-display text-2xl md:text-3xl font-bold text-white leading-tight tracking-tight"
+              >
+                {initiative.phasesHeading}
+              </Stagger>
+            ) : null}
+
+            {phases.length > 0 ? (
+              <Stagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
+                {phases.map((ph, i) => (
+                  <StaggerItem
+                    key={i}
+                    className="flex flex-col justify-between gap-10 rounded-lg p-5 lg:p-6 min-h-44 lg:min-h-48"
+                    style={{
+                      backgroundColor: STAT_PALETTE[i % STAT_PALETTE.length],
+                    }}
+                  >
+                    {ph.title ? (
+                      <h3 className="font-display text-lg lg:text-xl font-semibold text-primary-500 leading-tight tracking-tight">
+                        {ph.title}
+                      </h3>
+                    ) : null}
+                    {ph.body ? (
+                      <p className="text-xs lg:text-sm text-primary-500/75 leading-relaxed">
+                        {ph.body}
+                      </p>
+                    ) : null}
+                  </StaggerItem>
+                ))}
+              </Stagger>
+            ) : null}
+
+            {phasesImg ? (
+              <Reveal
+                preset="scale"
+                className="relative w-full aspect-4/3 sm:aspect-video lg:aspect-2/1 overflow-hidden rounded-lg lg:rounded-xl bg-white/5"
+              >
+                <Image
+                  src={phasesImg.src}
+                  alt={phasesImg.alt}
+                  fill
+                  sizes="100vw"
+                  className="object-cover"
+                />
+              </Reveal>
+            ) : null}
+
+            {initiative.relevanceHeading || initiative.relevanceBody ? (
+              <Stagger className="grid grid-cols-1 lg:grid-cols-[0.42fr_0.58fr] gap-6 lg:gap-16 items-start">
+                {initiative.relevanceHeading ? (
+                  <StaggerItem
+                    as="h2"
+                    className="font-display text-2xl md:text-3xl font-bold text-white leading-tight tracking-tight"
+                  >
+                    {initiative.relevanceHeading}
+                  </StaggerItem>
+                ) : (
+                  <span />
+                )}
+                <div className="flex flex-col gap-6">
+                  {initiative.relevanceBody ? (
+                    <StaggerItem
+                      as="p"
+                      className="text-sm lg:text-base text-white/75 leading-[1.75]"
+                    >
+                      {initiative.relevanceBody}
+                    </StaggerItem>
+                  ) : null}
+                  <StaggerItem>
+                    <CtaLink
+                      href={relevanceCta.href}
+                      className="inline-flex w-fit items-center rounded-round bg-warning-25 px-6 py-2.5 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-(--ease-premium) hover:bg-white"
+                    >
+                      {relevanceCta.label}
+                    </CtaLink>
+                  </StaggerItem>
+                </div>
+              </Stagger>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
 
       {/* Body — two columns: the title (left) and the content (right), with
           the subtitle as a large lead above the smaller body detail. Pale-blue
           background. */}
-      {hasBody || initiative.subtitle ? (
+      {showDefaultSections && (hasBody || initiative.subtitle) ? (
         <section
           className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-28"
           style={{ backgroundColor: sectionBg }}
@@ -425,7 +1323,7 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
       {/* Quote section — toggled per-initiative in Sanity (showQuote). Medium
           blue band: supporting note + attribution + two-tone pull quote on the
           left, portrait on the right. */}
-      {showQuote ? (
+      {showDefaultSections && showQuote ? (
         <section
           className="px-6 md:px-12 lg:px-20 xl:px-28 py-14 md:py-20 lg:py-24"
           style={{ backgroundColor: quoteBg }}
@@ -473,7 +1371,7 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
 
       {/* Why It Matters + Further Projected Impact — dark navy band with a
           full-width image and a row of stat cards (cycling palette). */}
-      {showWhyMatters ? (
+      {showDefaultSections && showWhyMatters ? (
         <section
           className="px-6 md:px-12 lg:px-20 xl:px-28 py-14 md:py-20 lg:py-24"
           style={{ backgroundColor: whyBg }}
@@ -557,9 +1455,21 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
         </section>
       ) : null}
 
-      {/* Careers + footer CTA from the Home page, in the blue tone. */}
+      {/* Latest from BPI — newest posts (hides itself when there are none). */}
+      {initiative.showBlog ? (
+        <BlogSection
+          tone="blue"
+          heading={homeData?.blogHeading ?? undefined}
+          viewAllHref={localizedHref(lang, "/blog")}
+          posts={blogPosts}
+        />
+      ) : null}
+
+      {/* Careers + footer CTA from the Home page, in the blue tone. Each has
+          its own toggle so a page can end on either one. */}
       {homeData ? (
         <>
+          {initiative.showCareers !== false ? (
           <CareersSection
             tone="blue"
             eyebrow={homeData.careersEyebrow ?? undefined}
@@ -575,6 +1485,8 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
             secondaryLabel={homeData.careersSecondaryCta?.label ?? undefined}
             secondaryHref={homeData.careersSecondaryCta?.href ?? undefined}
           />
+          ) : null}
+          {initiative.showCta !== false ? (
           <BuildingSection
             tone="blue"
             imageSrc={mediaImageSrc(buildingMedia)}
@@ -586,6 +1498,7 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
             secondaryLabel={homeData.buildingSecondaryCta?.label ?? undefined}
             secondaryHref={homeData.buildingSecondaryCta?.href ?? undefined}
           />
+          ) : null}
         </>
       ) : null}
 

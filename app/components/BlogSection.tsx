@@ -36,14 +36,22 @@ type Props = {
   heading?: string;
   viewAllHref?: string;
   posts?: BlogSectionPost[];
+  /** Colour band. "blue" matches the initiative/sector pages (whose Careers
+      closer is already blue); absent keeps the site's default mint. */
+  tone?: "mint" | "blue";
 };
 
 export default function BlogSection({
   heading = "Latest from BPI",
   viewAllHref = "/blog",
   posts = [],
+  tone = "mint",
 }: Props) {
   if (posts.length === 0) return null;
+
+  const isBlue = tone === "blue";
+  const sectionBg = isBlue ? "bg-[#E7F9FF]" : "bg-[#EAFBF1]";
+  const cardBg = isBlue ? "bg-[#CAF1FF]" : "bg-[#D2F4DA]";
 
   // Bento layout: every third tile is a wide feature (spans two columns), so
   // each row reads as feature + two small cards (2 + 1 + 1 across the 4-col
@@ -76,7 +84,7 @@ export default function BlogSection({
   return (
     <section
       data-nav-theme="light"
-      className="bg-[#EAFBF1] px-5 sm:px-8 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-28"
+      className={`${sectionBg} px-5 sm:px-8 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-28`}
     >
       {/* Header */}
       <div className="flex items-center justify-between gap-4 mb-8 md:mb-12">
@@ -100,7 +108,7 @@ export default function BlogSection({
           card.featured ? (
             <FeatureCard key={card.idx} card={card} />
           ) : (
-            <SmallCard key={card.idx} card={card} />
+            <SmallCard key={card.idx} card={card} cardBg={cardBg} />
           )
         )}
       </div>
@@ -148,11 +156,11 @@ function FeatureCard({ card }: { card: Card }) {
   );
 }
 
-function SmallCard({ card }: { card: Card }) {
+function SmallCard({ card, cardBg }: { card: Card; cardBg: string }) {
   return (
     <CtaLink
       href={card.href}
-      className="group flex h-full flex-col rounded-3xl bg-[#D2F4DA] p-5 md:p-6 focus-visible:outline-none"
+      className={`group flex h-full flex-col rounded-3xl ${cardBg} p-5 md:p-6 focus-visible:outline-none`}
     >
       <div className="flex flex-wrap gap-2">
         {card.tags.map((t) => (

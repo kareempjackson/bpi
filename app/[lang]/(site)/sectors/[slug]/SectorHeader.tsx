@@ -24,10 +24,12 @@ import type { ResolvedMedia } from "@/sanity/lib/types";
  *  - overlay     — copy set over the hero image with a dark scrim.
  *  - showcase    — full-height hero: copy anchored bottom-left beside a tall,
  *                  contained image on the right.
- *  - spotlight   — tall contained image on the LEFT, title top-right, and a
- *                  portrait "pin" + subtitle + buttons anchored bottom-right.
- *                  The title stays white here; the primary button still takes
- *                  the profile accent.
+ *  - spotlight   — tall contained image on the LEFT, title top-right, and the
+ *                  subtitle + buttons anchored bottom-right. The title stays
+ *                  white here; the primary button still takes the profile accent.
+ *  - masthead    — the title's first word sits top-left above a tall image, the
+ *                  rest of the title flows to its right, and the subtitle +
+ *                  buttons anchor bottom-right. Title always white.
  *
  * The hero image is always rendered static (no reveal) inside a
  * `[data-sector-hero]` rect with `MEDIA_OBJECT_POSITION` framing — it is the
@@ -41,7 +43,8 @@ export type SectorHeaderLayout =
   | "sideBySide"
   | "overlay"
   | "showcase"
-  | "spotlight";
+  | "spotlight"
+  | "masthead";
 
 type CtaValue = { label?: string | null; href?: string | null } | null | undefined;
 
@@ -54,8 +57,6 @@ type Props = {
   pageColor: string;
   headingColor?: string | null;
   layout?: SectorHeaderLayout | null;
-  /** Small portrait shown inside the "pin" on the spotlight layout. */
-  portrait?: ResolvedMedia | null;
   lang: string;
 };
 
@@ -152,7 +153,6 @@ export default function SectorHeader({
   pageColor,
   headingColor,
   layout,
-  portrait,
   lang,
 }: Props) {
   const titleColorClass = headingColor ? "" : "text-error-500";
@@ -331,40 +331,97 @@ export default function SectorHeader({
     );
   }
 
-  // ── Spotlight: tall image left, title top-right, pin + copy bottom-right ───
-  if (layout === "spotlight") {
-    // Teardrop "pin" (rounded on three corners, pointed bottom-left) holding a
-    // small portrait — the accent element above the subtitle in the mockup.
-    const pin = portrait ? (
-      <div className="relative size-14 shrink-0 md:size-16">
-        <div className="absolute inset-0 rounded-tl-full rounded-tr-full rounded-br-full bg-[#2f6fe4]" />
-        <div className="absolute inset-0.75 overflow-hidden rounded-tl-full rounded-tr-full rounded-br-full bg-white/5">
-          <MediaImage media={portrait} sizes="64px" />
-        </div>
-      </div>
-    ) : null;
+  // ── Masthead: first word top-left over a tall image, rest of the title to
+  //    its right, with a portrait pin + copy anchored bottom-right ────────────
+  if (layout === "masthead") {
+    const words = title.trim().split(/\s+/);
+    const first = words[0] ?? title;
+    const rest = words.slice(1).join(" ");
+    // Hard-break the remainder before each "&" so a title like
+    // "Development & Policy" always renders as "Development" / "& Policy"
+    // (its own line), regardless of how wide the column is.
+    const restLines = rest ? rest.split(/\s+(?=&)/) : [];
+    const mastheadTitle =
+      "font-display font-bold leading-[1.02] tracking-[-0.02em] text-white text-5xl md:text-6xl lg:text-7xl xl:text-[5.75rem]";
 
+    return (
+      <section {...sectionProps}>
+        <GridHoverBackdrop />
+        <div
+          className={`${CONTAINER} flex flex-col justify-center pt-24 md:pt-28 lg:pt-24 pb-10 md:pb-12 lg:pb-14 lg:min-h-svh`}
+        >
+          <Stagger className="grid grid-cols-1 items-stretch gap-x-10 gap-y-6 lg:grid-cols-[0.42fr_0.58fr]">
+            {/* Left — first word on top, tall image below (sized to the viewport). */}
+            <div className="flex flex-col gap-4 md:gap-5">
+              <StaggerItem as="h1" aria-label={title} className={mastheadTitle}>
+                {first}
+              </StaggerItem>
+              {heroMedia ? (
+                <HeroImage
+                  media={heroMedia}
+                  sizes="(max-width: 1024px) 100vw, 42vw"
+                  className="relative aspect-3/4 w-full self-start overflow-hidden rounded-sm lg:aspect-auto lg:h-[62vh]"
+                />
+              ) : null}
+            </div>
+            {/* Right — rest of the title (dropped to the image top), then
+                subtitle + buttons anchored to the bottom. */}
+            <div className="flex flex-col lg:pt-24">
+              {restLines.length > 0 ? (
+                <StaggerItem
+                  as="span"
+                  aria-hidden
+                  className={`block ${mastheadTitle}`}
+                >
+                  {restLines.map((line, i) => (
+                    <span key={i} className="block">
+                      {line}
+                    </span>
+                  ))}
+                </StaggerItem>
+              ) : null}
+              {subtitle || hasCtas ? (
+                <div className="mt-auto flex flex-col gap-6 pt-12 md:pt-16">
+                  {subtitle ? (
+                    <StaggerItem as="p" className={`max-w-lg ${SUBTITLE_BASE}`}>
+                      {subtitle}
+                    </StaggerItem>
+                  ) : null}
+                  {hasCtas ? <StaggerItem>{ctas}</StaggerItem> : null}
+                </div>
+              ) : null}
+            </div>
+          </Stagger>
+        </div>
+      </section>
+    );
+  }
+
+  // ── Spotlight: tall image left, title top-right, copy bottom-right ─────────
+  if (layout === "spotlight") {
     return (
       <section {...sectionProps}>
         <GridHoverBackdrop />
         <div
           className={`${CONTAINER} pt-28 md:pt-32 lg:pt-32 pb-14 md:pb-20 lg:pb-24`}
         >
-          <Stagger className="grid grid-cols-1 items-stretch gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
+          <Stagger className="grid grid-cols-1 items-stretch gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:gap-16">
             {heroMedia ? (
               <HeroImage
                 media={heroMedia}
                 sizes="(max-width: 1024px) 100vw, 42vw"
-                className="relative order-2 aspect-4/5 w-full overflow-hidden rounded-2xl lg:order-1 lg:aspect-auto lg:h-full lg:min-h-120 lg:rounded-3xl"
+                className="relative order-2 aspect-3/4 w-full self-start overflow-hidden rounded-2xl lg:order-1 lg:rounded-3xl"
               />
             ) : null}
             <div className="order-1 flex flex-col lg:order-2">
-              <StaggerItem as="h1" className={`max-w-2xl ${TITLE_BASE} text-white`}>
+              <StaggerItem
+                as="h1"
+                className="max-w-xl font-display font-bold leading-[1.02] tracking-[-0.02em] text-white text-5xl md:text-6xl lg:text-7xl xl:text-[5.25rem]"
+              >
                 {title}
               </StaggerItem>
-              {pin || subtitle || hasCtas ? (
+              {subtitle || hasCtas ? (
                 <div className="mt-auto flex flex-col gap-6 pt-12 md:pt-16">
-                  {pin ? <StaggerItem>{pin}</StaggerItem> : null}
                   {subtitle ? (
                     <StaggerItem as="p" className={`max-w-md ${SUBTITLE_BASE}`}>
                       {subtitle}

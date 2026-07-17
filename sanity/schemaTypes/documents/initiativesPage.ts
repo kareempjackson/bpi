@@ -332,13 +332,6 @@ export const initiativesPage = defineType({
       type: "string",
       group: "otherWorks",
     }),
-    defineField({
-      name: "otherWorksViewAllHref",
-      title: "\"View More\" link",
-      type: "string",
-      group: "otherWorks",
-      initialValue: "/initiatives",
-    }),
 
     // ────────────────────────────────────────────── Building the Future ──
     defineField({

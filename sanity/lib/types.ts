@@ -192,6 +192,22 @@ export type Initiative = {
 
 /** Full initiative including the rich-text `body` for /initiatives/[slug]. */
 export type InitiativeDetail = Initiative & {
+  headerType?: "editorial" | "type1" | "type2" | "type3" | "type4" | null;
+  headerTitle?: string | null;
+  /** Type 2 only — the offset second line of the split title lockup. */
+  headerTitleTail?: string | null;
+  headerSubtitle?: string | null;
+  headerImage?: SanityImage | null;
+  headerPrimaryCta?: Cta;
+  headerSecondaryCta?: Cta;
+  /** Absent/true = render the standard body/quote/why-matters sections. */
+  showDefaultSections?: boolean | null;
+  /** Absent/false = hide the "Latest from BPI" blog section (opt-in). */
+  showBlog?: boolean | null;
+  /** Absent/true = render the Careers closer. */
+  showCareers?: boolean | null;
+  /** Absent/true = render the call-to-action closer. */
+  showCta?: boolean | null;
   body?: PortableTextBlock[] | null;
   pageColor?: string | null;
   showQuote?: boolean | null;
@@ -205,6 +221,70 @@ export type InitiativeDetail = Initiative & {
   impactHeading?: string | null;
   impactBody?: string | null;
   impactStats?: { value?: string | null; label?: string | null }[] | null;
+  showWhatThisIs?: boolean | null;
+  /** Absent = "stacked" (the original layout). */
+  whatThisIsLayout?:
+    | "stacked"
+    | "stackedLead"
+    | "beside"
+    | "imageBeside"
+    | null;
+  whatThisIsHeading?: string | null;
+  whatThisIsBody?: string | null;
+  /** "imageBeside" layout only. */
+  whatThisIsImage?: SanityImage | null;
+  /** "imageBeside" layout only. */
+  whatThisIsCta?: Cta;
+  metricsHeading?: string | null;
+  keyMetrics?:
+    | { value?: string | null; note?: string | null; label?: string | null }[]
+    | null;
+  showDevelopments?: boolean | null;
+  /** Absent = "imageBeside" (the original layout). */
+  developmentsLayout?: "imageBeside" | "imageBelow" | "noImage" | null;
+  developmentsHeading?: string | null;
+  developmentsImage?: SanityImage | null;
+  developmentsBody?: string | null;
+  developmentsCta?: Cta;
+  showWhyBarbados?: boolean | null;
+  whyBarbadosHeading?: string | null;
+  whyBarbadosBody?: string | null;
+  whyBarbadosCta?: Cta;
+  whyBarbadosImage?: SanityImage | null;
+  ecosystemHeading?: string | null;
+  ecosystemBody?: string | null;
+  ecosystemCta?: Cta;
+  showCurrentStatus?: boolean | null;
+  currentStatusHeading?: string | null;
+  currentStatusImage?: SanityImage | null;
+  currentStatusLead?: string | null;
+  currentStatusBody?: string | null;
+  currentStatusPrimaryCta?: Cta;
+  currentStatusSecondaryCta?: Cta;
+  /** The closing italic note under Current Status — NOT the `nextSteps*`
+      bullets card below. */
+  outlookHeading?: string | null;
+  outlookBody?: string | null;
+  showNextSteps?: boolean | null;
+  /** Absent = true; false renders a bullets-only card. */
+  showNextStepsCta?: boolean | null;
+  nextStepsHeading?: string | null;
+  nextStepsBody?: string | null;
+  nextStepsCta?: Cta;
+  /** The closing mid-blue band — NOT the `outlook*` note under Current Status. */
+  showRoadmap?: boolean | null;
+  roadmapEyebrow?: string | null;
+  roadmapHeading?: string | null;
+  roadmapStatement?: string | null;
+  roadmapCta?: Cta;
+  roadmapImage?: SanityImage | null;
+  showPhases?: boolean | null;
+  phasesHeading?: string | null;
+  phases?: { title?: string | null; body?: string | null }[] | null;
+  phasesImage?: SanityImage | null;
+  relevanceHeading?: string | null;
+  relevanceBody?: string | null;
+  relevanceCta?: Cta;
 };
 
 export type PostSummary = {
@@ -373,7 +453,6 @@ export type InitiativesPage = {
   otherWorksFeaturedTitle?: string | null;
   otherWorksFeaturedImage?: SanityImage | null;
   otherWorksFeaturedHref?: string | null;
-  otherWorksViewAllHref?: string | null;
 
   buildingFutureHeading?: string | null;
   buildingFutureBody?: string | null;
@@ -509,6 +588,115 @@ export type CareersPage = {
   equalOpportunityParagraph1: string;
   equalOpportunityParagraph2?: string | null;
   equalOpportunityBg?: string | null;
+};
+
+export type InvestorCard = {
+  title?: string | null;
+  body?: string | null;
+  bg?: string | null;
+  watermark?: boolean | null;
+};
+
+export type InvestorRole = {
+  label?: string | null;
+  description?: string | null;
+};
+
+export type InvestorNote = {
+  body?: string | null;
+};
+
+export type InvestorQuote = {
+  quote?: string | null;
+  name?: string | null;
+  title?: string | null;
+  image?: SanityImage | null;
+  bg?: string | null;
+};
+
+export type InvestorsPage = {
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+
+  heroTitle?: string | null;
+  heroTagline?: string | null;
+  heroCta?: Cta;
+  heroImage?: SanityImage | null;
+
+  opportunityEyebrow?: string | null;
+  opportunityHeading?: string | null;
+  /** May contain `**bold**` runs. */
+  opportunityBody?: string | null;
+  opportunityCardLead?: string | null;
+  opportunityStats?: Stat[] | null;
+  opportunityCardBg?: string | null;
+
+  whyHeading?: string | null;
+  whyIntro?: string | null;
+  whyCards?: InvestorCard[] | null;
+  whyClosing?: string | null;
+  whyImage?: SanityImage | null;
+
+  howHeading?: string | null;
+  howIntro?: string | null;
+  howRoles?: InvestorRole[] | null;
+  howImage?: SanityImage | null;
+  howBody?: string | null;
+  howBg?: string | null;
+
+  sitesHeading?: string | null;
+  sitesBody?: string | null;
+  /** Plain strings — proper names, not translated. */
+  sitesList?: string[] | null;
+  sitesNote?: string | null;
+
+  incentivesImage?: SanityImage | null;
+  incentivesHeading?: string | null;
+  incentivesLead?: string | null;
+  incentivesItems?: InvestorNote[] | null;
+
+  bridgeEyebrow?: string | null;
+  bridgeTitle?: string | null;
+  bridgeTitleTail?: string | null;
+  bridgeBody?: string | null;
+  bridgeCta?: Cta;
+  bridgeBg?: string | null;
+
+  marketHeading?: string | null;
+  marketLead?: string | null;
+  marketStats?: Stat[] | null;
+  marketClosing?: string | null;
+  marketImage?: SanityImage | null;
+
+  tractionEyebrow?: string | null;
+  tractionHeading?: string | null;
+  tractionItems?: InvestorRole[] | null;
+
+  whyNowHeading?: string | null;
+  whyNowBody?: string | null;
+  whyNowPrimaryCta?: Cta;
+  whyNowSecondaryCta?: Cta;
+  whyNowImage?: SanityImage | null;
+  whyNowBg?: string | null;
+
+  climateHeading?: string | null;
+  climateCards?: InvestorCard[] | null;
+
+  voicesEyebrow?: string | null;
+  voicesHeading?: string | null;
+  voicesHeadingTail?: string | null;
+  voicesQuotes?: InvestorQuote[] | null;
+
+  deeperHeading?: string | null;
+  deeperBody?: string | null;
+  deeperImage?: SanityImage | null;
+  timelineHeading?: string | null;
+  timelineItems?: InvestorRole[] | null;
+  deeperPrimaryCta?: Cta;
+  deeperSecondaryCta?: Cta;
+
+  blogHeading?: string | null;
+  pageSections?: PageSection[] | null;
 };
 
 export type PrioritiesPage = {
@@ -666,6 +854,7 @@ export type SectorDetail = SectorSummary & {
     | "overlay"
     | "showcase"
     | "spotlight"
+    | "masthead"
     | null;
   heroImage?: SanityImage | null;
   pageColor?: string | null;
@@ -706,6 +895,9 @@ export type SectorDetail = SectorSummary & {
   practicePrimaryCta?: Cta;
   practiceSecondaryCta?: Cta;
   practiceImage?: SanityImage | null;
+  practiceCards?:
+    | { title?: string | null; body?: string | null; tone?: string | null }[]
+    | null;
 
   showHighlight?: boolean | null;
   highlightHeading?: string | null;

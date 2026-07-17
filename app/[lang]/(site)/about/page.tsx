@@ -28,7 +28,7 @@ import type {
   Pillar as PillarData,
   Stat as StatData,
 } from "@/sanity/lib/types";
-import CountUp from "./CountUp";
+import CountUp from "@/app/components/CountUp";
 import InitiativesPanel, { type Initiative } from "./InitiativesPanel";
 import LeaderLabel from "./LeaderLabel";
 import MissionCarousel from "./MissionCarousel";
