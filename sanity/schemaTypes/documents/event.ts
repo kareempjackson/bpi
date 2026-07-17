@@ -1,5 +1,7 @@
 import { defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 /**
  * Event — authored entirely in Sanity, then pushed to Eventbrite on publish.
  *
@@ -207,9 +209,9 @@ export const event = defineType({
             }),
           ],
           preview: {
-            select: { title: "name.0.value", kind: "kind", price: "price" },
+            select: { title: "name", kind: "kind", price: "price" },
             prepare: ({ title, kind, price }) => ({
-              title: title || "(unnamed tier)",
+              title: i18nValue(title) || "(unnamed tier)",
               subtitle:
                 kind === "paid" ? `Paid · ${price ?? "?"}` : "Free",
             }),
@@ -277,13 +279,13 @@ export const event = defineType({
   ],
   preview: {
     select: {
-      title: "title.0.value",
+      title: "title",
       startAt: "startAt",
       featured: "featured",
       media: "image.asset",
     },
     prepare: ({ title, startAt, featured, media }) => ({
-      title: featured ? `★ ${title}` : title,
+      title: featured ? `★ ${i18nValue(title) ?? ""}` : i18nValue(title),
       subtitle: startAt
         ? new Date(startAt as string).toISOString().slice(0, 16).replace("T", " ")
         : "No date set",

@@ -1,5 +1,7 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 export const initiative = defineType({
   name: "initiative",
   title: "Initiative",
@@ -271,7 +273,11 @@ export const initiative = defineType({
             }),
           ],
           preview: {
-            select: { title: "value.0.value", subtitle: "label.0.value" },
+            select: { title: "value", subtitle: "label" },
+            prepare: ({ title, subtitle }) => ({
+              title: i18nValue(title),
+              subtitle: i18nValue(subtitle),
+            }),
           },
         }),
       ],
@@ -373,7 +379,11 @@ export const initiative = defineType({
             }),
           ],
           preview: {
-            select: { title: "value.0.value", subtitle: "label.0.value" },
+            select: { title: "value", subtitle: "label" },
+            prepare: ({ title, subtitle }) => ({
+              title: i18nValue(title),
+              subtitle: i18nValue(subtitle),
+            }),
           },
         }),
       ],
@@ -707,7 +717,11 @@ export const initiative = defineType({
             }),
           ],
           preview: {
-            select: { title: "title.0.value", subtitle: "body.0.value" },
+            select: { title: "title", subtitle: "body" },
+            prepare: ({ title, subtitle }) => ({
+              title: i18nValue(title),
+              subtitle: i18nValue(subtitle),
+            }),
           },
         }),
       ],
@@ -767,13 +781,13 @@ export const initiative = defineType({
   ],
   preview: {
     select: {
-      title: "title.0.value",
+      title: "title",
       subtitle: "publishedAt",
       featured: "featured",
       media: "coverImage.asset",
     },
     prepare: ({ title, subtitle, featured, media }) => ({
-      title: featured ? `★ ${title}` : title,
+      title: featured ? `★ ${i18nValue(title) ?? ""}` : i18nValue(title),
       subtitle: subtitle
         ? new Date(subtitle as string).toISOString().slice(0, 10)
         : undefined,

@@ -1,5 +1,7 @@
 import { defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 /**
  * A single headline metric (e.g. "Revenue · $4.2M · +18% YoY"), placed inline
  * in a portal page body for the data/metrics need.
@@ -34,9 +36,9 @@ export const statCard = defineType({
     }),
   ],
   preview: {
-    select: { title: "label.0.value", value: "value", delta: "delta" },
+    select: { title: "label", value: "value", delta: "delta" },
     prepare: ({ title, value, delta }) => ({
-      title: `${title}: ${value}`,
+      title: `${i18nValue(title) ?? ""}: ${value}`,
       subtitle: delta || undefined,
     }),
   },

@@ -1,5 +1,7 @@
 import { defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 /**
  * One of the "Why Barbados, Why Now" cards on the Investors page — a title
  * pinned to the top of a colour block with the body copy anchored to its
@@ -37,6 +39,10 @@ export const investorCard = defineType({
     }),
   ],
   preview: {
-    select: { title: "title.0.value", subtitle: "body.0.value" },
+    select: { title: "title", subtitle: "body" },
+    prepare: ({ title, subtitle }) => ({
+      title: i18nValue(title),
+      subtitle: i18nValue(subtitle),
+    }),
   },
 });

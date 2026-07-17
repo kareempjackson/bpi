@@ -1,5 +1,7 @@
 import { defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 export const leader = defineType({
   name: "leader",
   title: "Leader",
@@ -42,6 +44,11 @@ export const leader = defineType({
     }),
   ],
   preview: {
-    select: { title: "name.0.value", subtitle: "role", media: "image.asset" },
+    select: { title: "name", subtitle: "role", media: "image.asset" },
+    prepare: ({ title, subtitle, media }) => ({
+      title: i18nValue(title),
+      subtitle,
+      media,
+    }),
   },
 });

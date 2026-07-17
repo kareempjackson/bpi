@@ -4,6 +4,58 @@ import {
   externalVideoUrlField,
   sanityVideoField,
 } from "../objects/externalVideoUrlField";
+import { i18nValue } from "../previewI18n";
+
+/**
+ * Shared field set for a hero background — used by both the main hero
+ * background and each slide's background so the two stay in sync. An editor
+ * either uploads a Video / Image, or points the background at an existing post
+ * or initiative ("Featured post or initiative"), reusing that item's cover
+ * media so nothing has to be uploaded twice. Every part is optional: leaving a
+ * background empty lets the hero run purely on featured slides.
+ */
+function heroBackgroundFields() {
+  return [
+    defineField({
+      name: "kind",
+      title: "Type",
+      type: "string",
+      options: {
+        list: [
+          { title: "Video", value: "video" },
+          { title: "Image", value: "image" },
+          { title: "Featured post or initiative", value: "content" },
+        ],
+        layout: "radio",
+      },
+      initialValue: "video",
+    }),
+    externalVideoUrlField(),
+    sanityVideoField(),
+    defineField({
+      name: "image",
+      title: "Image",
+      type: "imageWithAlt",
+      hidden: ({ parent }) => parent?.kind !== "image",
+    }),
+    defineField({
+      name: "reference",
+      title: "Featured post or initiative",
+      type: "reference",
+      to: [{ type: "post" }, { type: "initiative" }],
+      description:
+        "Reuse this item's cover image or video as the background — no separate upload needed.",
+      hidden: ({ parent }) => parent?.kind !== "content",
+      validation: (Rule) =>
+        Rule.custom((value, ctx) => {
+          const kind = (ctx.parent as { kind?: string } | undefined)?.kind;
+          if (kind === "content" && !value)
+            return "Choose a post or initiative, or switch the background type.";
+          return true;
+        }),
+    }),
+  ];
+}
 
 export const homePage = defineType({
   name: "homePage",
@@ -59,54 +111,12 @@ export const homePage = defineType({
     }),
     defineField({
       name: "heroBackground",
-      title: "Background (video or image)",
+      title: "Background (optional)",
       type: "object",
       group: "hero",
       description:
-        "Choose video for the animated hero or image for a still. All assets live on Sanity.",
-      fields: [
-        defineField({
-          name: "kind",
-          title: "Type",
-          type: "string",
-          options: {
-            list: [
-              { title: "Video", value: "video" },
-              { title: "Image", value: "image" },
-            ],
-            layout: "radio",
-          },
-          initialValue: "video",
-        }),
-        externalVideoUrlField(),
-        sanityVideoField(),
-        defineField({
-          name: "image",
-          title: "Image",
-          type: "imageWithAlt",
-          hidden: ({ parent }) => parent?.kind !== "image",
-        }),
-      ],
-      validation: (Rule) =>
-        Rule.custom((value: unknown) => {
-          const bg = value as
-            | {
-                kind?: string;
-                video?: { asset?: unknown };
-                image?: { asset?: unknown };
-                externalVideoUrl?: string;
-              }
-            | undefined;
-          const kind = bg?.kind ?? "video";
-          if (kind === "video") {
-            // Either a Sanity upload OR an external (R2) URL satisfies a video.
-            if (!bg?.video?.asset && !bg?.externalVideoUrl)
-              return "Upload a video or paste an external video URL.";
-          } else if (kind === "image") {
-            if (!bg?.image?.asset) return "Upload an image.";
-          }
-          return true;
-        }),
+        "Optional standalone background — upload a video or image, or point it at an existing post/initiative to reuse that item's cover. Leave it empty to drive the hero entirely from the Featured slides below.",
+      fields: heroBackgroundFields(),
     }),
     defineField({
       name: "heroSlides",
@@ -140,31 +150,11 @@ export const homePage = defineType({
             }),
             defineField({
               name: "background",
-              title: "Background (video or image)",
+              title: "Background (video, image, or featured post/initiative)",
               type: "object",
-              fields: [
-                defineField({
-                  name: "kind",
-                  title: "Type",
-                  type: "string",
-                  options: {
-                    list: [
-                      { title: "Video", value: "video" },
-                      { title: "Image", value: "image" },
-                    ],
-                    layout: "radio",
-                  },
-                  initialValue: "video",
-                }),
-                externalVideoUrlField(),
-                sanityVideoField(),
-                defineField({
-                  name: "image",
-                  title: "Image",
-                  type: "imageWithAlt",
-                  hidden: ({ parent }) => parent?.kind !== "image",
-                }),
-              ],
+              description:
+                "Upload a video or image, or point this slide at an existing post/initiative to reuse its cover — no separate upload needed.",
+              fields: heroBackgroundFields(),
             }),
             defineField({
               name: "thumbnail",
@@ -175,7 +165,8 @@ export const homePage = defineType({
             }),
           ],
           preview: {
-            select: { title: "headline.0.value", media: "thumbnail" },
+            select: { title: "headline", media: "thumbnail" },
+            prepare: ({ title, media }) => ({ title: i18nValue(title), media }),
           },
         }),
       ],

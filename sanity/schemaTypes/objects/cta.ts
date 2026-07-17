@@ -1,5 +1,7 @@
 import { defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 export const cta = defineType({
   name: "cta",
   title: "Call to action",
@@ -20,6 +22,7 @@ export const cta = defineType({
     }),
   ],
   preview: {
-    select: { title: "label.0.value", subtitle: "href" },
+    select: { title: "label", subtitle: "href" },
+    prepare: ({ title, subtitle }) => ({ title: i18nValue(title), subtitle }),
   },
 });

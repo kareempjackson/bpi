@@ -1,5 +1,7 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 export const priority = defineType({
   name: "priority",
   title: "Strategic priority",
@@ -196,7 +198,11 @@ export const priority = defineType({
             }),
           ],
           preview: {
-            select: { title: "title.0.value", subtitle: "body.0.value" },
+            select: { title: "title", subtitle: "body" },
+            prepare: ({ title, subtitle }) => ({
+              title: i18nValue(title),
+              subtitle: i18nValue(subtitle),
+            }),
           },
         }),
       ],
@@ -478,7 +484,11 @@ export const priority = defineType({
             }),
           ],
           preview: {
-            select: { title: "label.0.value", subtitle: "body.0.value" },
+            select: { title: "label", subtitle: "body" },
+            prepare: ({ title, subtitle }) => ({
+              title: i18nValue(title),
+              subtitle: i18nValue(subtitle),
+            }),
           },
         }),
       ],
@@ -560,7 +570,11 @@ export const priority = defineType({
             }),
           ],
           preview: {
-            select: { title: "title.0.value", subtitle: "body.0.value" },
+            select: { title: "title", subtitle: "body" },
+            prepare: ({ title, subtitle }) => ({
+              title: i18nValue(title),
+              subtitle: i18nValue(subtitle),
+            }),
           },
         }),
       ],
@@ -588,10 +602,10 @@ export const priority = defineType({
     },
   ],
   preview: {
-    select: { title: "title.0.value", subtitle: "subtitle.0.value" },
+    select: { title: "title", subtitle: "subtitle" },
     prepare: ({ title, subtitle }) => ({
-      title: title || "(untitled priority)",
-      subtitle,
+      title: i18nValue(title) || "(untitled priority)",
+      subtitle: i18nValue(subtitle),
     }),
   },
 });

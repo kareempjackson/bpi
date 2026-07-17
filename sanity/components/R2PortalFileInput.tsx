@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { set, unset, useClient, type ObjectInputProps } from "sanity";
 
 import { apiVersion } from "../env";
+import { getStudioToken } from "../lib/studioToken";
 
 /**
  * Custom object input for `portalFile`. Uploads a proprietary file (PDF, deck,
@@ -41,7 +42,7 @@ export function R2PortalFileInput(props: ObjectInputProps) {
         setError("File exceeds the 500 MB limit.");
         return;
       }
-      const token = client.config().token;
+      const token = getStudioToken(client);
       if (!token) {
         setError(
           "Could not read your Studio session — reload and sign in again.",

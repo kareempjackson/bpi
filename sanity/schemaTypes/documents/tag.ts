@@ -1,5 +1,7 @@
 import { defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 /**
  * Managed blog taxonomy. Posts reference these, and the /blog sidebar's filter
  * checkboxes + the card pills are generated from the tag list — so editors get
@@ -31,6 +33,7 @@ export const tag = defineType({
     }),
   ],
   preview: {
-    select: { title: "title.0.value", subtitle: "slug.current" },
+    select: { title: "title", subtitle: "slug.current" },
+    prepare: ({ title, subtitle }) => ({ title: i18nValue(title), subtitle }),
   },
 });

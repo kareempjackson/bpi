@@ -1,5 +1,7 @@
 import { defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 /**
  * A standalone paragraph in a grid — used for the Investment Incentives items.
  *
@@ -19,6 +21,7 @@ export const investorNote = defineType({
     }),
   ],
   preview: {
-    select: { title: "body.0.value" },
+    select: { title: "body" },
+    prepare: ({ title }) => ({ title: i18nValue(title) }),
   },
 });

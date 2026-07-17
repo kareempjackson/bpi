@@ -1,5 +1,7 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 const JOB_CATEGORIES = [
   { title: "Operations", value: "Operations" },
   { title: "Development", value: "Development" },
@@ -145,13 +147,13 @@ export const job = defineType({
   ],
   preview: {
     select: {
-      title: "title.0.value",
+      title: "title",
       category: "category",
       location: "location",
       active: "active",
     },
     prepare: ({ title, category, location, active }) => ({
-      title: active ? title : `[inactive] ${title}`,
+      title: active ? i18nValue(title) : `[inactive] ${i18nValue(title) ?? ""}`,
       subtitle: [category, location].filter(Boolean).join(" · "),
     }),
   },

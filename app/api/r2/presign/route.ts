@@ -9,7 +9,9 @@ import { apiVersion, projectId } from "../../../../sanity/env";
 // aws-sdk needs the Node runtime (not edge).
 export const runtime = "nodejs";
 
-const MAX_BYTES = 500 * 1024 * 1024; // 500 MB ceiling
+// 5 GB ceiling — the practical max for a single presigned PUT before R2
+// requires multipart uploads.
+const MAX_BYTES = 5 * 1024 * 1024 * 1024;
 const PRESIGN_TTL = 120; // seconds the upload URL stays valid
 // Keys are content-addressed (random UUID) so an object never changes once
 // written — safe to cache in the browser forever. Baked into the object at
@@ -89,7 +91,7 @@ export async function POST(req: NextRequest) {
   }
   if (typeof body?.size === "number" && body.size > MAX_BYTES) {
     return NextResponse.json(
-      { error: "File exceeds the 500 MB limit." },
+      { error: "File exceeds the 5 GB limit." },
       { status: 413 },
     );
   }

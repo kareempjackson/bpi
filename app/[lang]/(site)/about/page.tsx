@@ -10,8 +10,9 @@ import Logo from "@/app/components/Logo";
 import LazyVideo from "@/app/components/LazyVideo";
 import MediaImage from "@/app/components/MediaImage";
 import PageSections from "@/app/components/PageSections";
-import { Parallax, Reveal, Stagger, StaggerItem } from "@/app/components/motion";
+import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import LeaderShape from "@/app/components/shapes/LeaderShape";
+import AboutBannerVideo from "./AboutBannerVideo";
 import MissionShape from "@/app/components/shapes/MissionShape";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
 import { resolveImage, resolveMedia } from "@/sanity/lib/image";
@@ -177,7 +178,7 @@ export default async function AboutPage({
             <div className="order-1 lg:order-2 w-full min-h-0 lg:h-full">
               <Reveal
                 preset="scale"
-                className="relative w-full aspect-3/4 lg:aspect-auto lg:h-full overflow-hidden rounded-2xl bg-white/5"
+                className="relative w-full aspect-3/4 lg:aspect-auto lg:h-full overflow-hidden rounded-sm bg-white/5"
               >
                 <MediaImage
                   media={heroMedia}
@@ -193,7 +194,7 @@ export default async function AboutPage({
 
       <section
         data-nav-theme="light"
-        className="bg-error-25 px-6 md:px-12 lg:px-20 xl:px-28 pt-12 md:pt-16 lg:pt-20 pb-12 md:pb-16 lg:pb-24"
+        className="bg-error-25 px-6 md:px-12 lg:px-20 xl:px-28 pt-28 md:pt-36 lg:pt-44 pb-12 md:pb-16 lg:pb-24"
       >
         <div className="mx-auto max-w-page">
           <Stagger
@@ -255,17 +256,7 @@ export default async function AboutPage({
       {bannerMedia ? (
         <section className="px-5 md:px-20 lg:px-32 pt-8 lg:pt-10 pb-8 lg:pb-10">
           <div className="mx-auto max-w-page">
-            <Reveal
-              preset="scale"
-              className="relative aspect-3/1 md:aspect-2/1 rounded-lg overflow-hidden"
-            >
-              <Parallax
-                speed={0.06}
-                className="absolute inset-x-0 top-[-12%] bottom-[-12%]"
-              >
-                <MediaImage media={bannerMedia} sizes="100vw" eager />
-              </Parallax>
-            </Reveal>
+            <AboutBannerVideo media={bannerMedia} />
           </div>
         </section>
       ) : null}

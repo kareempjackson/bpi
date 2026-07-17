@@ -1,5 +1,7 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 export const siteSettings = defineType({
   name: "siteSettings",
   title: "Site settings",
@@ -109,14 +111,19 @@ export const siteSettings = defineType({
                     }),
                   ],
                   preview: {
-                    select: { title: "label.0.value", subtitle: "href" },
+                    select: { title: "label", subtitle: "href" },
+                    prepare: ({ title, subtitle }) => ({
+                      title: i18nValue(title),
+                      subtitle,
+                    }),
                   },
                 }),
               ],
             }),
           ],
           preview: {
-            select: { title: "title.0.value" },
+            select: { title: "title" },
+            prepare: ({ title }) => ({ title: i18nValue(title) }),
           },
         }),
       ],

@@ -1,5 +1,7 @@
 import { defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 export const priorityCard = defineType({
   name: "priorityCard",
   title: "Priority card",
@@ -34,6 +36,11 @@ export const priorityCard = defineType({
     }),
   ],
   preview: {
-    select: { title: "title.0.value", subtitle: "description", media: "image.asset" },
+    select: { title: "title", subtitle: "description", media: "image.asset" },
+    prepare: ({ title, subtitle, media }) => ({
+      title: i18nValue(title),
+      subtitle: i18nValue(subtitle),
+      media,
+    }),
   },
 });

@@ -1,5 +1,7 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 /**
  * A sector — one of the six structural components of the Caribbean's
  * pharmaceutical future. Drives the /sectors listing (title, subtitle, card
@@ -232,7 +234,11 @@ export const sector = defineType({
             }),
           ],
           preview: {
-            select: { title: "term.0.value", subtitle: "body.0.value" },
+            select: { title: "term", subtitle: "body" },
+            prepare: ({ title, subtitle }) => ({
+              title: i18nValue(title),
+              subtitle: i18nValue(subtitle),
+            }),
           },
         }),
       ],
@@ -318,7 +324,11 @@ export const sector = defineType({
             }),
           ],
           preview: {
-            select: { title: "title.0.value", subtitle: "body.0.value" },
+            select: { title: "title", subtitle: "body" },
+            prepare: ({ title, subtitle }) => ({
+              title: i18nValue(title),
+              subtitle: i18nValue(subtitle),
+            }),
           },
         }),
       ],
@@ -406,7 +416,11 @@ export const sector = defineType({
             }),
           ],
           preview: {
-            select: { title: "title.0.value", subtitle: "body.0.value" },
+            select: { title: "title", subtitle: "body" },
+            prepare: ({ title, subtitle }) => ({
+              title: i18nValue(title),
+              subtitle: i18nValue(subtitle),
+            }),
           },
         }),
       ],
@@ -572,7 +586,11 @@ export const sector = defineType({
             }),
           ],
           preview: {
-            select: { title: "title.0.value", subtitle: "body.0.value" },
+            select: { title: "title", subtitle: "body" },
+            prepare: ({ title, subtitle }) => ({
+              title: i18nValue(title),
+              subtitle: i18nValue(subtitle),
+            }),
           },
         }),
       ],
@@ -600,10 +618,10 @@ export const sector = defineType({
     },
   ],
   preview: {
-    select: { title: "title.0.value", subtitle: "subtitle.0.value" },
+    select: { title: "title", subtitle: "subtitle" },
     prepare: ({ title, subtitle }) => ({
-      title: title || "(untitled sector)",
-      subtitle,
+      title: i18nValue(title) || "(untitled sector)",
+      subtitle: i18nValue(subtitle),
     }),
   },
 });

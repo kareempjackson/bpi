@@ -72,10 +72,19 @@ export type ContactRow = {
   copyValue?: string | null;
 };
 
+/** A post/initiative referenced by a hero background, with its cover media
+ *  resolved so the hero can reuse it in place of a standalone upload. */
+export type HeroReferenceCover = {
+  _type: "post" | "initiative";
+  cover?: SanityImage | null;
+};
+
 export type HeroBackground = {
-  kind: "video" | "image";
+  kind: "video" | "image" | "content";
   videoUrl?: string | null;
   image?: SanityImage | null;
+  /** Set when `kind === "content"` — reuse this item's cover as the background. */
+  reference?: HeroReferenceCover | null;
 };
 
 export type HeroSlideData = {

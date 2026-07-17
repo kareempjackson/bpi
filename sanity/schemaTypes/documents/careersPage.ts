@@ -1,5 +1,7 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 export const careersPage = defineType({
   name: "careersPage",
   title: "Careers page",
@@ -95,7 +97,13 @@ export const careersPage = defineType({
               type: "internationalizedArrayText",
             }),
           ],
-          preview: { select: { title: "heading.0.value", subtitle: "body.0.value" } },
+          preview: {
+            select: { title: "heading", subtitle: "body" },
+            prepare: ({ title, subtitle }) => ({
+              title: i18nValue(title),
+              subtitle: i18nValue(subtitle),
+            }),
+          },
         }),
       ],
     }),

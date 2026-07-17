@@ -1,5 +1,7 @@
 import { defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 export const stat = defineType({
   name: "stat",
   title: "Stat",
@@ -19,6 +21,10 @@ export const stat = defineType({
     }),
   ],
   preview: {
-    select: { title: "value.0.value", subtitle: "description" },
+    select: { title: "value", subtitle: "description" },
+    prepare: ({ title, subtitle }) => ({
+      title: i18nValue(title),
+      subtitle: i18nValue(subtitle),
+    }),
   },
 });

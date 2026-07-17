@@ -1,5 +1,7 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 /**
  * A rich, gated page in the portal (text, images, inline video, stat cards,
  * metrics tables). Visible only to logged-in users whose tiers intersect
@@ -54,9 +56,9 @@ export const portalPage = defineType({
     }),
   ],
   preview: {
-    select: { title: "title.0.value", audiences: "audiences" },
+    select: { title: "title", audiences: "audiences" },
     prepare: ({ title, audiences }) => ({
-      title,
+      title: i18nValue(title),
       subtitle: Array.isArray(audiences) ? audiences.join(" + ") : undefined,
     }),
   },

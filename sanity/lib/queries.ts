@@ -121,7 +121,11 @@ export const HOME_PAGE_QUERY = defineQuery(`
     heroBackground{
       kind,
       "videoUrl": coalesce(externalVideoUrl, video.asset->url),
-      image${IMAGE_PROJECTION}
+      image${IMAGE_PROJECTION},
+      reference->{
+        _type,
+        "cover": coverImage${IMAGE_PROJECTION}
+      }
     },
     heroSlides[]{
       "headline": ${loc("headline")},
@@ -143,7 +147,11 @@ export const HOME_PAGE_QUERY = defineQuery(`
       background{
         kind,
         "videoUrl": coalesce(externalVideoUrl, video.asset->url),
-        image${IMAGE_PROJECTION}
+        image${IMAGE_PROJECTION},
+        reference->{
+          _type,
+          "cover": coverImage${IMAGE_PROJECTION}
+        }
       },
       thumbnail${IMAGE_PROJECTION}
     },

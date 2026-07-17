@@ -1,5 +1,7 @@
 import { defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 export const pillar = defineType({
   name: "pillar",
   title: "Pillar",
@@ -38,6 +40,11 @@ export const pillar = defineType({
     }),
   ],
   preview: {
-    select: { title: "eyebrow.0.value", subtitle: "description", media: "image.asset" },
+    select: { title: "eyebrow", subtitle: "description", media: "image.asset" },
+    prepare: ({ title, subtitle, media }) => ({
+      title: i18nValue(title),
+      subtitle: i18nValue(subtitle),
+      media,
+    }),
   },
 });

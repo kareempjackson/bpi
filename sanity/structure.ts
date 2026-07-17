@@ -1,5 +1,7 @@
 import type { StructureResolver } from "sanity/structure";
 
+import { apiVersion } from "./env";
+
 const SINGLETON_IDS = new Set<string>([
   "siteSettings",
   "homePage",
@@ -96,6 +98,7 @@ export const structure: StructureResolver = (S) =>
         .child(
           S.documentList()
             .title("Access requests (pending)")
+            .apiVersion(apiVersion)
             .filter('_type == "portalUser" && status == "pending"')
             .defaultOrdering([{ field: "requestedAt", direction: "desc" }]),
         ),
@@ -105,6 +108,7 @@ export const structure: StructureResolver = (S) =>
         .child(
           S.documentList()
             .title("Portal users")
+            .apiVersion(apiVersion)
             .filter('_type == "portalUser" && status != "pending"')
             .defaultOrdering([{ field: "name", direction: "asc" }]),
         ),

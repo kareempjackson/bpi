@@ -1,5 +1,7 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 /**
  * A simple tabular block for portal pages — column headers plus rows of cells.
  * Rendered as a styled <table> behind the login.
@@ -50,9 +52,9 @@ export const metricsTable = defineType({
     }),
   ],
   preview: {
-    select: { caption: "caption.0.value", columns: "columns" },
+    select: { caption: "caption", columns: "columns" },
     prepare: ({ caption, columns }) => ({
-      title: caption || "Metrics table",
+      title: i18nValue(caption) || "Metrics table",
       subtitle: Array.isArray(columns) ? columns.join(", ") : undefined,
     }),
   },

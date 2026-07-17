@@ -1,5 +1,7 @@
 import { defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 /**
  * One row of the "How BPI Works" table on the Investors page — a role name
  * against what BPI actually does in it.
@@ -21,6 +23,10 @@ export const investorRole = defineType({
     }),
   ],
   preview: {
-    select: { title: "label.0.value", subtitle: "description.0.value" },
+    select: { title: "label", subtitle: "description" },
+    prepare: ({ title, subtitle }) => ({
+      title: i18nValue(title),
+      subtitle: i18nValue(subtitle),
+    }),
   },
 });

@@ -1,5 +1,6 @@
 import { defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
 import {
   externalVideoUrlField,
   sanityVideoField,
@@ -113,13 +114,13 @@ export const sectorNode = defineType({
   ],
   preview: {
     select: {
-      title: "title.0.value",
+      title: "title",
       subtitle: "num",
       media: "media.image.asset",
       kind: "media.kind",
     },
     prepare: ({ title, subtitle, media, kind }) => ({
-      title,
+      title: i18nValue(title),
       subtitle: kind === "video" ? `${subtitle} · 🎬 video` : subtitle,
       media,
     }),

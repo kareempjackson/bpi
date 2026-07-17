@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { set, unset, useClient, type StringInputProps } from "sanity";
 
 import { apiVersion } from "../env";
+import { getStudioToken } from "../lib/studioToken";
 
 /**
  * Custom input for the `externalVideoUrl` field. Lets editors upload a video
@@ -45,7 +46,7 @@ function R2MediaInput(props: R2MediaInputProps) {
         );
         return;
       }
-      const token = client.config().token;
+      const token = getStudioToken(client);
       if (!token) {
         setError(
           "Could not read your Studio session — try reloading and signing in again.",

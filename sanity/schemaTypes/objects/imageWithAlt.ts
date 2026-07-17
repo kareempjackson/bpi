@@ -1,5 +1,7 @@
 import { defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 import {
   externalAudioUrlField,
   externalVideoUrlField,
@@ -57,13 +59,13 @@ export const imageWithAlt = defineType({
   preview: {
     select: {
       media: "asset",
-      title: "alt.0.value",
+      title: "alt",
       kind: "kind",
     },
     prepare: ({ media, title, kind }) => ({
       media,
       title:
-        (title || "(no alt text)") +
+        (i18nValue(title) || "(no alt text)") +
         (kind === "video" ? " · 🎬 video" : kind === "audio" ? " · 🎧 audio" : ""),
     }),
   },

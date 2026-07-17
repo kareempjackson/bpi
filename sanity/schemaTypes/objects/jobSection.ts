@@ -1,5 +1,7 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 /**
  * Titled rich-text block used on the Job detail page. Each section gets a
  * heading + Portable Text body so editors can use numbered lists, bullets,
@@ -24,7 +26,7 @@ export const jobSection = defineType({
     }),
   ],
   preview: {
-    select: { title: "title.0.value" },
-    prepare: ({ title }) => ({ title: title ?? "Untitled section" }),
+    select: { title: "title" },
+    prepare: ({ title }) => ({ title: i18nValue(title) ?? "Untitled section" }),
   },
 });

@@ -1,5 +1,7 @@
 import { defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 /**
  * A "Voices from the Ground" card — a pull-quote on a colour block, with the
  * speaker's portrait, name, and title beneath it.
@@ -37,6 +39,11 @@ export const investorQuote = defineType({
     }),
   ],
   preview: {
-    select: { title: "name.0.value", subtitle: "quote.0.value", media: "image.asset" },
+    select: { title: "name", subtitle: "quote", media: "image.asset" },
+    prepare: ({ title, subtitle, media }) => ({
+      title: i18nValue(title),
+      subtitle: i18nValue(subtitle),
+      media,
+    }),
   },
 });

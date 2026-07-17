@@ -1,5 +1,7 @@
 import { defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 export const contactRow = defineType({
   name: "contactRow",
   title: "Contact row",
@@ -26,6 +28,7 @@ export const contactRow = defineType({
     }),
   ],
   preview: {
-    select: { title: "label.0.value", subtitle: "value" },
+    select: { title: "label", subtitle: "value" },
+    prepare: ({ title, subtitle }) => ({ title: i18nValue(title), subtitle }),
   },
 });

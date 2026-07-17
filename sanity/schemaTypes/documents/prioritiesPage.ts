@@ -1,5 +1,7 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 export const prioritiesPage = defineType({
   name: "prioritiesPage",
   title: "Priorities page",
@@ -113,7 +115,10 @@ export const prioritiesPage = defineType({
               type: "internationalizedArrayString",
             }),
           ],
-          preview: { select: { title: "label.0.value" } },
+          preview: {
+            select: { title: "label" },
+            prepare: ({ title }) => ({ title: i18nValue(title) }),
+          },
         }),
       ],
     }),

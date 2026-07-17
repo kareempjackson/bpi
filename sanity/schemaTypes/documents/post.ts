@@ -1,5 +1,7 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 export const post = defineType({
   name: "post",
   title: "Post",
@@ -152,7 +154,11 @@ export const post = defineType({
             }),
           ],
           preview: {
-            select: { title: "label.0.value", subtitle: "file.asset.originalFilename" },
+            select: { title: "label", subtitle: "file.asset.originalFilename" },
+            prepare: ({ title, subtitle }) => ({
+              title: i18nValue(title),
+              subtitle,
+            }),
           },
         }),
       ],
@@ -168,9 +174,9 @@ export const post = defineType({
     },
   ],
   preview: {
-    select: { title: "title.0.value", subtitle: "publishedAt", media: "coverImage.asset" },
+    select: { title: "title", subtitle: "publishedAt", media: "coverImage.asset" },
     prepare: ({ title, subtitle, media }) => ({
-      title,
+      title: i18nValue(title),
       subtitle: subtitle
         ? new Date(subtitle as string).toISOString().slice(0, 10)
         : undefined,

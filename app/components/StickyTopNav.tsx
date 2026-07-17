@@ -446,7 +446,11 @@ export default function StickyTopNav({
         // its repaint stays bounded to this thin bar rather than compositing
         // against the whole page.
         className={`isolate backdrop-blur-md backdrop-saturate-150 ${
-          ready ? "transition-colors duration-300 ease-out" : ""
+          scrolled ? "pt-2 md:pt-3 pb-2 md:pb-3" : "pt-5 md:pt-6 pb-4 md:pb-5"
+        } ${
+          ready
+            ? "transition-[background-color,color,padding] duration-500 ease-[var(--ease-premium)]"
+            : ""
         } ${txt}`}
         style={{
           backgroundColor: overHero ? "rgba(0, 0, 54, 0.35)" : bg,
@@ -511,11 +515,31 @@ export default function StickyTopNav({
           </nav>
 
           <div className="flex items-center gap-3.5 lg:gap-4 shrink-0">
-            <SearchLauncher className="hidden md:inline-flex" />
+            {/* Search + language cluster. When the nav shrinks on scroll the
+                menu scales toward its right edge (origin-right), opening a gap
+                on its left; slide this cluster right by that amount so the two
+                stay tucked close to the menu. */}
+            <div
+              className={`hidden md:flex items-center gap-3.5 lg:gap-4 transform-gpu will-change-transform ${
+                ready
+                  ? "transition-transform duration-700 ease-[var(--ease-emphasized)]"
+                  : ""
+              } ${scrolled ? "translate-x-9" : "translate-x-0"}`}
+            >
+              <SearchLauncher className="inline-flex" />
 
-            <LanguageToggle className="hidden md:inline-block" />
+              <LanguageToggle className="inline-block" />
+            </div>
 
-            <MenuLauncher size={70} menuConfig={menuConfig} />
+            <div
+              className={`origin-right transform-gpu will-change-transform ${
+                ready
+                  ? "transition-transform duration-700 ease-[var(--ease-emphasized)]"
+                  : ""
+              } ${scrolled ? "scale-[0.7]" : "scale-100"}`}
+            >
+              <MenuLauncher size={120} menuConfig={menuConfig} />
+            </div>
           </div>
         </div>
       </div>

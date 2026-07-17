@@ -10,6 +10,7 @@ import { apiVersion, dataset, projectId } from "./sanity/env";
 import { approvePortalUserAction } from "./sanity/lib/approvePortalUserAction";
 import { forceDeleteAction } from "./sanity/lib/forceDeleteAction";
 import { schemaTypes } from "./sanity/schemaTypes";
+import { i18nValue } from "./sanity/schemaTypes/previewI18n";
 import { structure } from "./sanity/structure";
 
 // Document types where editors should have access to a "Force delete"
@@ -40,6 +41,14 @@ export default defineConfig({
   basePath: "/studio",
   projectId,
   dataset,
+  // Force token-based login so the editor's session token is minted and kept
+  // in localStorage. The R2 uploaders need that token to authenticate against
+  // our presign routes (they verify it server-side, where the Sanity session
+  // cookie isn't available). The default "dual" mode can leave the browser
+  // with a cookie-only session and no token, which breaks those uploads.
+  auth: {
+    loginMethod: "token",
+  },
   plugins: [
     // Field-level i18n. Every translatable field uses one of the generated
     // `internationalizedArray*` types; each stores all locales inline as
@@ -74,14 +83,14 @@ export default defineConfig({
           homePage: defineLocations({
             select: { title: "seoTitle" },
             resolve: (doc) => ({
-              locations: [{ title: doc?.title ?? "Home", href: "/" }],
+              locations: [{ title: i18nValue(doc?.title) ?? "Home", href: "/" }],
             }),
           }),
           aboutPage: defineLocations({
             select: { title: "seoTitle" },
             resolve: (doc) => ({
               locations: [
-                { title: doc?.title ?? "About page", href: "/about" },
+                { title: i18nValue(doc?.title) ?? "About page", href: "/about" },
               ],
             }),
           }),
@@ -90,7 +99,7 @@ export default defineConfig({
             resolve: (doc) => ({
               locations: [
                 {
-                  title: doc?.title ?? "Initiatives page",
+                  title: i18nValue(doc?.title) ?? "Initiatives page",
                   href: "/initiatives",
                 },
               ],
@@ -100,7 +109,7 @@ export default defineConfig({
             select: { title: "seoTitle" },
             resolve: (doc) => ({
               locations: [
-                { title: doc?.title ?? "Contact page", href: "/contact" },
+                { title: i18nValue(doc?.title) ?? "Contact page", href: "/contact" },
               ],
             }),
           }),
@@ -108,7 +117,7 @@ export default defineConfig({
             select: { title: "seoTitle" },
             resolve: (doc) => ({
               locations: [
-                { title: doc?.title ?? "Careers page", href: "/careers" },
+                { title: i18nValue(doc?.title) ?? "Careers page", href: "/careers" },
               ],
             }),
           }),
@@ -116,7 +125,7 @@ export default defineConfig({
             select: { title: "seoTitle" },
             resolve: (doc) => ({
               locations: [
-                { title: doc?.title ?? "Investors page", href: "/investors" },
+                { title: i18nValue(doc?.title) ?? "Investors page", href: "/investors" },
               ],
             }),
           }),
@@ -128,7 +137,7 @@ export default defineConfig({
                 ...(doc?.slug
                   ? [
                       {
-                        title: doc?.title ?? "Job",
+                        title: i18nValue(doc?.title) ?? "Job",
                         href: `/careers/${doc.slug}`,
                       },
                     ]
@@ -141,7 +150,7 @@ export default defineConfig({
             resolve: (doc) => ({
               locations: [
                 {
-                  title: doc?.title ?? "Post",
+                  title: i18nValue(doc?.title) ?? "Post",
                   href: doc?.slug ? `/blog/${doc.slug}` : "/blog",
                 },
                 { title: "Blog", href: "/blog" },
@@ -163,7 +172,7 @@ export default defineConfig({
                 ...(doc?.slug
                   ? [
                       {
-                        title: doc?.title ?? "Initiative",
+                        title: i18nValue(doc?.title) ?? "Initiative",
                         href: `/initiatives/${doc.slug}`,
                       },
                     ]

@@ -1,5 +1,7 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 /**
  * A downloadable gated resource — a report/deck/spreadsheet, a private video,
  * or a dataset. The file lives in the PRIVATE R2 bucket (see `portalFile`); the
@@ -66,9 +68,9 @@ export const portalResource = defineType({
     }),
   ],
   preview: {
-    select: { title: "title.0.value", kind: "kind", audiences: "audiences" },
+    select: { title: "title", kind: "kind", audiences: "audiences" },
     prepare: ({ title, kind, audiences }) => ({
-      title,
+      title: i18nValue(title),
       subtitle: `${kind ?? "file"} · ${
         Array.isArray(audiences) ? audiences.join(" + ") : "—"
       }`,

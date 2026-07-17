@@ -1,5 +1,7 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 
+import { i18nValue } from "../previewI18n";
+
 /**
  * Singleton document driving the public /initiatives page. Every section
  * that previously held hardcoded copy is editable here. The featured
@@ -368,7 +370,11 @@ export const initiativesPage = defineType({
             }),
           ],
           preview: {
-            select: { title: "value.0.value", subtitle: "body" },
+            select: { title: "value", subtitle: "body" },
+            prepare: ({ title, subtitle }) => ({
+              title: i18nValue(title),
+              subtitle: i18nValue(subtitle),
+            }),
           },
         }),
       ],

@@ -7,6 +7,8 @@ export const revalidate = 3600;
 
 import ArchitectureOfCareSection from "@/app/components/ArchitectureOfCareSection";
 import BlogSection, { type BlogSectionPost } from "@/app/components/BlogSection";
+import BuildingSection from "@/app/components/BuildingSection";
+import CareersSection from "@/app/components/CareersSection";
 import SectorsSection from "@/app/components/SectorsSection";
 import HeroSection, {
   type HeroSlide,
@@ -30,6 +32,7 @@ import {
 } from "@/sanity/lib/queries";
 import type {
   BlogPost,
+  HeroBackground,
   HomePage,
   Initiative,
   PrioritySummary,
@@ -43,6 +46,38 @@ function mediaImageSrc(m: ResolvedMedia | null): string | undefined {
 }
 function mediaVideoSrc(m: ResolvedMedia | null): string | undefined {
   return m?.kind === "video" ? m.src : undefined;
+}
+
+type ResolvedHeroBg = {
+  kind: "video" | "image";
+  videoSrc?: string;
+  imageSrc?: string;
+  imageAlt?: string;
+};
+
+/**
+ * Resolve a hero background — a standalone Video/Image upload OR a referenced
+ * post/initiative whose cover media is reused — to a single kind + src.
+ * Returns null when the background is empty, so the hero can run purely on
+ * featured slides without a standalone background.
+ */
+function resolveHeroBackground(
+  bg: HeroBackground | null | undefined,
+  width: number,
+): ResolvedHeroBg | null {
+  if (!bg) return null;
+  if (bg.kind === "content") {
+    const m = resolveMedia(bg.reference?.cover, { width });
+    if (!m) return null;
+    return m.kind === "video"
+      ? { kind: "video", videoSrc: m.src, imageSrc: m.poster, imageAlt: m.alt }
+      : { kind: "image", imageSrc: mediaImageSrc(m), imageAlt: m.alt };
+  }
+  if (bg.kind === "image") {
+    const img = resolveImage(bg.image, { width });
+    return img ? { kind: "image", imageSrc: img.src, imageAlt: img.alt } : null;
+  }
+  return bg.videoUrl ? { kind: "video", videoSrc: bg.videoUrl } : null;
 }
 
 // Fixed SVG geometry for the 6 sector nodes. Editors choose which slot a
@@ -220,6 +255,7 @@ export default async function Home({
   const initiativesDefaultMedia = resolveMedia(data.initiativesDefaultImage, {
     width: 1000,
   });
+  const careersMedia = resolveMedia(data.careersImage, { width: 1600 });
   const buildingMedia = resolveMedia(data.buildingImage, { width: 1600 });
 
   const architectureItems = (data.architectureItems ?? []).flatMap((item) => {
@@ -314,24 +350,26 @@ export default async function Home({
     <main className="bg-error-25">
       {(() => {
         const bg = data.heroBackground;
-        const heroImage =
-          bg?.kind === "image"
-            ? resolveImage(bg.image, { width: 2200 })
-            : null;
-        const heroVideoSrc =
-          bg?.kind === "video" ? bg.videoUrl ?? undefined : undefined;
+        const mainBg = resolveHeroBackground(bg, 2200);
+        const heroBackgroundKind = mainBg?.kind ?? "video";
+        const heroVideoSrc = mainBg?.videoSrc;
+        const heroImageSrc = mainBg?.imageSrc;
+        const heroImageAlt = mainBg?.imageAlt;
 
         // Featured slides → slider. Each slide resolves its own background
         // and thumbnail; the first slide falls back to the top-level hero
         // copy/background when its own fields are left blank.
         const heroSlides: HeroSlide[] = (data.heroSlides ?? []).map(
           (slide, i) => {
-            const sbg = slide.background;
-            const slideKind = sbg?.kind === "image" ? "image" : "video";
-            const slideImage =
-              sbg?.kind === "image"
-                ? resolveImage(sbg.image, { width: 2200 })
-                : null;
+            const sres = resolveHeroBackground(slide.background, 2200);
+            // On the first slide, fall back to the main hero background when the
+            // slide leaves its own background empty (mirrors the copy fallback).
+            const slideKind =
+              sres?.kind ?? (i === 0 ? heroBackgroundKind : "video");
+            const videoSrc =
+              sres?.videoSrc ?? (i === 0 ? heroVideoSrc : undefined);
+            const imageSrc =
+              sres?.imageSrc ?? (i === 0 ? heroImageSrc : undefined);
             const thumb = resolveImage(slide.thumbnail, { width: 400 });
             return {
               headline:
@@ -339,17 +377,13 @@ export default async function Home({
               body: slide.body ?? (i === 0 ? data.heroBody : undefined),
               ctaHref: slide.ctaHref ?? undefined,
               backgroundKind: slideKind,
-              videoSrc:
-                slideKind === "video"
-                  ? sbg?.videoUrl ?? (i === 0 ? heroVideoSrc : undefined)
-                  : undefined,
-              imageSrc:
-                slideKind === "image"
-                  ? slideImage?.src ?? (i === 0 ? heroImage?.src : undefined)
-                  : undefined,
-              imageAlt: slideImage?.alt,
-              thumbnailSrc: thumb?.src,
-              thumbnailAlt: thumb?.alt,
+              videoSrc: slideKind === "video" ? videoSrc : undefined,
+              imageSrc: slideKind === "image" ? imageSrc : undefined,
+              imageAlt: sres?.imageAlt ?? (i === 0 ? heroImageAlt : undefined),
+              // Thumbnail: an explicit upload, else the slide's own background
+              // image (a referenced post/initiative cover counts), else its poster.
+              thumbnailSrc: thumb?.src ?? imageSrc,
+              thumbnailAlt: thumb?.alt ?? sres?.imageAlt,
             };
           },
         );
@@ -375,7 +409,7 @@ export default async function Home({
         // locally. Remove this block (and the `?? demo*` fallbacks below)
         // once real content exists in the CMS.
         const heroThumb =
-          heroImage?.src ??
+          heroImageSrc ??
           mediaImageSrc(buildingMedia) ??
           mediaImageSrc(leaderPortraitMedia);
         const demoSlides: HeroSlide[] = [
@@ -383,10 +417,10 @@ export default async function Home({
             headline: data.heroHeadline,
             body: "A manufacturer. A regulator. A regional supply chain. A model for small states.",
             ctaHref: "/about",
-            backgroundKind: bg?.kind === "image" ? "image" : "video",
+            backgroundKind: heroBackgroundKind,
             videoSrc: heroVideoSrc,
-            imageSrc: heroImage?.src,
-            imageAlt: heroImage?.alt,
+            imageSrc: heroImageSrc,
+            imageAlt: heroImageAlt,
             thumbnailSrc: mediaImageSrc(leaderPortraitMedia) ?? heroThumb,
             thumbnailAlt: leaderPortraitMedia?.alt,
           },
@@ -395,7 +429,7 @@ export default async function Home({
             body: "From local manufacturing to workforce training — the building blocks of resilience.",
             ctaHref: "/initiatives",
             backgroundKind: "image",
-            imageSrc: mediaImageSrc(initiativesDefaultMedia) ?? heroImage?.src,
+            imageSrc: mediaImageSrc(initiativesDefaultMedia) ?? heroImageSrc,
             videoSrc: mediaImageSrc(initiativesDefaultMedia)
               ? undefined
               : heroVideoSrc,
@@ -408,7 +442,7 @@ export default async function Home({
             body: "97% of Caribbean medicines are imported. We are building the capacity to change that.",
             ctaHref: "/about",
             backgroundKind: "image",
-            imageSrc: mediaImageSrc(whyMedia) ?? heroImage?.src,
+            imageSrc: mediaImageSrc(whyMedia) ?? heroImageSrc,
             videoSrc: mediaImageSrc(whyMedia) ? undefined : heroVideoSrc,
             imageAlt: whyMedia?.alt,
             thumbnailSrc: mediaImageSrc(buildingMedia) ?? heroThumb,
@@ -438,10 +472,10 @@ export default async function Home({
           <HeroSection
             headline={data.heroHeadline}
             body={data.heroBody}
-            backgroundKind={bg?.kind === "image" ? "image" : "video"}
+            backgroundKind={heroBackgroundKind}
             videoSrc={heroVideoSrc}
-            imageSrc={heroImage?.src}
-            imageAlt={heroImage?.alt}
+            imageSrc={heroImageSrc}
+            imageAlt={heroImageAlt}
             ctaHref={data.heroCtaHref ?? undefined}
             slides={heroSlides.length > 0 ? heroSlides : demoSlides}
             feature={cmsFeature ?? demoFeature}
@@ -539,7 +573,31 @@ export default async function Home({
         />
       </div>
       <BlogSection heading={data.blogHeading} posts={blogPosts} />
+      <CareersSection
+        eyebrow={data.careersEyebrow ?? undefined}
+        heading={data.careersHeading ?? undefined}
+        lead={data.careersLead ?? undefined}
+        body={data.careersBody ?? undefined}
+        imageSrc={mediaImageSrc(careersMedia)}
+        videoSrc={mediaVideoSrc(careersMedia)}
+        imageAlt={careersMedia?.alt}
+        primaryLabel={data.careersPrimaryCta?.label}
+        primaryHref={data.careersPrimaryCta?.href}
+        secondaryLabel={data.careersSecondaryCta?.label}
+        secondaryHref={data.careersSecondaryCta?.href}
+      />
       <PageSections sections={data.pageSections} />
+      <BuildingSection
+        headlineLine1={data.buildingHeadlineLine1}
+        headlineLine2={data.buildingHeadlineLine2}
+        imageSrc={mediaImageSrc(buildingMedia)}
+        videoSrc={mediaVideoSrc(buildingMedia)}
+        imageAlt={buildingMedia?.alt}
+        primaryLabel={data.buildingPrimaryCta?.label}
+        primaryHref={data.buildingPrimaryCta?.href}
+        secondaryLabel={data.buildingSecondaryCta?.label}
+        secondaryHref={data.buildingSecondaryCta?.href}
+      />
     </main>
   );
 }
