@@ -40,7 +40,9 @@ export default function InitiativeHeaderType1({
       style={{ backgroundColor: base }}
     >
       <GridHoverBackdrop />
-      <div className="relative mx-auto flex max-w-page flex-col justify-center px-6 md:px-12 lg:px-20 xl:px-28 pt-24 md:pt-28 lg:pt-24 pb-12 md:pb-16 lg:pb-16 lg:min-h-svh">
+      {/* Nav-aligned gutters (match StickyTopNav's px) so the header content
+          lines up with the logo and menu icon in the top nav. */}
+      <div className="relative mx-auto flex max-w-page flex-col justify-start px-6 md:px-10 lg:px-14 pt-12 md:pt-16 lg:pt-12 pb-12 md:pb-20 lg:pb-28 lg:min-h-svh">
         <Stagger className="grid grid-cols-1 items-stretch gap-10 lg:grid-cols-[0.45fr_0.55fr] lg:gap-16">
           {/* Left — title (top), subtitle + button (bottom). */}
           <div className="order-2 flex flex-col lg:order-1">
@@ -80,7 +82,7 @@ export default function InitiativeHeaderType1({
 
           {/* Right — tall image. */}
           {imageSrc ? (
-            <div className="relative order-1 aspect-4/5 w-full self-center overflow-hidden rounded-lg lg:order-2 lg:aspect-auto lg:h-[70vh]">
+            <div className="relative order-1 aspect-4/5 w-full self-center overflow-hidden rounded-md lg:order-2 lg:aspect-auto lg:h-[70vh]">
               <Image
                 src={imageSrc}
                 alt={imageAlt ?? ""}

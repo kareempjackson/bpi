@@ -26,6 +26,8 @@ const SINGLETON_TYPES = new Set<string>([
   "initiativesPage",
   "contactPage",
   "careersPage",
+  "prioritiesPage",
+  "sectorsPage",
   "blogPage",
   "investorsPage",
 ]);

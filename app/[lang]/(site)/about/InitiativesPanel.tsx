@@ -96,7 +96,10 @@ export default function InitiativesPanel({ initiatives }: Props) {
         setActiveIndex(null);
       }}
     >
-      <Stagger as="ul" ref={listRef} className="flex flex-col">
+      {/* Negative inline margin offsets each row's `px-4 lg:px-6`, so the row
+          text lines up flush-left with the section header while the active-row
+          highlight still extends past the text edge. */}
+      <Stagger as="ul" ref={listRef} className="flex flex-col -mx-4 lg:-mx-6">
         {initiatives.map((item, idx) => {
           const isActive = idx === activeIndex;
           const showTopBorder =

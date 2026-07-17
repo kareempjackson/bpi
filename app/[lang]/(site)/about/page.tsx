@@ -133,15 +133,16 @@ export default async function AboutPage({
       <section
         data-nav-theme="dark"
         data-cursor="icon"
-        className="relative flex flex-col overflow-hidden bg-error-950 px-6 md:px-12 lg:px-20 xl:px-28 pt-14 md:pt-16 lg:pt-16 pb-12 md:pb-16 lg:pb-20 lg:min-h-[96dvh]"
+        className="relative flex flex-col overflow-hidden bg-error-950 px-6 md:px-10 lg:px-14 pt-14 md:pt-16 lg:pt-16 pb-12 md:pb-16 lg:pb-20 lg:min-h-[96dvh]"
       >
         {/* Interactive rounded-tile grid backdrop — tiles light up on hover; the BPI logo mark replaces the cursor (via the global CustomCursor, data-cursor="icon"). */}
         <GridHoverBackdrop />
 
-        <div className="relative mx-auto grid w-full max-w-page flex-1 grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 min-h-0 items-stretch">
+        <div className="relative grid w-full flex-1 grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 min-h-0 items-stretch">
           {/* Left — description + CTA (top), two-tone headline (bottom). */}
           <div className="order-2 lg:order-1 flex flex-col min-h-0">
             <Stagger
+              immediate
               className="flex flex-col gap-6 max-w-md"
             >
               {data.heroSubheading ? (
@@ -161,6 +162,7 @@ export default async function AboutPage({
 
             <Stagger
               as="h1"
+              immediate
               className="mt-10 lg:mt-auto lg:pt-12 font-display text-[clamp(2.5rem,5.5vw,5rem)] font-bold leading-[0.95] tracking-[-0.03em] max-w-3xl"
             >
               <StaggerItem as="span" className="text-white">{heroLead}</StaggerItem>
@@ -178,6 +180,7 @@ export default async function AboutPage({
             <div className="order-1 lg:order-2 w-full min-h-0 lg:h-full">
               <Reveal
                 preset="scale"
+                immediate
                 className="relative w-full aspect-3/4 lg:aspect-auto lg:h-full overflow-hidden rounded-sm bg-white/5"
               >
                 <MediaImage
@@ -285,22 +288,26 @@ export default async function AboutPage({
       </section>
 
       <section className="pt-12 md:pt-10 lg:pt-14 pb-14 md:pb-14 lg:pb-20">
-        <Stagger
-          className="bg-[#13362A] px-5 py-12 md:px-8 md:py-16 lg:px-12 lg:py-24"
-        >
-          <StaggerItem className="mb-8 lg:mb-8">
-            <p className="text-[10px] lg:text-xs font-bold tracking-[0.14em] text-white/60 uppercase">
-              {data.initiativesEyebrow}
-            </p>
-            <h2 className="mt-2 font-display text-display-xs lg:text-display-sm font-semibold text-white leading-[1.1] tracking-tight">
-              {data.initiativesHeading}
-            </h2>
-          </StaggerItem>
+        {/* Full-bleed dark-green band; the content inside is constrained and
+            padded to line up with the team section's max-w-page column. */}
+        <div className="bg-[#13362A] py-12 md:py-16 lg:py-24">
+          <div className="px-5 md:px-20 lg:px-32">
+            <Stagger className="mx-auto max-w-page">
+              <StaggerItem className="mb-8 lg:mb-8">
+                <p className="text-[10px] lg:text-xs font-bold tracking-[0.14em] text-white/60 uppercase">
+                  {data.initiativesEyebrow}
+                </p>
+                <h2 className="mt-2 font-display text-display-xs lg:text-display-sm font-semibold text-white leading-[1.1] tracking-tight">
+                  {data.initiativesHeading}
+                </h2>
+              </StaggerItem>
 
-          <StaggerItem>
-            <InitiativesPanel initiatives={initiativesForPanel} />
-          </StaggerItem>
-        </Stagger>
+              <StaggerItem>
+                <InitiativesPanel initiatives={initiativesForPanel} />
+              </StaggerItem>
+            </Stagger>
+          </div>
+        </div>
       </section>
 
       <section className="px-5 md:px-20 lg:px-32 pt-12 md:pt-10 lg:pt-14 pb-14 md:pb-14 lg:pb-20">

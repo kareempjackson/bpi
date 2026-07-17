@@ -121,8 +121,8 @@ export default async function BlogPage({
 
   return (
     <main data-nav-theme="light" className="relative bg-error-25">
-      <section className="px-6 md:px-12 lg:px-20 xl:px-28 pt-24 md:pt-28 lg:pt-28 pb-20 md:pb-28 lg:pb-32">
-        <div className="mx-auto max-w-page">
+      <section className="px-6 md:px-10 lg:px-14 pt-24 md:pt-28 lg:pt-28 pb-20 md:pb-28 lg:pb-32">
+        <div className="w-full">
           <h1 className="sr-only">Blog</h1>
           <BlogBrowser
             heading={page?.heading ?? "Gems for BPI"}

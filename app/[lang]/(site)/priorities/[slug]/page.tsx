@@ -95,6 +95,7 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
   const isFeatureHero = heroLayout === "feature";
   const isCoverHero = heroLayout === "cover";
   const isFeatureSplitHero = heroLayout === "featureSplit";
+  const isImageCardHero = heroLayout === "imageCard";
   // Both the feature and cover heroes use a full-bleed image flush to the
   // bottom of the navy band (no section gutter/padding).
   const isFullBleedHero = isFeatureHero || isCoverHero;
@@ -230,9 +231,13 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
         className={
           isFullBleedHero
             ? "relative overflow-hidden"
-            : `relative overflow-hidden px-6 md:px-12 lg:px-20 xl:px-28 pb-10 md:pb-12 lg:pb-14 lg:min-h-[calc(100svh-5rem)]${
-                isFeatureSplitHero ? " lg:flex lg:flex-col" : ""
-              }`
+            : `relative overflow-hidden pb-10 md:pb-12 lg:pb-14 ${
+                isImageCardHero
+                  ? // Nav-aligned gutters (match StickyTopNav's px) + full-height
+                    // so the header covers the viewport.
+                    "px-6 md:px-10 lg:px-14 lg:min-h-svh"
+                  : "px-6 md:px-12 lg:px-20 xl:px-28 lg:min-h-[calc(100svh-5rem)]"
+              }${isFeatureSplitHero ? " lg:flex lg:flex-col" : ""}`
         }
       >
         {/* Interactive rounded-tile grid backdrop — tiles light up on hover; the BPI logo mark replaces the cursor (via the global CustomCursor, data-cursor="icon"). */}

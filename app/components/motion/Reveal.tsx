@@ -95,6 +95,13 @@ type RevealProps<T extends MotionTag = "div"> = {
   once?: boolean;
   /** Fraction of the element that must be visible to trigger (default 0.15). */
   amount?: number;
+  /**
+   * Animate on mount instead of on scroll-into-view. Use for above-the-fold
+   * content (e.g. a hero) that is already visible on load — `whileInView`
+   * with the shared `-10%` bottom viewport cut can leave lower hero content
+   * hidden until the user scrolls.
+   */
+  immediate?: boolean;
 } & Omit<ComponentProps<(typeof MOTION_TAGS)[T]>, "as">;
 
 export function Reveal<T extends MotionTag = "div">({
@@ -102,6 +109,7 @@ export function Reveal<T extends MotionTag = "div">({
   preset = "rise",
   once = REVEAL_VIEWPORT.once,
   amount = REVEAL_VIEWPORT.amount,
+  immediate = false,
   children,
   ...rest
 }: RevealProps<T>) {
@@ -113,14 +121,20 @@ export function Reveal<T extends MotionTag = "div">({
     return createElement(tag, rest, children as ReactNode);
   }
 
+  const trigger = immediate
+    ? { animate: "visible" as const }
+    : {
+        whileInView: "visible" as const,
+        viewport: { once, amount, margin: REVEAL_VIEWPORT.margin },
+      };
+
   const MotionEl = MOTION_TAGS[tag];
   return (
     // @ts-expect-error — polymorphic motion element props are sound at each call site.
     <MotionEl
       variants={revealVariants(preset)}
       initial="hidden"
-      whileInView="visible"
-      viewport={{ once, amount, margin: REVEAL_VIEWPORT.margin }}
+      {...trigger}
       {...rest}
     >
       {children}

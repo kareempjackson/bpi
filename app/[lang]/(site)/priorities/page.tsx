@@ -233,12 +233,12 @@ export default async function PrioritiesPage({
         data-nav-theme="dark"
         data-cursor="icon"
         style={{ backgroundColor: "#01190d" }}
-        className="relative overflow-hidden px-6 md:px-12 lg:px-20 xl:px-28 pt-24 md:pt-28 lg:pt-24 pb-12 md:pb-14 lg:pb-12 lg:min-h-[94vh] lg:flex lg:flex-col"
+        className="relative overflow-hidden px-6 md:px-10 lg:px-14 pt-24 md:pt-28 lg:pt-24 pb-12 md:pb-14 lg:pb-12 lg:min-h-[88vh] lg:flex lg:flex-col"
       >
         {/* Interactive rounded-tile grid backdrop — tiles light up on hover; the BPI logo mark replaces the cursor (via the global CustomCursor, data-cursor="icon"). */}
         <GridHoverBackdrop />
 
-        <div className="relative mx-auto grid w-full max-w-page grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 lg:flex-1 lg:min-h-0 lg:items-stretch">
+        <div className="relative grid w-full grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 lg:flex-1 lg:min-h-0 lg:items-stretch">
           {/* Left — body + CTA at the top, oversized two-tone headline at the
               bottom of the column. */}
           <div className="flex flex-col justify-between gap-12 lg:gap-8 lg:py-2 lg:min-h-0">
@@ -275,7 +275,7 @@ export default async function PrioritiesPage({
           {/* Right — team hero image (or branded placeholder). */}
           <Reveal
             preset="scale"
-            className="relative w-full max-lg:aspect-4/5 lg:h-full min-h-0 overflow-hidden rounded-2xl lg:rounded-3xl bg-primary-500"
+            className="relative w-full max-lg:aspect-4/5 lg:h-full min-h-0 overflow-hidden rounded-md bg-primary-500"
           >
             {heroMedia ? (
               <MediaImage

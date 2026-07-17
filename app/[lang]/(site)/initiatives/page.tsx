@@ -181,7 +181,7 @@ function HeroHeader({
     <section
       data-nav-theme="dark"
       data-cursor="icon"
-      className="relative overflow-hidden bg-error-950 px-6 md:px-12 lg:px-20 xl:px-28 pt-20 md:pt-24 lg:pt-20 pb-6 md:pb-7 lg:pb-7 lg:h-dvh lg:flex lg:flex-col"
+      className="relative overflow-hidden bg-error-950 px-6 md:px-10 lg:px-14 pt-16 md:pt-18 lg:pt-16 pb-6 md:pb-7 lg:pb-8 lg:h-dvh lg:flex lg:flex-col"
     >
       {/* Interactive rounded-tile grid backdrop — tiles light up on hover; the BPI logo mark replaces the cursor (via the global CustomCursor, data-cursor="icon"). */}
       <GridHoverBackdrop />
@@ -191,6 +191,7 @@ function HeroHeader({
             capped so it breaks onto two lines. */}
         <Stagger
           as="h1"
+          immediate
           className="shrink-0 font-display text-[clamp(2.25rem,4vw,3.75rem)] font-bold leading-[1.04] tracking-[-0.03em] max-w-2xl"
         >
           <StaggerItem as="span" className="text-error-300">
@@ -222,6 +223,7 @@ function HeroHeader({
           <div className="mt-4 md:mt-5 w-full lg:flex-1 lg:min-h-0 lg:max-h-[54dvh]">
             <Reveal
               preset="scale"
+              immediate
               className="relative w-full max-lg:aspect-video lg:h-full overflow-hidden rounded-2xl lg:rounded-3xl bg-white/5"
             >
               <Image
@@ -238,7 +240,9 @@ function HeroHeader({
 
         {/* Body (left) + CTAs (right) below the image. */}
         <Stagger
-          className="shrink-0 mt-7 md:mt-9 lg:mt-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between"
+          immediate
+          delayChildren={0.2}
+          className="shrink-0 mt-7 md:mt-9 lg:mt-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between"
         >
           {body ? (
             <StaggerItem

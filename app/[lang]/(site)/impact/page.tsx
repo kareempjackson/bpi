@@ -105,8 +105,8 @@ export default async function ImpactPage({
             and the BPI logo mark replaces the cursor across the hero. */}
         <GridHoverBackdrop />
 
-        <div className="relative flex flex-1 flex-col px-6 md:px-12 lg:px-20 xl:px-28 pt-28 md:pt-32 lg:pt-32 pb-14 md:pb-16 lg:pb-16">
-          <div className="mx-auto flex w-full max-w-page flex-1 items-center">
+        <div className="relative flex flex-1 flex-col px-6 md:px-10 lg:px-14 pt-28 md:pt-32 lg:pt-32 pb-14 md:pb-16 lg:pb-16">
+          <div className="flex w-full flex-1 items-center">
             <div className="grid w-full grid-cols-1 items-center gap-10 lg:grid-cols-12 lg:gap-12">
               {/* Left — display heading, top-aligned with the image. */}
               <Stagger className="lg:col-span-3 lg:self-start">
@@ -145,11 +145,11 @@ export default async function ImpactPage({
 
               {/* Right — narrative + CTA. */}
               <Stagger
-                className="flex flex-col gap-8 lg:col-span-4 lg:justify-end"
+                className="flex flex-col gap-8 lg:col-span-4 lg:justify-end lg:pb-10"
               >
                 <StaggerItem
                   as="p"
-                  className="text-base md:text-lg text-white/70 leading-relaxed max-w-md"
+                  className="text-base md:text-lg text-white/70 leading-relaxed max-w-lg"
                 >
                   {IMPACT_BODY}
                 </StaggerItem>
@@ -183,10 +183,10 @@ export default async function ImpactPage({
       {/* Why This Matters — narrative + attributed pull-quote on the light canvas. */}
       <section
         data-nav-theme="light"
-        className="bg-error-25 px-6 md:px-12 lg:px-20 xl:px-28 pt-20 md:pt-28 lg:pt-32 pb-16 md:pb-20 lg:pb-24"
+        className="bg-error-25 px-6 md:px-10 lg:px-14 pt-20 md:pt-28 lg:pt-32 pb-16 md:pb-20 lg:pb-24"
       >
         <Stagger
-          className="mx-auto grid max-w-page grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-16"
+          className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-16"
         >
           {/* Left — eyebrow + display heading. */}
           <StaggerItem>
@@ -250,10 +250,10 @@ export default async function ImpactPage({
 
       {/* Full-bleed facility image. */}
       {wideMedia ? (
-        <section className="bg-error-25 px-6 md:px-12 lg:px-20 xl:px-28 pb-20 md:pb-28 lg:pb-32">
+        <section className="bg-error-25 px-6 md:px-10 lg:px-14 pb-20 md:pb-28 lg:pb-32">
           <Reveal
             preset="scale"
-            className="relative mx-auto aspect-2/1 w-full max-w-page overflow-hidden rounded-3xl bg-primary-500/5"
+            className="relative aspect-2/1 w-full overflow-hidden rounded-3xl bg-primary-500/5"
           >
             <MediaImage
               media={wideMedia}
@@ -267,9 +267,9 @@ export default async function ImpactPage({
           fragmented supply lines converging on a single point. */}
       <section
         data-nav-theme="light"
-        className="bg-error-25 px-6 md:px-12 lg:px-20 xl:px-28 pb-20 md:pb-28 lg:pb-32"
+        className="bg-error-25 px-6 md:px-10 lg:px-14 pb-20 md:pb-28 lg:pb-32"
       >
-        <div className="mx-auto grid max-w-page grid-cols-1 items-stretch gap-10 lg:grid-cols-[1.6fr_1fr] lg:gap-16">
+        <div className="grid grid-cols-1 items-stretch gap-10 lg:grid-cols-[1.6fr_1fr] lg:gap-16">
           {/* Left — three stacked narrative blocks. */}
           <Stagger className="flex flex-col gap-8 lg:gap-10">
             {TRAJECTORY_BLOCKS.map((block) => (

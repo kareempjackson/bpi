@@ -27,6 +27,11 @@ type StaggerProps<T extends MotionTag = "div"> = {
   delayChildren?: number;
   once?: boolean;
   amount?: number;
+  /**
+   * Orchestrate the stagger on mount instead of on scroll-into-view. Use for
+   * above-the-fold content (e.g. a hero) already visible on load.
+   */
+  immediate?: boolean;
 } & Omit<ComponentProps<(typeof MOTION_TAGS)[T]>, "as">;
 
 export function Stagger<T extends MotionTag = "div">({
@@ -35,6 +40,7 @@ export function Stagger<T extends MotionTag = "div">({
   delayChildren = 0,
   once = REVEAL_VIEWPORT.once,
   amount = REVEAL_VIEWPORT.amount,
+  immediate = false,
   children,
   ...rest
 }: StaggerProps<T>) {
@@ -45,13 +51,19 @@ export function Stagger<T extends MotionTag = "div">({
     return createElement(tag, rest, children as ReactNode);
   }
 
+  const trigger = immediate
+    ? { animate: "visible" as const }
+    : {
+        whileInView: "visible" as const,
+        viewport: { once, amount, margin: REVEAL_VIEWPORT.margin },
+      };
+
   const MotionEl = MOTION_TAGS[tag];
   return (
     // @ts-expect-error — polymorphic motion element props are sound at each call site.
     <MotionEl
       initial="hidden"
-      whileInView="visible"
-      viewport={{ once, amount, margin: REVEAL_VIEWPORT.margin }}
+      {...trigger}
       variants={{
         visible: { transition: { staggerChildren: gap, delayChildren } },
       }}
