@@ -189,13 +189,14 @@ export default async function SectorsPage({
         data-nav-theme="dark"
         data-cursor="icon"
         style={{ backgroundColor: "#01190d" }}
-        className="relative overflow-hidden pt-20 md:pt-24 lg:pt-24"
+        className="relative flex flex-col overflow-hidden pt-20 md:pt-24 lg:pt-24 pb-16 md:pb-20 lg:pb-0 lg:min-h-svh lg:justify-center"
       >
         {/* Interactive rounded-tile grid backdrop — tiles light up on hover; the BPI logo mark replaces the cursor (via the global CustomCursor, data-cursor="icon"). */}
         <GridHoverBackdrop />
 
-        {/* Heading — hugs the left content padding, above the image. */}
-        <div className="relative px-6 md:px-12 lg:px-20 xl:px-28">
+        {/* Heading — nav-aligned left padding (matches StickyTopNav's px) so
+            the title lines up with the logo, above the image. */}
+        <div className="relative px-6 md:px-10 lg:px-14">
           <Stagger
             as="h1"
             className="font-display text-[clamp(2.75rem,7vw,5.5rem)] font-bold leading-[0.98] tracking-[-0.03em] text-error-500"
@@ -221,11 +222,15 @@ export default async function SectorsPage({
             ) : null}
           </Reveal>
 
-          {/* Right — body + CTA. */}
+          {/* Right — body + CTA. Hugs the right of its track and insets to the
+              nav's px (lg:pr-14) so the section's right edge lines up with the
+              menu. */}
           <Stagger
-            className="flex max-w-md flex-col gap-8 px-6 md:px-12 lg:pl-0 lg:pr-20 xl:pr-28"
+            className="flex max-w-xl flex-col gap-8 px-6 md:px-12 lg:pl-0 lg:pr-14 lg:justify-self-end"
           >
-            <StaggerItem as="p" className="text-lg md:text-xl text-white/85 leading-relaxed">
+            {/* Header body type per design spec: Albert Sans (via
+                --font-display) Light 300, 20px / 100% line-height, no tracking. */}
+            <StaggerItem as="p" className="font-display text-[20px] font-light leading-none tracking-normal text-white">
               {heroBody}
             </StaggerItem>
             <StaggerItem>

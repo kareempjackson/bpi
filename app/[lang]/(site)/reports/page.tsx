@@ -153,7 +153,7 @@ export default async function ReportsPage({
       <section
         data-nav-theme="dark"
         data-cursor="icon"
-        className="relative overflow-hidden bg-error-950 px-6 md:px-12 lg:px-20 xl:px-28 pt-28 md:pt-32 lg:pt-24 pb-14 md:pb-20 lg:pb-12 lg:min-h-dvh lg:flex lg:flex-col"
+        className="relative overflow-hidden bg-error-950 px-6 md:px-10 lg:px-14 pt-28 md:pt-32 lg:pt-24 pb-14 md:pb-20 lg:pb-12 lg:min-h-dvh lg:flex lg:flex-col"
       >
         {/* Interactive rounded-tile grid backdrop — tiles light up on hover,
             and the BPI logo mark replaces the cursor across the hero (via the

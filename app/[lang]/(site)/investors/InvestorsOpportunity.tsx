@@ -13,7 +13,9 @@ import type { Stat } from "@/sanity/lib/types";
 function renderEmphasis(text: string) {
   return text.split(/\*\*(.+?)\*\*/g).map((part, i) =>
     i % 2 === 1 ? (
-      <strong key={i} className="font-bold">
+      // Emphasis per design spec: Albert Sans SemiBold 600 (same 48px / 77px
+      // scale as the surrounding Light body).
+      <strong key={i} className="font-semibold">
         {part}
       </strong>
     ) : (
@@ -43,13 +45,17 @@ export default function InvestorsOpportunity({
   return (
     <section
       data-nav-theme="light"
-      className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-28"
+      // Left padding matches StickyTopNav's px (px-6 md:px-10 lg:px-14) so the
+      // eyebrow lines up with the logo.
+      className="pl-6 md:pl-10 lg:pl-14 pr-6 md:pr-12 lg:pr-20 xl:pr-28 py-16 md:py-24 lg:py-28"
     >
       <div className="mx-auto grid w-full max-w-page grid-cols-1 lg:grid-cols-[0.24fr_0.76fr] gap-6 lg:gap-10">
         {eyebrow ? (
           <Reveal
             as="span"
-            className="text-xs md:text-sm font-bold uppercase tracking-[0.14em] text-primary-500"
+            // Eyebrow type per design spec: Albert Sans (via --font-display)
+            // SemiBold 600, 18px / 19.2px line-height, no tracking, middle-aligned.
+            className="align-middle font-display text-[18px] font-semibold leading-[19.2px] tracking-normal text-primary-500"
           >
             {eyebrow}
           </Reveal>
@@ -57,11 +63,13 @@ export default function InvestorsOpportunity({
 
         {/* Right column — heading (centred), body, then the stats card. */}
         <div className={eyebrow ? "" : "lg:col-span-2"}>
-          <Stagger className="flex flex-col gap-6 md:gap-8">
+          <Stagger className="flex flex-col gap-10 md:gap-14 lg:gap-16">
             {heading ? (
               <StaggerItem
                 as="h2"
-                className="lg:text-center font-display text-2xl md:text-3xl lg:text-4xl font-medium text-primary-500/40 leading-tight tracking-[-0.02em]"
+                // Heading per design spec: Albert Sans Medium 500, 48px /
+                // 61.44px line-height (ratio 1.28), -1.23px tracking.
+                className="lg:text-center align-middle font-display text-2xl md:text-3xl lg:text-[40px] font-medium text-primary-500/40 leading-[1.28] tracking-[-1.23px]"
               >
                 {heading}
               </StaggerItem>
@@ -69,7 +77,10 @@ export default function InvestorsOpportunity({
             {body ? (
               <StaggerItem
                 as="p"
-                className="font-display text-xl md:text-2xl lg:text-3xl font-normal text-primary-500 leading-[1.45] tracking-[-0.01em]"
+                // Body per design spec: Albert Sans Light 300, 48px / 77px
+                // line-height (ratio 1.604), -1.23px tracking; **bold** phrases
+                // render SemiBold (see renderEmphasis).
+                className="align-middle font-display text-xl md:text-2xl lg:text-[40px] font-light text-primary-500 leading-[1.604] tracking-[-1.23px]"
               >
                 {renderEmphasis(body)}
               </StaggerItem>

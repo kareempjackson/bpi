@@ -11,6 +11,7 @@ import BuildingSection from "@/app/components/BuildingSection";
 import CareersSection from "@/app/components/CareersSection";
 import CtaLink from "@/app/components/CtaLink";
 import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
+import SocialIcon from "@/app/components/SocialIcon";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import { localizedHref } from "@/app/lib/locale";
 import InitiativeHeaderType1 from "./InitiativeHeaderType1";
@@ -451,6 +452,20 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
   const showNextSteps =
     !!initiative.showNextSteps && nextStepsBullets.length > 0;
   const showNextStepsCta = initiative.showNextStepsCta !== false;
+
+  // Financing Approach — a toggleable card in the page colour: heading left;
+  // body + button, a rule, an italic quote and an attribution (photo, name,
+  // role, socials) right.
+  const financingCta = {
+    label: initiative.financingCta?.label || "Partner With BPI",
+    href: initiative.financingCta?.href || "/contact",
+  };
+  const showFinancingCta = initiative.showFinancingCta !== false;
+  const financingImg = resolveImage(initiative.financingImage, { width: 240 });
+  const financingSocials = initiative.financingSocials ?? [];
+  const showFinancing =
+    !!initiative.showFinancing &&
+    (!!initiative.financingBody || !!initiative.financingQuote);
 
   // Roadmap — a toggleable mid-blue band closing the story: eyebrow + heading
   // left; a single italic statement, a button and a wide image right. Unrelated
@@ -1052,15 +1067,20 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
             }
 
             return (
-              <div className="mx-auto max-w-page flex flex-col gap-10 lg:gap-14">
-                {heading}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
+              <div className="mx-auto max-w-page grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-stretch">
+                {/* Left — heading with a narrow portrait image beneath it,
+                    left-aligned so a gap opens in the middle before the
+                    right-hand text. The image fills the space under the heading,
+                    so the column matches the bullets' height and the heading
+                    top-aligns with the right-hand content. */}
+                <div className="flex flex-col gap-8 lg:gap-10">
+                  {heading}
                   {image(
-                    "aspect-square lg:aspect-4/5",
-                    "(min-width: 1024px) 45vw, 100vw",
+                    "max-lg:aspect-square lg:flex-1 lg:min-h-0 lg:max-w-sm",
+                    "(min-width: 1024px) 24rem, 100vw",
                   )}
-                  {bullets}
                 </div>
+                {bullets}
               </div>
             );
           })()}
@@ -1113,6 +1133,105 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
                   </CtaLink>
                 ) : null}
               </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* Financing Approach — toggleable card in the page colour: heading left;
+          body + button, a rule, an italic quote and an attribution (photo, name,
+          role, social links) right. */}
+      {showFinancing ? (
+        <section
+          className="px-6 md:px-12 lg:px-20 xl:px-28 pt-16 md:pt-20 lg:pt-24 pb-16 md:pb-20 lg:pb-24"
+          style={{ backgroundColor: sectionBg }}
+        >
+          <div
+            className="mx-auto max-w-page rounded-lg lg:rounded-xl px-6 md:px-10 lg:px-14 py-12 md:py-14 lg:py-16"
+            style={{ backgroundColor: base }}
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start">
+              {initiative.financingHeading ? (
+                <Stagger
+                  as="h2"
+                  className="font-display text-2xl md:text-3xl font-bold text-white leading-tight tracking-tight"
+                >
+                  {initiative.financingHeading}
+                </Stagger>
+              ) : null}
+
+              <Stagger className="flex flex-col gap-8">
+                {initiative.financingBody ? (
+                  <StaggerItem
+                    as="p"
+                    className="text-base lg:text-lg text-white/80 leading-relaxed"
+                  >
+                    {initiative.financingBody}
+                  </StaggerItem>
+                ) : null}
+
+                {showFinancingCta ? (
+                  <StaggerItem>
+                    <CtaLink
+                      href={financingCta.href}
+                      className="inline-flex w-fit items-center rounded-round bg-warning-25 px-6 py-2.5 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-(--ease-premium) hover:bg-white"
+                    >
+                      {financingCta.label}
+                    </CtaLink>
+                  </StaggerItem>
+                ) : null}
+
+                {initiative.financingQuote ? (
+                  <StaggerItem className="flex flex-col gap-8">
+                    <div className="mt-2 w-full border-t border-white/15" />
+                    <blockquote className="text-sm md:text-base italic text-white/70 leading-relaxed">
+                      &ldquo;{initiative.financingQuote}&rdquo;
+                    </blockquote>
+
+                    {financingImg || initiative.financingName ? (
+                      <div className="flex items-center gap-5">
+                        {financingImg ? (
+                          <div className="relative size-16 md:size-20 shrink-0 overflow-hidden rounded-full bg-white/10">
+                            <Image
+                              src={financingImg.src}
+                              alt={financingImg.alt}
+                              fill
+                              sizes="80px"
+                              className="object-cover object-top"
+                            />
+                          </div>
+                        ) : null}
+                        <div>
+                          {initiative.financingName ? (
+                            <p className="font-display text-base md:text-lg font-bold text-white leading-tight">
+                              {initiative.financingName}
+                            </p>
+                          ) : null}
+                          {initiative.financingRole ? (
+                            <p className="mt-1 text-sm md:text-base text-white/55">
+                              {initiative.financingRole}
+                            </p>
+                          ) : null}
+                          {financingSocials.length > 0 ? (
+                            <div className="mt-4 flex items-center gap-2.5">
+                              {financingSocials.map((s) => (
+                                <a
+                                  key={s.kind + s.href}
+                                  href={s.href}
+                                  aria-label={s.label ?? s.kind}
+                                  className="inline-flex size-9 items-center justify-center rounded-full border border-dashed border-white/40 text-white/70 transition-colors hover:border-white/75 hover:text-white"
+                                >
+                                  <SocialIcon kind={s.kind} />
+                                </a>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                    ) : null}
+                  </StaggerItem>
+                ) : null}
+              </Stagger>
             </div>
           </div>
         </section>

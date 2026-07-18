@@ -59,7 +59,7 @@ export default function LanguageToggle({
   return (
     <div
       ref={wrapRef}
-      className={`relative inline-block text-[11.5px] font-medium tracking-[0.06em] uppercase ${className}`}
+      className={`relative inline-block font-sans text-[12px] font-semibold uppercase leading-[16.8px] tracking-[-0.24px] text-center align-middle ${className}`}
     >
       <button
         type="button"

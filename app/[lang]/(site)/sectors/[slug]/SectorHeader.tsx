@@ -61,6 +61,9 @@ type Props = {
 };
 
 const CONTAINER = "relative mx-auto max-w-page px-6 md:px-12 lg:px-20 xl:px-28";
+// Nav-aligned gutters: match StickyTopNav's px (px-6 md:px-10 lg:px-14) so
+// header copy lines up with the logo on the left and the menu on the right.
+const NAV_CONTAINER = "relative mx-auto max-w-page px-6 md:px-10 lg:px-14";
 const TITLE_BASE =
   "font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-[-0.02em]";
 const SUBTITLE_BASE = "text-base md:text-lg text-white/80 leading-relaxed";
@@ -224,17 +227,25 @@ export default function SectorHeader({
     return (
       <section {...sectionProps}>
         <GridHoverBackdrop />
-        <div className="grid grid-cols-1 pt-28 md:pt-32 lg:min-h-svh lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
-          <Stagger className="order-2 flex flex-col justify-end gap-6 px-6 pb-16 md:px-12 lg:order-1 lg:pl-20 lg:pr-0 lg:pb-32 xl:pl-28">
+        <div className="grid grid-cols-1 pt-0 md:pt-3 lg:min-h-svh lg:grid-cols-[1.3fr_0.7fr] lg:gap-16">
+          {/* Left copy padding matches StickyTopNav's px (px-6 md:px-10 lg:px-14)
+              so the text lines up with the left edge of the logo in the nav. */}
+          <Stagger className="order-2 flex flex-col justify-end gap-6 px-6 pb-16 md:px-10 lg:order-1 lg:pl-14 lg:pr-0 lg:pb-[20vh]">
             <StaggerItem
               as="h1"
-              className={`max-w-xl ${TITLE_BASE} ${titleColorClass}`}
-              style={titleStyle}
+              className={`max-w-xl ${TITLE_BASE}`}
+              style={{ color: "#ABE8FE" }}
             >
               {title}
             </StaggerItem>
             {subtitle ? (
-              <StaggerItem as="p" className={`max-w-md ${SUBTITLE_BASE}`}>
+              <StaggerItem
+                as="p"
+                // Header body type per design spec: Avenir Next (via
+                // --font-sans) Medium 20px / 176% line-height / 0.48px
+                // tracking, pure white.
+                className="max-w-4xl align-middle font-sans text-[20px] font-medium leading-[1.76] tracking-[0.48px] text-white/100"
+              >
                 {subtitle}
               </StaggerItem>
             ) : null}
@@ -244,7 +255,7 @@ export default function SectorHeader({
             <HeroImage
               media={heroMedia}
               sizes="(max-width: 1024px) 100vw, 45vw"
-              className="relative order-1 mx-6 aspect-3/4 min-h-80 overflow-hidden rounded-lg md:mx-12 lg:order-2 lg:mx-0 lg:mb-16 lg:aspect-auto lg:rounded-l-lg lg:rounded-r-none"
+              className="relative order-1 mx-6 aspect-3/4 min-h-80 overflow-hidden rounded-md md:mx-12 lg:order-2 lg:mx-0 lg:-mt-1 lg:translate-x-6 lg:aspect-auto lg:h-[80vh] lg:self-start lg:rounded-md"
             />
           ) : null}
         </div>
@@ -348,9 +359,9 @@ export default function SectorHeader({
       <section {...sectionProps}>
         <GridHoverBackdrop />
         <div
-          className={`${CONTAINER} flex flex-col justify-center pt-24 md:pt-28 lg:pt-24 pb-10 md:pb-12 lg:pb-14 lg:min-h-svh`}
+          className={`${CONTAINER} flex flex-col justify-start pt-10 md:pt-14 lg:pt-10 pb-10 md:pb-12 lg:pb-14 lg:min-h-svh`}
         >
-          <Stagger className="grid grid-cols-1 items-stretch gap-x-10 gap-y-6 lg:grid-cols-[0.42fr_0.58fr]">
+          <Stagger className="grid grid-cols-1 items-stretch gap-x-10 gap-y-6 lg:grid-cols-[0.3fr_0.7fr]">
             {/* Left — first word on top, tall image below (sized to the viewport). */}
             <div className="flex flex-col gap-4 md:gap-5">
               <StaggerItem as="h1" aria-label={title} className={mastheadTitle}>
@@ -360,7 +371,7 @@ export default function SectorHeader({
                 <HeroImage
                   media={heroMedia}
                   sizes="(max-width: 1024px) 100vw, 42vw"
-                  className="relative aspect-3/4 w-full self-start overflow-hidden rounded-sm lg:aspect-auto lg:h-[62vh]"
+                  className="relative aspect-3/4 w-full self-start overflow-hidden rounded-sm lg:aspect-auto lg:h-[68vh]"
                 />
               ) : null}
             </div>
@@ -383,7 +394,13 @@ export default function SectorHeader({
               {subtitle || hasCtas ? (
                 <div className="mt-auto flex flex-col gap-6 pt-12 md:pt-16">
                   {subtitle ? (
-                    <StaggerItem as="p" className={`max-w-lg ${SUBTITLE_BASE}`}>
+                    <StaggerItem
+                      as="p"
+                      // Header body type per design spec: Avenir Next (via
+                      // --font-sans) Medium 20px / 176% line-height / 0.48px
+                      // tracking.
+                      className="max-w-4xl align-middle font-sans text-[20px] font-medium leading-[1.76] tracking-[0.48px] text-white/100"
+                    >
                       {subtitle}
                     </StaggerItem>
                   ) : null}
@@ -402,18 +419,21 @@ export default function SectorHeader({
     return (
       <section {...sectionProps}>
         <GridHoverBackdrop />
+        {/* Nav-aligned gutters (match StickyTopNav's px) instead of the shared
+            CONTAINER, so the left image lines up with the logo and the
+            right-hand copy lines up with the menu icon. */}
         <div
-          className={`${CONTAINER} pt-28 md:pt-32 lg:pt-32 pb-14 md:pb-20 lg:pb-24`}
+          className={`relative mx-auto flex max-w-page flex-col justify-start px-6 md:px-10 lg:px-14 pt-6 md:pt-10 lg:pt-10 pb-12 md:pb-14 lg:pb-16 lg:min-h-svh`}
         >
-          <Stagger className="grid grid-cols-1 items-stretch gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:gap-16">
+          <Stagger className="grid grid-cols-1 items-stretch gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:gap-24">
             {heroMedia ? (
               <HeroImage
                 media={heroMedia}
                 sizes="(max-width: 1024px) 100vw, 42vw"
-                className="relative order-2 aspect-3/4 w-full self-start overflow-hidden rounded-2xl lg:order-1 lg:rounded-3xl"
+                className="relative order-2 aspect-4/5 w-full self-start overflow-hidden rounded-md lg:order-1 lg:aspect-auto lg:h-[82vh]"
               />
             ) : null}
-            <div className="order-1 flex flex-col lg:order-2">
+            <div className="order-1 flex flex-col lg:order-2 lg:pl-10">
               <StaggerItem
                 as="h1"
                 className="max-w-xl font-display font-bold leading-[1.02] tracking-[-0.02em] text-white text-5xl md:text-6xl lg:text-7xl xl:text-[5.25rem]"
@@ -423,7 +443,13 @@ export default function SectorHeader({
               {subtitle || hasCtas ? (
                 <div className="mt-auto flex flex-col gap-6 pt-12 md:pt-16">
                   {subtitle ? (
-                    <StaggerItem as="p" className={`max-w-md ${SUBTITLE_BASE}`}>
+                    <StaggerItem
+                      as="p"
+                      // Header body type per design spec: Avenir Next (via
+                      // --font-sans) Medium 20px / 176% line-height / 0.48px
+                      // tracking, pure white.
+                      className="max-w-4xl align-middle font-sans text-[20px] font-medium leading-[1.76] tracking-[0.48px] text-white/100"
+                    >
                       {subtitle}
                     </StaggerItem>
                   ) : null}
@@ -442,7 +468,7 @@ export default function SectorHeader({
     <section {...sectionProps}>
       <GridHoverBackdrop />
       <div
-        className={`${CONTAINER} pt-24 md:pt-28 lg:pt-28 pb-10 md:pb-14 lg:pb-16`}
+        className={`${NAV_CONTAINER} pt-24 md:pt-28 lg:pt-28 pb-10 md:pb-14 lg:pb-16`}
       >
         <Stagger className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-12">
           <StaggerItem
@@ -453,8 +479,17 @@ export default function SectorHeader({
             {title}
           </StaggerItem>
           {subtitle || hasCtas ? (
-            <StaggerItem className="flex max-w-md flex-col gap-8 lg:justify-self-end lg:pt-2">
-              {subtitle ? <p className={SUBTITLE_BASE}>{subtitle}</p> : null}
+            <StaggerItem className="flex max-w-xl flex-col gap-8 lg:items-start lg:justify-self-end lg:pt-2 lg:text-left">
+              {subtitle ? (
+                // Header body type per design spec: Albert Sans (via
+                // --font-display) Light 300, 20px / 152% line-height, no
+                // tracking, pure white. Left-aligned so each line's first
+                // letter lines up; `text-balance` splits the near-equal
+                // sentence into two balanced lines (breaking after "for").
+                <p className="text-balance font-display text-[20px] font-light leading-[1.52] tracking-normal text-white">
+                  {subtitle}
+                </p>
+              ) : null}
               {hasCtas ? ctas : null}
             </StaggerItem>
           ) : null}

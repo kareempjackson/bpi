@@ -21,6 +21,8 @@ export const sector = defineType({
     { name: "header", title: "Header" },
     { name: "overview", title: "Overview" },
     { name: "practice", title: "In practice" },
+    { name: "operational", title: "Operational now" },
+    { name: "beingBuilt", title: "Being built" },
     { name: "highlight", title: "Highlight" },
     { name: "capabilities", title: "Capabilities" },
     { name: "stats", title: "Stats" },
@@ -334,6 +336,174 @@ export const sector = defineType({
       ],
     }),
 
+    // ─────────────────────────────────────────────────────── Operational ──
+    // A second "practice"-style block (heading left; a bulleted list of live
+    // programs + a button on the right; full-width image below), rendered with
+    // the same SectorPracticeSection component.
+    defineField({
+      name: "showOperational",
+      title: "Show “operational now” section",
+      type: "boolean",
+      group: "operational",
+      initialValue: false,
+    }),
+    defineField({
+      name: "operationalHeading",
+      title: "Heading",
+      description: "e.g. “Operational Now”.",
+      type: "internationalizedArrayString",
+      group: "operational",
+      hidden: ({ parent }) => !parent?.showOperational,
+    }),
+    defineField({
+      name: "operationalListHeading",
+      title: "List heading",
+      description: "Optional subheading above the bullet list.",
+      type: "internationalizedArrayString",
+      group: "operational",
+      hidden: ({ parent }) => !parent?.showOperational,
+    }),
+    defineField({
+      name: "operationalList",
+      title: "List items",
+      description: "Bulleted items, each a bold term followed by a description.",
+      type: "array",
+      group: "operational",
+      hidden: ({ parent }) => !parent?.showOperational,
+      of: [
+        defineArrayMember({
+          type: "object",
+          name: "operationalListItem",
+          fields: [
+            defineField({
+              name: "term",
+              title: "Term (bold)",
+              type: "internationalizedArrayString",
+            }),
+            defineField({
+              name: "body",
+              title: "Description",
+              type: "internationalizedArrayText",
+            }),
+          ],
+          preview: {
+            select: { title: "term", subtitle: "body" },
+            prepare: ({ title, subtitle }) => ({
+              title: i18nValue(title),
+              subtitle: i18nValue(subtitle),
+            }),
+          },
+        }),
+      ],
+    }),
+    defineField({
+      name: "operationalPrimaryCta",
+      title: "Primary button",
+      description: "Filled button (e.g. “Partner With BPI”).",
+      type: "cta",
+      group: "operational",
+      hidden: ({ parent }) => !parent?.showOperational,
+    }),
+    defineField({
+      name: "operationalSecondaryCta",
+      title: "Secondary button",
+      description: "Outlined button beside the primary (e.g. “Contact us”).",
+      type: "cta",
+      group: "operational",
+      hidden: ({ parent }) => !parent?.showOperational,
+    }),
+    defineField({
+      name: "operationalImage",
+      title: "Image",
+      description: "Full-width image below the text.",
+      type: "imageWithAlt",
+      group: "operational",
+      hidden: ({ parent }) => !parent?.showOperational,
+    }),
+
+    // ─────────────────────────────────────────────────────── Being built ──
+    // An editorial pipeline block: an eyebrow, a feature item (heading +
+    // caption), then an image beside the remaining items + CTAs. Rendered with
+    // SectorBeingBuiltSection.
+    defineField({
+      name: "showBeingBuilt",
+      title: "Show “being built” section",
+      type: "boolean",
+      group: "beingBuilt",
+      initialValue: false,
+    }),
+    defineField({
+      name: "beingBuiltEyebrow",
+      title: "Eyebrow",
+      description: "Small label above the section (e.g. “Being Built”).",
+      type: "internationalizedArrayString",
+      group: "beingBuilt",
+      hidden: ({ parent }) => !parent?.showBeingBuilt,
+    }),
+    defineField({
+      name: "beingBuiltItems",
+      title: "Items",
+      description:
+        "Each item can carry a heading, a light subtitle, and/or a rule-accented caption. The first item is featured at the top; the rest sit in the right column beside the image.",
+      type: "array",
+      group: "beingBuilt",
+      hidden: ({ parent }) => !parent?.showBeingBuilt,
+      of: [
+        defineArrayMember({
+          type: "object",
+          name: "beingBuiltItem",
+          fields: [
+            defineField({
+              name: "heading",
+              title: "Heading",
+              type: "internationalizedArrayString",
+            }),
+            defineField({
+              name: "subtitle",
+              title: "Subtitle (light)",
+              type: "internationalizedArrayText",
+            }),
+            defineField({
+              name: "body",
+              title: "Caption (rule-accented)",
+              type: "internationalizedArrayText",
+            }),
+          ],
+          preview: {
+            select: { title: "heading", subtitle: "body" },
+            prepare: ({ title, subtitle }) => ({
+              title: i18nValue(title),
+              subtitle: i18nValue(subtitle),
+            }),
+          },
+        }),
+      ],
+    }),
+    defineField({
+      name: "beingBuiltImage",
+      title: "Image",
+      description: "Photo shown beside the right-hand items.",
+      type: "imageWithAlt",
+      group: "beingBuilt",
+      hidden: ({ parent }) => !parent?.showBeingBuilt,
+    }),
+    defineField({
+      name: "beingBuiltPrimaryCta",
+      title: "Primary button",
+      description: "Filled button (e.g. “Partner With BPI”).",
+      type: "cta",
+      group: "beingBuilt",
+      hidden: ({ parent }) => !parent?.showBeingBuilt,
+    }),
+    defineField({
+      name: "beingBuiltSecondaryCta",
+      title: "Secondary button",
+      description: "Outlined button beside the primary (e.g. “Contact us”).",
+      type: "cta",
+      group: "beingBuilt",
+      hidden: ({ parent }) => !parent?.showBeingBuilt,
+    }),
+
     // ────────────────────────────────────────────────────────── Highlight ──
     defineField({
       name: "showHighlight",
@@ -478,6 +648,14 @@ export const sector = defineType({
       title: "Lead paragraph",
       description: "Sits above the rule, before the pull-quote.",
       type: "internationalizedArrayText",
+      group: "quote",
+      hidden: ({ parent }) => !parent?.showQuote,
+    }),
+    defineField({
+      name: "quoteCta",
+      title: "Button",
+      description: "Optional button below the lead (e.g. “Partner With BPI”).",
+      type: "cta",
       group: "quote",
       hidden: ({ parent }) => !parent?.showQuote,
     }),

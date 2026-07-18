@@ -280,6 +280,19 @@ export type InitiativeDetail = Initiative & {
   nextStepsHeading?: string | null;
   nextStepsBody?: string | null;
   nextStepsCta?: Cta;
+  /** Financing Approach — dark card: heading left; body + button, a rule, an
+   *  italic quote and an attribution (photo, name, role, socials) right. */
+  showFinancing?: boolean | null;
+  financingHeading?: string | null;
+  financingBody?: string | null;
+  /** Absent = true; false renders the card with no button. */
+  showFinancingCta?: boolean | null;
+  financingCta?: Cta;
+  financingQuote?: string | null;
+  financingName?: string | null;
+  financingRole?: string | null;
+  financingImage?: SanityImage | null;
+  financingSocials?: SocialLink[] | null;
   /** The closing mid-blue band — NOT the `outlook*` note under Current Status. */
   showRoadmap?: boolean | null;
   roadmapEyebrow?: string | null;
@@ -888,6 +901,7 @@ export type SectorDetail = SectorSummary & {
   quoteEyebrow?: string | null;
   quoteHeading?: string | null;
   quoteLead?: string | null;
+  quoteCta?: Cta;
   quoteText?: string | null;
   quoteAttribution?: string | null;
   quoteRole?: string | null;
@@ -907,6 +921,27 @@ export type SectorDetail = SectorSummary & {
   practiceCards?:
     | { title?: string | null; body?: string | null; tone?: string | null }[]
     | null;
+
+  showOperational?: boolean | null;
+  operationalHeading?: string | null;
+  operationalListHeading?: string | null;
+  operationalList?: { term?: string | null; body?: string | null }[] | null;
+  operationalPrimaryCta?: Cta;
+  operationalSecondaryCta?: Cta;
+  operationalImage?: SanityImage | null;
+
+  showBeingBuilt?: boolean | null;
+  beingBuiltEyebrow?: string | null;
+  beingBuiltItems?:
+    | {
+        heading?: string | null;
+        subtitle?: string | null;
+        body?: string | null;
+      }[]
+    | null;
+  beingBuiltPrimaryCta?: Cta;
+  beingBuiltSecondaryCta?: Cta;
+  beingBuiltImage?: SanityImage | null;
 
   showHighlight?: boolean | null;
   highlightHeading?: string | null;

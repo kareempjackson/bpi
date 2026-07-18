@@ -50,7 +50,10 @@ export default function InitiativeHeaderType2({
       style={{ backgroundColor: base }}
     >
       <GridHoverBackdrop />
-      <div className="relative mx-auto flex max-w-page flex-col justify-center px-6 md:px-12 lg:px-20 xl:px-28 pt-24 md:pt-28 lg:pt-24 pb-12 md:pb-16 lg:pb-16 lg:min-h-svh">
+      {/* Nav-aligned gutters (match StickyTopNav's px) so the title lines up
+          with the logo on the left and the image lines up with the menu on the
+          right. */}
+      <div className="relative mx-auto flex max-w-page flex-col justify-center px-6 md:px-10 lg:px-14 pt-24 md:pt-28 lg:pt-24 pb-12 md:pb-16 lg:pb-16 lg:min-h-svh">
         <Stagger className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[0.62fr_0.38fr] lg:gap-16">
           {/* Left — title head, copy, then the title tail hung right. */}
           <div className="order-2 flex flex-col lg:order-1">
@@ -64,7 +67,10 @@ export default function InitiativeHeaderType2({
               {subtitle ? (
                 <StaggerItem
                   as="p"
-                  className="max-w-2xl text-base md:text-lg text-white/75 leading-relaxed"
+                  // Header body type per design spec: Albert Sans (via
+                  // --font-display) Light 300, 24px / 100% line-height, no
+                  // tracking, pure white.
+                  className="max-w-2xl font-display text-[24px] font-light leading-none tracking-normal text-white"
                 >
                   {subtitle}
                 </StaggerItem>
@@ -99,7 +105,7 @@ export default function InitiativeHeaderType2({
 
           {/* Right — near-square image. */}
           {imageSrc ? (
-            <div className="relative order-1 aspect-4/5 w-full self-center overflow-hidden rounded-lg lg:order-2 lg:aspect-square">
+            <div className="relative order-1 aspect-4/5 w-full self-center overflow-hidden rounded-md lg:order-2 lg:aspect-square">
               <Image
                 src={imageSrc}
                 alt={imageAlt ?? ""}

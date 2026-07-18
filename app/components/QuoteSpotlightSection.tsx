@@ -1,14 +1,20 @@
 import type { ResolvedMedia, SocialLink } from "@/sanity/lib/types";
 
+import { localizedHref } from "@/app/lib/locale";
+import CtaLink from "./CtaLink";
 import MediaImage from "./MediaImage";
 import SocialIcon from "./SocialIcon";
 import { Stagger, StaggerItem } from "./motion";
+
+type CtaValue = { label?: string | null; href?: string | null } | null | undefined;
 
 type Props = {
   eyebrow?: string;
   heading?: string;
   /** Lead paragraph shown above the rule. */
   lead?: string;
+  /** Optional button shown below the lead, above the rule. */
+  primaryCta?: CtaValue;
   /** Pull-quote shown below the rule (rendered italic, in quotes). */
   quote?: string;
   /** Attribution name + role. */
@@ -20,6 +26,8 @@ type Props = {
   bg?: string;
   /** The card colour. Defaults to a deep navy; pass the page colour to theme. */
   cardBg?: string;
+  /** Locale for the CTA href (only needed when primaryCta is set). */
+  lang?: string;
 };
 
 /**
@@ -31,6 +39,7 @@ export default function QuoteSpotlightSection({
   eyebrow,
   heading,
   lead,
+  primaryCta,
   quote,
   name,
   role,
@@ -38,6 +47,7 @@ export default function QuoteSpotlightSection({
   socials,
   bg = "#E7F9FF",
   cardBg = "#122A56",
+  lang = "en",
 }: Props) {
   return (
     <section
@@ -71,6 +81,17 @@ export default function QuoteSpotlightSection({
               <p className="whitespace-pre-line text-base md:text-lg text-white/90 leading-relaxed">
                 {lead}
               </p>
+            ) : null}
+
+            {primaryCta?.label ? (
+              <div className="mt-7">
+                <CtaLink
+                  href={localizedHref(lang, primaryCta.href)}
+                  className="inline-flex items-center justify-center rounded-round bg-[#ABE8FE] px-6 py-2.5 text-sm font-semibold text-[#0B2F64] transition hover:bg-[#ABE8FE]/90"
+                >
+                  {primaryCta.label}
+                </CtaLink>
+              </div>
             ) : null}
 
             {quote ? (

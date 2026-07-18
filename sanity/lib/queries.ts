@@ -456,6 +456,20 @@ export const INITIATIVE_BY_SLUG_QUERY = defineQuery(`
     "nextStepsHeading": ${loc("nextStepsHeading")},
     "nextStepsBody": ${loc("nextStepsBody")},
     nextStepsCta${CTA_PROJECTION},
+    showFinancing,
+    "financingHeading": ${loc("financingHeading")},
+    "financingBody": ${loc("financingBody")},
+    showFinancingCta,
+    financingCta${CTA_PROJECTION},
+    "financingQuote": ${loc("financingQuote")},
+    "financingName": ${loc("financingName")},
+    "financingRole": ${loc("financingRole")},
+    financingImage${IMAGE_PROJECTION},
+    financingSocials[]{
+      kind,
+      href,
+      "label": ${loc("label")}
+    },
     showRoadmap,
     "roadmapEyebrow": ${loc("roadmapEyebrow")},
     "roadmapHeading": ${loc("roadmapHeading")},
@@ -981,6 +995,7 @@ export const SECTOR_BY_SLUG_QUERY = defineQuery(`
     "quoteEyebrow": ${loc("quoteEyebrow")},
     "quoteHeading": ${loc("quoteHeading")},
     "quoteLead": ${loc("quoteLead")},
+    quoteCta${CTA_PROJECTION},
     "quoteText": ${loc("quoteText")},
     "quoteAttribution": ${loc("quoteAttribution")},
     "quoteRole": ${loc("quoteRole")},
@@ -1005,6 +1020,28 @@ export const SECTOR_BY_SLUG_QUERY = defineQuery(`
       "body": ${loc("body")},
       tone
     },
+
+    showOperational,
+    "operationalHeading": ${loc("operationalHeading")},
+    "operationalListHeading": ${loc("operationalListHeading")},
+    operationalList[]{
+      "term": ${loc("term")},
+      "body": ${loc("body")}
+    },
+    operationalPrimaryCta${CTA_PROJECTION},
+    operationalSecondaryCta${CTA_PROJECTION},
+    operationalImage${IMAGE_PROJECTION},
+
+    showBeingBuilt,
+    "beingBuiltEyebrow": ${loc("beingBuiltEyebrow")},
+    beingBuiltItems[]{
+      "heading": ${loc("heading")},
+      "subtitle": ${loc("subtitle")},
+      "body": ${loc("body")}
+    },
+    beingBuiltPrimaryCta${CTA_PROJECTION},
+    beingBuiltSecondaryCta${CTA_PROJECTION},
+    beingBuiltImage${IMAGE_PROJECTION},
 
     showHighlight,
     "highlightHeading": ${loc("highlightHeading")},

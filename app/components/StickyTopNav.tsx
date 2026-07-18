@@ -476,56 +476,57 @@ export default function StickyTopNav({
             />
           </Link>
 
-          <nav
-            aria-label="Primary"
-            className="hidden md:flex items-center gap-8 lg:gap-11"
-          >
-            {navLinks.map((link) => {
-              if (link.disabled) {
-                return (
-                  <span
-                    key={link.href + link.label}
-                    aria-disabled="true"
-                    className="text-[11.5px] font-medium tracking-[0.01em] py-1 opacity-40 cursor-not-allowed select-none"
-                  >
-                    {link.label}
-                  </span>
-                );
-              }
-              const active = isActive(link.href);
-              return (
-                <Link
-                  key={link.href + link.label}
-                  href={localizedHref(lang, link.href)}
-                  aria-current={active ? "page" : undefined}
-                  className="group relative text-[11.5px] font-medium tracking-[0.01em] py-1"
-                >
-                  {link.label}
-                  <span
-                    aria-hidden
-                    className={`absolute -bottom-0.5 left-0 h-px bg-current transition-all duration-300 ease-out ${
-                      active
-                        ? "w-full opacity-100"
-                        : "w-0 opacity-0 group-hover:w-full group-hover:opacity-100"
-                    }`}
-                  />
-                </Link>
-              );
-            })}
-          </nav>
-
-          <div className="flex items-center gap-3.5 lg:gap-4 shrink-0">
-            {/* Search + language cluster. When the nav shrinks on scroll the
-                menu scales toward its right edge (origin-right), opening a gap
-                on its left; slide this cluster right by that amount so the two
-                stay tucked close to the menu. */}
+          <div className="flex items-center gap-4 lg:gap-5 shrink-0">
+            {/* Primary nav links + search + language, anchored to the right
+                corner (left of the search icon). When the nav shrinks on scroll
+                the menu scales toward its right edge (origin-right), opening a
+                gap on its left; slide this whole cluster right by that amount
+                so it stays tucked close to the menu. */}
             <div
-              className={`hidden md:flex items-center gap-3.5 lg:gap-4 transform-gpu will-change-transform ${
+              className={`hidden md:flex items-center gap-4 lg:gap-5 transform-gpu will-change-transform ${
                 ready
                   ? "transition-transform duration-700 ease-[var(--ease-emphasized)]"
                   : ""
               } ${scrolled ? "translate-x-9" : "translate-x-0"}`}
             >
+              <nav
+                aria-label="Primary"
+                className="flex items-center gap-6 lg:gap-8"
+              >
+                {navLinks.map((link) => {
+                  if (link.disabled) {
+                    return (
+                      <span
+                        key={link.href + link.label}
+                        aria-disabled="true"
+                        className="font-sans text-[12px] font-semibold uppercase leading-[16.8px] tracking-[-0.24px] text-center align-middle py-1 opacity-40 cursor-not-allowed select-none"
+                      >
+                        {link.label}
+                      </span>
+                    );
+                  }
+                  const active = isActive(link.href);
+                  return (
+                    <Link
+                      key={link.href + link.label}
+                      href={localizedHref(lang, link.href)}
+                      aria-current={active ? "page" : undefined}
+                      className="group relative font-sans text-[12px] font-semibold uppercase leading-[16.8px] tracking-[-0.24px] text-center align-middle py-1"
+                    >
+                      {link.label}
+                      <span
+                        aria-hidden
+                        className={`absolute -bottom-0.5 left-0 h-px bg-current transition-all duration-300 ease-out ${
+                          active
+                            ? "w-full opacity-100"
+                            : "w-0 opacity-0 group-hover:w-full group-hover:opacity-100"
+                        }`}
+                      />
+                    </Link>
+                  );
+                })}
+              </nav>
+
               <SearchLauncher className="inline-flex" />
 
               <LanguageToggle className="inline-block" />

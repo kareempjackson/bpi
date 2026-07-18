@@ -76,6 +76,9 @@ type Props = {
   /** Ink colour for the heading + text (dark). */
   ink: string;
   lang: string;
+  /** When true (default) the heading's last word is pushed onto its own line;
+   *  set false to keep short headings (e.g. "Operational Now") on one line. */
+  splitHeading?: boolean;
 };
 
 export default function SectorPracticeSection({
@@ -93,6 +96,7 @@ export default function SectorPracticeSection({
   bg,
   ink,
   lang,
+  splitHeading = true,
 }: Props) {
   const hasPrimary = !!primaryCta?.label;
   const hasSecondary = !!secondaryCta?.label;
@@ -129,7 +133,9 @@ export default function SectorPracticeSection({
     <section
       data-nav-theme="light"
       style={{ backgroundColor: bg, "--ink": ink } as CSSProperties}
-      className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-28"
+      // Nav-aligned gutters (match StickyTopNav's px) so the content lines up
+      // with the logo on the left and the menu on the right.
+      className="px-6 md:px-10 lg:px-14 py-16 md:py-24 lg:py-28"
     >
       <div className="mx-auto max-w-page">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
@@ -140,7 +146,7 @@ export default function SectorPracticeSection({
                 as="h2"
                 className="font-display text-3xl md:text-4xl font-bold text-(--ink) leading-[1.1] tracking-[-0.02em] text-balance"
               >
-                {headingLines(heading)}
+                {splitHeading ? headingLines(heading) : heading}
               </StaggerItem>
             </Stagger>
           ) : (
@@ -246,7 +252,7 @@ export default function SectorPracticeSection({
         ) : media ? (
           <Reveal
             preset="scale"
-            className="relative mt-16 md:mt-20 lg:mt-24 w-full aspect-4/3 sm:aspect-video lg:aspect-2/1 overflow-hidden rounded-2xl lg:rounded-3xl"
+            className="relative mt-16 md:mt-20 lg:mt-24 w-full aspect-4/3 sm:aspect-video lg:aspect-2/1 overflow-hidden rounded-md"
           >
             <MediaImage media={media} sizes="100vw" />
           </Reveal>

@@ -16,6 +16,7 @@ import {
 import type { Cta, HomePage, SectorDetail, SocialLink } from "@/sanity/lib/types";
 import SectorHeader from "./SectorHeader";
 import SectorHighlightSection from "./SectorHighlightSection";
+import SectorBeingBuiltSection from "./SectorBeingBuiltSection";
 import SectorPracticeSection from "./SectorPracticeSection";
 
 // Attribution socials fall back to these when the Home leader has none set.
@@ -160,6 +161,39 @@ export default async function SectorDetailPage({ params }: RouteProps) {
     { width: 2000 },
   );
 
+  // "Operational Now" — a second practice-style block: heading + a bulleted
+  // list of live programs + a button, with a full-width image below. Rendered
+  // with the shared SectorPracticeSection component.
+  const operationalList = (sector.operationalList ?? []).filter(
+    (it) => it.term || it.body,
+  );
+  const showOperational =
+    !!sector.showOperational &&
+    !!(sector.operationalHeading || operationalList.length > 0);
+  const operationalMedia = resolveMedia(
+    sector.operationalImage ??
+      homeData?.buildingImage ??
+      homeData?.whyImage ??
+      homeData?.leaderQuoteImage,
+    { width: 2000 },
+  );
+
+  // "Being Built" — an editorial pipeline block: an eyebrow, a feature item,
+  // then an image beside the remaining items + CTAs.
+  const beingBuiltItems = (sector.beingBuiltItems ?? []).filter(
+    (it) => it.heading || it.subtitle || it.body,
+  );
+  const showBeingBuilt =
+    !!sector.showBeingBuilt &&
+    (!!sector.beingBuiltEyebrow || beingBuiltItems.length > 0);
+  const beingBuiltMedia = resolveMedia(
+    sector.beingBuiltImage ??
+      homeData?.buildingImage ??
+      homeData?.whyImage ??
+      homeData?.leaderQuoteImage,
+    { width: 1600 },
+  );
+
   // "Highlight" — supporting paragraph(s) that land on one emphasized
   // statement, with a wide image beneath. The image falls back to a Home/sector
   // photo so the section never renders bare before an editor uploads the shot.
@@ -289,6 +323,37 @@ export default async function SectorDetailPage({ params }: RouteProps) {
         />
       ) : null}
 
+      {/* ── Operational now ────────────────────────────────────────── */}
+      {showOperational ? (
+        <SectorPracticeSection
+          heading={sector.operationalHeading}
+          splitHeading={false}
+          paragraphs={[]}
+          listHeading={sector.operationalListHeading}
+          list={operationalList}
+          primaryCta={sector.operationalPrimaryCta}
+          secondaryCta={sector.operationalSecondaryCta}
+          media={operationalMedia}
+          bg={sectionBg}
+          ink={pageColor}
+          lang={lang}
+        />
+      ) : null}
+
+      {/* ── Being built ────────────────────────────────────────────── */}
+      {showBeingBuilt ? (
+        <SectorBeingBuiltSection
+          eyebrow={sector.beingBuiltEyebrow}
+          items={beingBuiltItems}
+          media={beingBuiltMedia}
+          primaryCta={sector.beingBuiltPrimaryCta}
+          secondaryCta={sector.beingBuiltSecondaryCta}
+          bg={sectionBg}
+          ink={pageColor}
+          lang={lang}
+        />
+      ) : null}
+
       {/* ── Highlight ──────────────────────────────────────────────── */}
       {showHighlight ? (
         <SectorHighlightSection
@@ -386,6 +451,8 @@ export default async function SectorDetailPage({ params }: RouteProps) {
           eyebrow={sector.quoteEyebrow ?? undefined}
           heading={sector.quoteHeading ?? undefined}
           lead={sector.quoteLead ?? undefined}
+          primaryCta={sector.quoteCta}
+          lang={lang}
           quote={sector.quoteText ?? undefined}
           name={sector.quoteAttribution ?? undefined}
           role={sector.quoteRole ?? undefined}

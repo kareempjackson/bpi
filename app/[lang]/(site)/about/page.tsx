@@ -133,7 +133,7 @@ export default async function AboutPage({
       <section
         data-nav-theme="dark"
         data-cursor="icon"
-        className="relative flex flex-col overflow-hidden bg-error-950 px-6 md:px-10 lg:px-14 pt-14 md:pt-16 lg:pt-16 pb-12 md:pb-16 lg:pb-20 lg:min-h-[96dvh]"
+        className="relative flex flex-col overflow-hidden bg-error-950 px-6 md:px-10 lg:px-14 pt-14 md:pt-16 lg:pt-16 pb-12 md:pb-16 lg:pb-20 lg:min-h-[89dvh]"
       >
         {/* Interactive rounded-tile grid backdrop — tiles light up on hover; the BPI logo mark replaces the cursor (via the global CustomCursor, data-cursor="icon"). */}
         <GridHoverBackdrop />

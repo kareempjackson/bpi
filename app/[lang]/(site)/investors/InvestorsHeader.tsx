@@ -32,7 +32,10 @@ export default function InvestorsHeader({
     <section
       data-nav-theme="dark"
       data-cursor="icon"
-      className="relative flex flex-col overflow-hidden bg-error-950 px-6 md:px-12 lg:px-20 xl:px-28 pt-32 md:pt-36 lg:pt-40 pb-12 md:pb-16 lg:pb-20 lg:min-h-[96dvh]"
+      // Left padding matches StickyTopNav's px (px-6 md:px-10 lg:px-14) so the
+      // title lines up with the logo. Right padding is kept wider because the
+      // image's negative right margin below cancels it to bleed to the edge.
+      className="relative flex flex-col overflow-hidden bg-error-950 pl-6 md:pl-10 lg:pl-14 pr-6 md:pr-12 lg:pr-20 xl:pr-28 pt-32 md:pt-36 lg:pt-40 pb-12 md:pb-16 lg:pb-20 lg:min-h-[96dvh]"
     >
       {/* Interactive rounded-tile grid backdrop — tiles light up on hover; the BPI logo mark replaces the cursor (via the global CustomCursor, data-cursor="icon"). */}
       <GridHoverBackdrop />
@@ -41,7 +44,7 @@ export default function InvestorsHeader({
         {/* Left — oversized title, dropped to the bottom of the column. */}
         <Stagger
           as="h1"
-          className="order-2 lg:order-1 flex flex-col lg:mt-auto font-display text-[clamp(2.75rem,5.5vw,5rem)] font-bold leading-[0.95] tracking-[-0.03em] text-error-500"
+          className="order-2 lg:order-1 flex flex-col lg:mt-auto lg:mb-16 font-display text-[clamp(2.75rem,5.5vw,5rem)] font-bold leading-[0.95] tracking-[-0.03em] text-error-500"
         >
           <StaggerItem as="span">{title}</StaggerItem>
         </Stagger>

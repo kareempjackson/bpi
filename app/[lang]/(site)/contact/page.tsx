@@ -85,7 +85,7 @@ export default async function ContactPage({
       <section
         data-nav-theme="dark"
         data-cursor="icon"
-        className="relative overflow-hidden bg-error-950 px-6 md:px-12 lg:px-20 xl:px-28 pt-28 md:pt-32 lg:pt-24 pb-14 md:pb-20 lg:pb-12 lg:min-h-dvh lg:flex lg:flex-col"
+        className="relative overflow-hidden bg-error-950 px-6 md:px-10 lg:px-14 pt-28 md:pt-32 lg:pt-24 pb-14 md:pb-20 lg:pb-12 lg:min-h-dvh lg:flex lg:flex-col"
       >
         <GridHoverBackdrop />
 
@@ -128,7 +128,7 @@ export default async function ContactPage({
       </section>
 
       {/* ── Ready to partner — heading + contact details + portrait ── */}
-      <section className="px-6 md:px-12 lg:px-20 xl:px-28 pt-16 md:pt-20 lg:pt-24 pb-6 lg:pb-8">
+      <section className="px-6 md:px-10 lg:px-14 pt-16 md:pt-20 lg:pt-24 pb-6 lg:pb-8">
         <div className="mx-auto grid w-full max-w-page grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 lg:items-stretch">
           <div className="lg:col-span-7 flex flex-col justify-between gap-12 lg:gap-16">
             <h2 className="font-display text-display-md md:text-display-lg lg:text-display-xl font-semibold text-primary-500 leading-[1.02] tracking-[-0.01em]">
@@ -160,7 +160,7 @@ export default async function ContactPage({
       {/* ── Contact form — full-bleed green panel; image (left) + Contact Us
           heading, description, and form (right). ────────────────────── */}
       <section
-        className="w-full px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-28"
+        className="w-full px-6 md:px-10 lg:px-14 py-16 md:py-20 lg:py-28"
         style={{ backgroundColor: data.formBg ?? "#9BFFCD" }}
       >
         <div className="mx-auto grid w-full max-w-page grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14 items-center">
@@ -189,7 +189,7 @@ export default async function ContactPage({
       {/* ── Statement + why work with us ───────────────────────────── */}
       <section
         data-nav-theme="light"
-        className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-28"
+        className="px-6 md:px-10 lg:px-14 py-16 md:py-24 lg:py-28"
       >
         <div className="mx-auto w-full max-w-page">
           {/* Statement — eyebrow (left) + two-tone underlined headline. */}

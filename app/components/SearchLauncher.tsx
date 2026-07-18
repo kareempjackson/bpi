@@ -64,7 +64,7 @@ export default function SearchLauncher({ className }: Props) {
         onClick={open}
         onMouseEnter={preloadModal}
         onFocus={preloadModal}
-        className={`group/search items-center justify-center transition-all duration-300 ease-[var(--ease-premium)] hover:opacity-70 hover:scale-110 active:scale-95 motion-reduce:transform-none focus-visible:outline-none focus-visible:opacity-100 ${
+        className={`group/search items-center justify-center font-sans text-[12px] font-semibold uppercase leading-[16.8px] tracking-[-0.24px] text-center align-middle transition-all duration-300 ease-[var(--ease-premium)] hover:opacity-70 hover:scale-110 active:scale-95 motion-reduce:transform-none focus-visible:outline-none focus-visible:opacity-100 ${
           className ?? ""
         }`}
       >

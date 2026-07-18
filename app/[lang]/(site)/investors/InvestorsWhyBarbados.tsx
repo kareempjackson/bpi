@@ -24,7 +24,7 @@ export default function InvestorsWhyBarbados({
   return (
     <section
       data-nav-theme="light"
-      className="px-6 md:px-12 lg:px-20 xl:px-28 pb-16 md:pb-24 lg:pb-28"
+      className="px-6 md:px-12 lg:px-20 xl:px-28 pt-24 md:pt-32 lg:pt-40 pb-16 md:pb-24 lg:pb-28"
     >
       <div className="mx-auto w-full max-w-page">
         {heading || intro ? (
@@ -79,7 +79,9 @@ export default function InvestorsWhyBarbados({
         {closing ? (
           <Reveal
             as="p"
-            className="mt-12 md:mt-16 max-w-xl font-display text-xl md:text-2xl font-normal text-primary-500 leading-[1.45] tracking-[-0.01em]"
+            // Closing statement per design spec: Albert Sans Light 300, 36px /
+            // 52px line-height (ratio 1.444), no tracking, middle-aligned.
+            className="mt-12 md:mt-16 lg:max-w-[75%] align-middle font-display text-2xl md:text-3xl lg:text-[36px] font-light text-primary-500 leading-[1.444] tracking-normal"
           >
             {closing}
           </Reveal>

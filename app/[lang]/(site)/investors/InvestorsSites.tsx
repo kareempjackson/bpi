@@ -19,7 +19,9 @@ export default function InvestorsSites({
   return (
     <section
       data-nav-theme="light"
-      className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-28"
+      // Nav-aligned gutters (match StickyTopNav's px) so the left content lines
+      // up with the logo and the right content lines up with the menu.
+      className="px-6 md:px-10 lg:px-14 py-16 md:py-24 lg:py-28"
     >
       <div className="mx-auto grid w-full max-w-page grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
         {/* Left — heading + body. */}
@@ -65,7 +67,10 @@ export default function InvestorsSites({
           {note ? (
             <Reveal
               as="p"
-              className="max-w-md font-display text-sm md:text-base italic text-primary-500/70 leading-relaxed"
+              // Note per design spec: Avenir (via --font-sans) Book Oblique
+              // (italic, 350), 24px / 42px line-height (ratio 1.75), no
+              // tracking, middle-aligned.
+              className="max-w-2xl align-middle font-sans font-[350] italic text-base md:text-lg lg:text-[20px] text-primary-500/70 leading-[1.75] tracking-normal"
             >
               {note}
             </Reveal>

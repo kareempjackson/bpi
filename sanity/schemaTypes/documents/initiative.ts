@@ -622,6 +622,79 @@ export const initiative = defineType({
       hidden: ({ parent }) => !parent?.showNextSteps || parent?.showNextStepsCta === false,
     }),
 
+    // ──────────────────────────────────────────── Financing Approach section ──
+    // A card in the page colour: heading on the left; body + button, then a
+    // rule, an italic quote and an attribution (photo, name, role, socials) on
+    // the right.
+    defineField({
+      name: "showFinancing",
+      title: "Show “Financing Approach” section",
+      type: "boolean",
+      initialValue: false,
+    }),
+    defineField({
+      name: "financingHeading",
+      title: "Financing Approach — heading",
+      type: "internationalizedArrayString",
+      initialValue: [
+        { _key: "en", _type: "internationalizedArrayStringValue", language: "en", value: "Financing Approach" },
+      ],
+      hidden: ({ parent }) => !parent?.showFinancing,
+    }),
+    defineField({
+      name: "financingBody",
+      title: "Financing Approach — body",
+      type: "internationalizedArrayText",
+      hidden: ({ parent }) => !parent?.showFinancing,
+    }),
+    defineField({
+      name: "showFinancingCta",
+      title: "Financing Approach — show button",
+      type: "boolean",
+      initialValue: true,
+      hidden: ({ parent }) => !parent?.showFinancing,
+    }),
+    defineField({
+      name: "financingCta",
+      title: "Financing Approach — button",
+      description: "Defaults to “Partner With BPI” → /contact.",
+      type: "cta",
+      hidden: ({ parent }) => !parent?.showFinancing || parent?.showFinancingCta === false,
+    }),
+    defineField({
+      name: "financingQuote",
+      title: "Financing Approach — quote",
+      description: "Italic pull-quote shown under the button, above the attribution.",
+      type: "internationalizedArrayText",
+      hidden: ({ parent }) => !parent?.showFinancing,
+    }),
+    defineField({
+      name: "financingName",
+      title: "Financing Approach — attribution name",
+      type: "internationalizedArrayString",
+      hidden: ({ parent }) => !parent?.showFinancing,
+    }),
+    defineField({
+      name: "financingRole",
+      title: "Financing Approach — attribution role",
+      description: "e.g. “CEO, BioMed X”.",
+      type: "internationalizedArrayString",
+      hidden: ({ parent }) => !parent?.showFinancing,
+    }),
+    defineField({
+      name: "financingImage",
+      title: "Financing Approach — attribution photo",
+      type: "imageWithAlt",
+      hidden: ({ parent }) => !parent?.showFinancing,
+    }),
+    defineField({
+      name: "financingSocials",
+      title: "Financing Approach — social links",
+      type: "array",
+      of: [defineArrayMember({ type: "socialLink" })],
+      hidden: ({ parent }) => !parent?.showFinancing,
+    }),
+
     // ───────────────────────────────────────────────── Roadmap section ──
     // Named for its shape, not its copy: the headings are free text. PVAC uses
     // it as “What We Are Building / Next Steps” — distinct from both the
