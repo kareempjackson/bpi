@@ -134,7 +134,7 @@ export default function InitiativesSection({
   return (
     <section
       data-nav-theme="light"
-      className="bg-[#EAFBF1] px-5 sm:px-8 md:px-12 lg:px-20 xl:px-28 py-20 md:py-32 lg:py-40"
+      className="bg-[#EAFBF1] px-6 md:px-10 lg:px-14 py-20 md:py-32 lg:py-40"
     >
       {/* Header */}
       <Stagger className="flex items-end justify-between gap-3 mb-6 md:mb-8">

@@ -69,8 +69,8 @@ export default function BuildingSection({
       data-nav-theme="light"
       className={`${isBlue ? "bg-[#E7F9FF]" : "bg-[#EAFBF1]"} ${
         contained
-          ? "px-6 md:px-12 lg:px-20 xl:px-28 pb-16 md:pb-24 lg:pb-28"
-          : "px-5 sm:px-8 md:px-12 lg:px-20 xl:px-28 pt-12 md:pt-20 lg:pt-28 pb-12 md:pb-20 lg:pb-28"
+          ? "px-6 md:px-10 lg:px-14 pb-16 md:pb-24 lg:pb-28"
+          : "px-6 md:px-10 lg:px-14 pt-12 md:pt-20 lg:pt-28 pb-12 md:pb-20 lg:pb-28"
       }`}
     >
       <div className={`${isBlue ? "bg-warning-25" : "bg-error-500"} ${contained ? "mx-auto max-w-page" : ""} rounded-2xl md:rounded-3xl overflow-hidden px-6 md:px-12 lg:px-16 pt-10 md:pt-14 lg:pt-20 pb-8 md:pb-10 lg:pb-14`}>

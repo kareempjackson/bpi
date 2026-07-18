@@ -41,7 +41,29 @@ const sectionPortableTextComponents: PortableTextComponents = {
   },
   block: {
     normal: ({ children }) => <p className="leading-relaxed">{children}</p>,
+    h2: ({ children }) => (
+      <h3 className="font-display text-lg lg:text-xl font-bold text-primary-500 leading-snug">
+        {children}
+      </h3>
+    ),
+    h3: ({ children }) => (
+      <h4 className="font-display text-base lg:text-lg font-bold text-primary-500 leading-snug">
+        {children}
+      </h4>
+    ),
+    h4: ({ children }) => (
+      <h5 className="text-sm lg:text-base font-bold text-primary-500 leading-snug">
+        {children}
+      </h5>
+    ),
+    blockquote: ({ children }) => (
+      <blockquote className="border-l-2 border-primary-500/30 pl-4 italic text-primary-500/80">
+        {children}
+      </blockquote>
+    ),
   },
+  // Soft line breaks (Shift+Enter in the editor) render as a real <br>.
+  hardBreak: () => <br />,
   marks: {
     strong: ({ children }) => (
       <strong className="font-semibold text-primary-500">{children}</strong>
@@ -128,7 +150,7 @@ export default async function JobDetailPage({ params }: RouteProps) {
     <main className="relative bg-error-25 overflow-hidden">
       <CareersWatermark />
       <div className="relative">
-        <section className="px-6 md:px-12 lg:px-20 xl:px-28 pt-10 md:pt-14 lg:pt-16 pb-20 md:pb-28 lg:pb-32">
+        <section className="px-6 md:px-10 lg:px-14 pt-10 md:pt-14 lg:pt-16 pb-20 md:pb-28 lg:pb-32">
           <div className="mx-auto max-w-page">
             {/* Back link */}
             <Link
@@ -211,7 +233,10 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
           {label}
         </h3>
       </div>
-      <div className="md:col-span-8 lg:col-span-9 text-sm lg:text-base text-primary-500/70 leading-relaxed">
+      {/* `[&>*+*]:mt-4` spaces consecutive Portable Text blocks (paragraphs,
+          lists, headings) so an editor's paragraph breaks actually show as
+          separation instead of collapsing into one run. */}
+      <div className="md:col-span-8 lg:col-span-9 text-sm lg:text-base text-primary-500/70 leading-relaxed [&>*+*]:mt-4">
         {children}
       </div>
     </div>

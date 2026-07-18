@@ -48,7 +48,7 @@ export default function LeaderSection({
   return (
     <section
       data-nav-theme="light"
-      className="bg-error-25 px-5 md:px-20 lg:px-32 pt-16 md:pt-28 lg:pt-36 pb-16 md:pb-24 lg:pb-28"
+      className="bg-error-25 px-6 md:px-10 lg:px-14 pt-16 md:pt-28 lg:pt-36 pb-16 md:pb-24 lg:pb-28"
     >
       {/* Top: bold lead-in headline */}
       <Reveal className="mx-auto max-w-page mb-10 md:mb-16 lg:mb-20">

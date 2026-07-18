@@ -590,7 +590,7 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
         <GridHoverBackdrop />
 
         {/* Top band — title left, excerpt + CTAs right. */}
-        <div className="relative px-6 md:px-12 lg:px-20 xl:px-28 pt-24 md:pt-28 lg:pt-28 pb-10 md:pb-14 lg:pb-16">
+        <div className="relative px-6 md:px-10 lg:px-14 pt-24 md:pt-28 lg:pt-28 pb-10 md:pb-14 lg:pb-16">
           <Stagger
             className="mx-auto grid w-full max-w-page grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start"
           >
@@ -662,7 +662,7 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
           (both halves of one rounded card). */}
       {showWhyBarbados ? (
         <section
-          className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-24"
+          className="px-6 md:px-10 lg:px-14 py-16 md:py-20 lg:py-24"
           style={{ backgroundColor: sectionBg }}
         >
           <div className="mx-auto max-w-page flex flex-col gap-12 lg:gap-16">
@@ -748,7 +748,7 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
           quiet closing note in large italic type. */}
       {showCurrentStatus ? (
         <section
-          className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-24"
+          className="px-6 md:px-10 lg:px-14 py-16 md:py-20 lg:py-24"
           style={{ backgroundColor: sectionBg }}
         >
           <div className="mx-auto max-w-page">
@@ -848,7 +848,7 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
           an image + body pair on the deeper band ("imageBeside"). */}
       {showWhatThisIs ? (
         <section
-          className={`px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-24 ${
+          className={`px-6 md:px-10 lg:px-14 py-16 md:py-20 lg:py-24 ${
             whatThisIsImageBeside ? "" : "bg-white"
           }`}
           style={
@@ -994,7 +994,7 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
           a wide image under both. */}
       {showDevelopments ? (
         <section
-          className={`px-6 md:px-12 lg:px-20 xl:px-28 pt-16 md:pt-20 lg:pt-24 ${
+          className={`px-6 md:px-10 lg:px-14 pt-16 md:pt-20 lg:pt-24 ${
             // Next Steps docks under this section's image — drop the bottom
             // padding so the two read as one stacked block. With no image the
             // section ends on the button instead, which the card would collide
@@ -1093,7 +1093,7 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
           the card docks straight under that image. */}
       {showNextSteps ? (
         <section
-          className={`px-6 md:px-12 lg:px-20 xl:px-28 pb-16 md:pb-20 lg:pb-24 ${
+          className={`px-6 md:px-10 lg:px-14 pb-16 md:pb-20 lg:pb-24 ${
             showDevelopments && !developmentsNoImage
               ? "pt-2"
               : "pt-16 md:pt-20 lg:pt-24"
@@ -1143,7 +1143,7 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
           role, social links) right. */}
       {showFinancing ? (
         <section
-          className="px-6 md:px-12 lg:px-20 xl:px-28 pt-16 md:pt-20 lg:pt-24 pb-16 md:pb-20 lg:pb-24"
+          className="px-6 md:px-10 lg:px-14 pt-16 md:pt-20 lg:pt-24 pb-16 md:pb-20 lg:pb-24"
           style={{ backgroundColor: sectionBg }}
         >
           <div
@@ -1243,7 +1243,7 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
           light-blue pill used elsewhere would disappear on this band. */}
       {showRoadmap ? (
         <section
-          className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-24"
+          className="px-6 md:px-10 lg:px-14 py-16 md:py-20 lg:py-24"
           style={
             { backgroundColor: accentBg, "--ink": base } as React.CSSProperties
           }
@@ -1311,7 +1311,7 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
           wide image, then the Strategic Relevance closing statement. */}
       {showPhases ? (
         <section
-          className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-24"
+          className="px-6 md:px-10 lg:px-14 py-16 md:py-20 lg:py-24"
           style={{ backgroundColor: base }}
         >
           <div className="mx-auto max-w-page flex flex-col gap-10 lg:gap-14">
@@ -1405,7 +1405,7 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
           background. */}
       {showDefaultSections && (hasBody || initiative.subtitle) ? (
         <section
-          className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-28"
+          className="px-6 md:px-10 lg:px-14 py-16 md:py-20 lg:py-28"
           style={{ backgroundColor: sectionBg }}
         >
           <Stagger
@@ -1444,7 +1444,7 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
           left, portrait on the right. */}
       {showDefaultSections && showQuote ? (
         <section
-          className="px-6 md:px-12 lg:px-20 xl:px-28 py-14 md:py-20 lg:py-24"
+          className="px-6 md:px-10 lg:px-14 py-14 md:py-20 lg:py-24"
           style={{ backgroundColor: quoteBg }}
         >
           <Stagger
@@ -1492,7 +1492,7 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
           full-width image and a row of stat cards (cycling palette). */}
       {showDefaultSections && showWhyMatters ? (
         <section
-          className="px-6 md:px-12 lg:px-20 xl:px-28 py-14 md:py-20 lg:py-24"
+          className="px-6 md:px-10 lg:px-14 py-14 md:py-20 lg:py-24"
           style={{ backgroundColor: whyBg }}
         >
           <div className="mx-auto max-w-page flex flex-col gap-16 lg:gap-24">

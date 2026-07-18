@@ -88,23 +88,28 @@ const FIELDS = {
   ),
   prioritiesCta: { _type: "cta", label: str("Partner With BPI"), href: "/contact" },
 
-  // ── Why BPI (closing) ──
-  closingEyebrow: str("What We Are Building"),
-  closingHeadlineLine1: str("Why BPI"),
-  closingHeadlineLine2: str("Political + Investment"),
-  closingBody: text(
-    "BPI is how a small island secures its own health sovereignty, reducing dependence on imported medicine and protecting the country from the next shipping disruption or export ban. For investors, it’s a state-backed partner and equity co-investor that de-risks land, regulatory pathways, financing, and market entry into a fast-diversifying global pharmaceutical industry.",
-  ),
-  closingCta: { _type: "cta", label: str("Partner With BPI"), href: "/impact" },
-
   // ── Latest from BPI ──
   latestHeading: str("Latest from BPI"),
   latestShowCount: 3,
 };
 
+// Removed fields — cleared on every run so a doc seeded by an earlier version
+// of this script (which included a "Why BPI" closing section) is cleaned up.
+const REMOVED_FIELDS = [
+  "closingEyebrow",
+  "closingHeadlineLine1",
+  "closingHeadlineLine2",
+  "closingBody",
+  "closingCta",
+];
+
 // createIfNotExists makes the singleton on first run; the patch then applies the
 // copy above (including to a doc that already exists, which createIfNotExists
-// alone would skip).
+// alone would skip) and unsets the removed fields.
 await client.createIfNotExists({ _id: "prioritiesPage", _type: "prioritiesPage" });
-const result = await client.patch("prioritiesPage").set(FIELDS).commit();
+const result = await client
+  .patch("prioritiesPage")
+  .set(FIELDS)
+  .unset(REMOVED_FIELDS)
+  .commit();
 console.log(`✓ ${dataset}: wrote ${result._id}`);

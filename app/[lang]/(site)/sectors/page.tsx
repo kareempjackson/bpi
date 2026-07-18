@@ -153,20 +153,25 @@ export default async function SectorsPage({
   // own /sectors/[slug] detail page). When none are authored yet, it falls back
   // to the six molecule nodes on the Home document so the page is never empty.
   const sectorDocSlides: SectorSlide[] = (sectors ?? []).map((s) => {
-    const img = resolveImage(s.cardImage, { width: 800 });
+    // Resolve as media (not image-only) so a video uploaded to the card slot
+    // plays in the drawer; still image is the poster / fallback.
+    const media = resolveMedia(s.cardImage, { width: 800 });
     const still = nodeStillById.get(s.slug) ?? null;
     return {
       nodeId: s.slug,
       title: s.title,
       description: s.subtitle ?? undefined,
       href: localizedHref(lang, `/sectors/${s.slug}`),
-      imageSrc: img?.src ?? still?.src,
-      imageAlt: img?.alt || still?.alt || s.title,
+      imageSrc: mediaImageSrc(media) ?? still?.src,
+      videoSrc: mediaVideoSrc(media),
+      imageAlt: media?.alt || still?.alt || s.title,
     };
   });
 
   const nodeSlides: SectorSlide[] = nodes.map((node) => {
     const still = sectorStill(node);
+    const nodeVideo =
+      node.media?.kind === "video" ? (node.media.videoUrl ?? undefined) : undefined;
     return {
       nodeId: node.nodeId,
       title: node.title,
@@ -175,6 +180,7 @@ export default async function SectorsPage({
         ? localizedHref(lang, node.href)
         : localizedHref(lang, `/sectors/${node.nodeId}`),
       imageSrc: still?.src,
+      videoSrc: nodeVideo,
       imageAlt: still?.alt,
     };
   });
@@ -249,7 +255,7 @@ export default async function SectorsPage({
       {sectorSlides.length > 0 ? (
         <section
           id="sectors"
-          className="scroll-mt-24 px-6 md:px-12 lg:px-20 xl:px-28 pt-16 md:pt-20 lg:pt-24 pb-16 md:pb-24 lg:pb-32"
+          className="scroll-mt-24 px-6 md:px-10 lg:px-14 pt-16 md:pt-20 lg:pt-24 pb-16 md:pb-24 lg:pb-32"
         >
           <div className="mx-auto max-w-page">
             <Stagger className="max-w-2xl">
@@ -267,7 +273,7 @@ export default async function SectorsPage({
           </div>
         </section>
       ) : (
-        <section className="px-6 md:px-12 lg:px-20 xl:px-28 pb-20">
+        <section className="px-6 md:px-10 lg:px-14 pb-20">
           <div className="mx-auto max-w-page text-primary-500/60">
             Sectors haven&rsquo;t been configured yet. Add them on the Home page
             document (Sectors group) in Sanity.

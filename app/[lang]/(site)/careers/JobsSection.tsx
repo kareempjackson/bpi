@@ -63,7 +63,7 @@ export default function JobsSection({
   return (
     <section
       data-nav-theme="light"
-      className="bg-error-25 px-6 md:px-12 lg:px-20 xl:px-28 pt-16 md:pt-20 lg:pt-24 pb-20 md:pb-28 lg:pb-32"
+      className="bg-error-25 px-6 md:px-10 lg:px-14 pt-16 md:pt-20 lg:pt-24 pb-20 md:pb-28 lg:pb-32"
     >
       <div className="mx-auto max-w-page">
         {/* Header */}

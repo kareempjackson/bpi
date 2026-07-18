@@ -11,7 +11,6 @@ export const prioritiesPage = defineType({
     { name: "hero", title: "Hero", default: true },
     { name: "stats", title: "Impact stats" },
     { name: "priorities", title: "Strategic priorities" },
-    { name: "closing", title: "Why BPI" },
     { name: "latest", title: "Latest from BPI" },
     { name: "sections", title: "Page sections" },
   ],
@@ -65,6 +64,15 @@ export const prioritiesPage = defineType({
     }),
 
     // ──────────────────────────────────────────────────────── Impact stats ──
+    defineField({
+      name: "showStats",
+      title: "Show impact stats section",
+      description:
+        "Off by default. Turn on to show the green impact-stats band below the hero.",
+      type: "boolean",
+      group: "stats",
+      initialValue: false,
+    }),
     defineField({
       name: "statsIntro",
       title: "Intro paragraph",
@@ -135,38 +143,6 @@ export const prioritiesPage = defineType({
         "Full-width image beneath the list. Falls back to the Home page's building image when empty.",
       type: "imageWithAlt",
       group: "priorities",
-    }),
-
-    // ───────────────────────────────────────────────────────── Why BPI ──
-    defineField({
-      name: "closingEyebrow",
-      title: "Eyebrow",
-      type: "internationalizedArrayString",
-      group: "closing",
-    }),
-    defineField({
-      name: "closingHeadlineLine1",
-      title: "Headline line 1 (white)",
-      type: "internationalizedArrayString",
-      group: "closing",
-    }),
-    defineField({
-      name: "closingHeadlineLine2",
-      title: "Headline line 2 (green)",
-      type: "internationalizedArrayString",
-      group: "closing",
-    }),
-    defineField({
-      name: "closingBody",
-      title: "Body",
-      type: "internationalizedArrayText",
-      group: "closing",
-    }),
-    defineField({
-      name: "closingCta",
-      title: "Button",
-      type: "cta",
-      group: "closing",
     }),
 
     // ─────────────────────────────────────────────────── Latest from BPI ──

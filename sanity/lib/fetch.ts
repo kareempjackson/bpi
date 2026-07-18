@@ -31,6 +31,7 @@ export const TAG = {
   initiative: "initiative",
   initiativesPage: "initiativesPage",
   aboutPage: "aboutPage",
+  impactPage: "impactPage",
   contactPage: "contactPage",
   careersPage: "careersPage",
   investorsPage: "investorsPage",

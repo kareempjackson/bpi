@@ -3,24 +3,30 @@ import type { Metadata } from "next";
 import Image from "next/image";
 
 import ArrowCircle from "@/app/components/ArrowCircle";
+import BuildingSection from "@/app/components/BuildingSection";
+import CareersSection from "@/app/components/CareersSection";
 import CtaLink from "@/app/components/CtaLink";
 import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
 import Logo from "@/app/components/Logo";
+import MediaImage from "@/app/components/MediaImage";
 import PageSections from "@/app/components/PageSections";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import { localizedHref } from "@/app/lib/locale";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
-import { resolveImage } from "@/sanity/lib/image";
+import { resolveImage, resolveMedia } from "@/sanity/lib/image";
 import {
   ALL_INITIATIVES_QUERY,
+  HOME_PAGE_QUERY,
   INITIATIVES_PAGE_QUERY,
   INITIATIVE_POSTS_QUERY,
 } from "@/sanity/lib/queries";
 import type {
   FutureStat,
+  HomePage,
   Initiative,
   InitiativePost,
   InitiativesPage,
+  ResolvedMedia,
 } from "@/sanity/lib/types";
 
 import OtherWorksCards from "./OtherWorksCards";
@@ -102,6 +108,21 @@ async function getAllInitiatives(lang: string): Promise<Initiative[]> {
   return data ?? [];
 }
 
+// Careers + footer-CTA copy is authored on the Home document; reuse it so the
+// bottom of this page stays in sync with the rest of the site.
+async function getHomePage(lang: string): Promise<HomePage | null> {
+  return loadQuery<HomePage | null>(HOME_PAGE_QUERY, {
+    params: { lang },
+    tags: [TAG.homePage],
+  });
+}
+
+// Poster/still for a resolved media object (image src, or a video's poster).
+function mediaImageSrc(m: ResolvedMedia | null): string | undefined {
+  if (!m) return undefined;
+  return m.kind === "image" ? m.src : m.poster;
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -125,10 +146,13 @@ export default async function InitiativesPage({
   const { lang } = await params;
   const page = await getInitiativesPage(lang);
   const featured = page?.featuredInitiative ?? null;
-  const [posts, allInitiatives] = await Promise.all([
+  const [posts, allInitiatives, homeData] = await Promise.all([
     getInitiativePosts(lang, page?.motionStoriesShowCount ?? 6),
     getAllInitiatives(lang),
+    getHomePage(lang),
   ]);
+  const careersMedia = resolveMedia(homeData?.careersImage, { width: 1200 });
+  const buildingMedia = resolveMedia(homeData?.buildingImage, { width: 1600 });
 
   return (
     <main className="bg-error-25">
@@ -143,6 +167,40 @@ export default async function InitiativesPage({
       />
       <BuildingFutureSection page={page} />
       <PageSections sections={page?.pageSections} />
+
+      {/* Careers + footer-CTA close the page, reusing the Home document's copy
+          so it stays in sync with the rest of the site. */}
+      <CareersSection
+        tone="mint"
+        eyebrow={homeData?.careersEyebrow ?? undefined}
+        heading={homeData?.careersHeading ?? undefined}
+        lead={homeData?.careersLead ?? undefined}
+        body={homeData?.careersBody ?? undefined}
+        imageSrc={mediaImageSrc(careersMedia) ?? mediaImageSrc(buildingMedia)}
+        imageAlt={careersMedia?.alt ?? buildingMedia?.alt}
+        primaryLabel={homeData?.careersPrimaryCta?.label ?? undefined}
+        primaryHref={
+          homeData?.careersPrimaryCta?.href
+            ? localizedHref(lang, homeData.careersPrimaryCta.href)
+            : undefined
+        }
+        secondaryLabel={homeData?.careersSecondaryCta?.label ?? undefined}
+        secondaryHref={
+          homeData?.careersSecondaryCta?.href
+            ? localizedHref(lang, homeData.careersSecondaryCta.href)
+            : undefined
+        }
+      />
+      <BuildingSection
+        imageSrc={mediaImageSrc(buildingMedia)}
+        imageAlt={buildingMedia?.alt}
+        headlineLine1={homeData?.buildingHeadlineLine1}
+        headlineLine2={homeData?.buildingHeadlineLine2}
+        primaryLabel={homeData?.buildingPrimaryCta?.label ?? undefined}
+        primaryHref={homeData?.buildingPrimaryCta?.href ?? undefined}
+        secondaryLabel={homeData?.buildingSecondaryCta?.label ?? undefined}
+        secondaryHref={homeData?.buildingSecondaryCta?.href ?? undefined}
+      />
     </main>
   );
 }
@@ -156,9 +214,10 @@ function HeroHeader({
   page: InitiativesPage | null;
   lang: string;
 }) {
-  const heroImage = resolveImage(page?.heroImage, { width: 1800 });
-  const imageSrc = heroImage?.src;
-  const imageAlt = heroImage?.alt ?? "";
+  // Resolve as media (not image-only) so an R2 video uploaded to the hero slot
+  // plays here too — `resolveImage` silently drops video kinds, which left the
+  // hero blank whenever an editor uploaded a video instead of a still.
+  const heroMedia = resolveMedia(page?.heroImage, { width: 1800 });
   const headline = page?.heroHeadline ?? "Pushing from investment to impact.";
   const body =
     page?.heroBody ??
@@ -181,7 +240,7 @@ function HeroHeader({
     <section
       data-nav-theme="dark"
       data-cursor="icon"
-      className="relative overflow-hidden bg-error-950 px-6 md:px-10 lg:px-14 pt-16 md:pt-18 lg:pt-16 pb-6 md:pb-7 lg:pb-8 lg:h-dvh lg:flex lg:flex-col"
+      className="relative overflow-hidden bg-error-950 px-6 md:px-10 lg:px-14 pt-8 md:pt-10 lg:pt-8 pb-6 md:pb-7 lg:pb-8 lg:h-dvh lg:flex lg:flex-col"
     >
       {/* Interactive rounded-tile grid backdrop — tiles light up on hover; the BPI logo mark replaces the cursor (via the global CustomCursor, data-cursor="icon"). */}
       <GridHoverBackdrop />
@@ -192,25 +251,36 @@ function HeroHeader({
         <Stagger
           as="h1"
           immediate
-          className="shrink-0 font-display text-[clamp(2.25rem,4vw,3.75rem)] font-bold leading-[1.04] tracking-[-0.03em] max-w-2xl"
+          // Hanging indent (lg+): line 1 stays flush with the logo; the wrapped
+          // second line is pushed right so "Caribbean" starts under the "b" of
+          // the first line. Widened at lg so the whole "middle + end" phrase
+          // (kept together via lg:whitespace-nowrap below) fits on that line.
+          // Tune the ch value to shift the second line.
+          className="shrink-0 font-display text-[clamp(2.25rem,4vw,3.75rem)] font-bold leading-[1.04] tracking-[-0.03em] max-w-2xl lg:max-w-5xl lg:pl-[6ch] lg:indent-[-6ch]"
         >
           <StaggerItem as="span" className="text-error-300">
             {headlineStart}
           </StaggerItem>
-          {headlineMiddle ? (
+          {headlineMiddle || headlineEnd ? (
             <>
               {" "}
-              <StaggerItem as="span" className="text-white">
-                {headlineMiddle}
-              </StaggerItem>
-            </>
-          ) : null}
-          {headlineEnd ? (
-            <>
-              {" "}
-              <StaggerItem as="span" className="text-error-300">
-                {headlineEnd}
-              </StaggerItem>
+              {/* Keep the remainder ("Caribbean health security") on one line
+                  at lg+ so it doesn't break across the indented second line. */}
+              <span className="lg:whitespace-nowrap">
+                {headlineMiddle ? (
+                  <StaggerItem as="span" className="text-white">
+                    {headlineMiddle}
+                  </StaggerItem>
+                ) : null}
+                {headlineEnd ? (
+                  <>
+                    {" "}
+                    <StaggerItem as="span" className="text-error-300">
+                      {headlineEnd}
+                    </StaggerItem>
+                  </>
+                ) : null}
+              </span>
             </>
           ) : null}
         </Stagger>
@@ -219,21 +289,16 @@ function HeroHeader({
             height (flex-1) so the image is as large as possible; inner fills
             it (h-full) with no aspect ratio on desktop. Fixed ratio below lg
             where the page scrolls. */}
-        {imageSrc ? (
+        {heroMedia ? (
           <div className="mt-4 md:mt-5 w-full lg:flex-1 lg:min-h-0 lg:max-h-[54dvh]">
             <Reveal
               preset="scale"
               immediate
-              className="relative w-full max-lg:aspect-video lg:h-full overflow-hidden rounded-2xl lg:rounded-3xl bg-white/5"
+              className="relative w-full max-lg:aspect-video lg:h-full overflow-hidden rounded-md lg:rounded-lg bg-white/5"
             >
-              <Image
-                src={imageSrc}
-                alt={imageAlt}
-                fill
-                sizes="100vw"
-                priority
-                className="object-cover"
-              />
+              {/* Renders an <Image> for a still or an autoplaying <video> for an
+                  R2 upload. `eager` skips the lazy gate for this above-fold hero. */}
+              <MediaImage media={heroMedia} sizes="100vw" preload eager />
             </Reveal>
           </div>
         ) : null}
@@ -247,7 +312,9 @@ function HeroHeader({
           {body ? (
             <StaggerItem
               as="p"
-              className="max-w-lg text-base md:text-lg text-white/70 leading-relaxed"
+              // Hero body per design spec: Albert Sans (via --font-display)
+              // Light 300, 24px / 152% line-height, no tracking, white.
+              className="max-w-3xl align-middle font-display text-base md:text-lg lg:text-[20px] font-light leading-[1.52] tracking-normal text-white"
             >
               {body}
             </StaggerItem>
@@ -318,7 +385,7 @@ function WorkInMotion({
   return (
     <section
       data-nav-theme="light"
-      className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-28"
+      className="px-6 md:px-10 lg:px-14 py-16 md:py-24 lg:py-28"
       style={{ backgroundColor: bg }}
     >
       <Stagger
@@ -417,7 +484,7 @@ function FeaturedSpotlight({
   return (
     <section
       data-nav-theme="light"
-      className="bg-error-25 px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-24"
+      className="bg-error-25 px-6 md:px-10 lg:px-14 py-16 md:py-20 lg:py-24"
     >
       <div className="mx-auto max-w-page flex flex-col gap-14 lg:gap-20">
         {featured ? (
@@ -589,18 +656,6 @@ function FeaturedMedia({
         sizes="(min-width: 1024px) 32vw, 90vw"
         className="object-cover"
       />
-      <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
-        <span className="flex size-16 items-center justify-center rounded-full bg-white/85 backdrop-blur-sm transition-transform duration-300 ease-(--ease-premium) group-hover/media:scale-105">
-          <svg
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            aria-hidden
-            className="ml-0.5 size-6 text-primary-500"
-          >
-            <path d="M8 5v14l11-7z" />
-          </svg>
-        </span>
-      </span>
     </>
   );
   return href ? (
@@ -701,7 +756,7 @@ function MotionStoriesSection({
   const viewAllHref = page?.motionStoriesViewAllHref ?? "/news";
 
   return (
-    <section className="px-5 md:px-20 lg:px-32 pb-14 md:pb-20 lg:pb-24">
+    <section className="px-6 md:px-10 lg:px-14 pb-14 md:pb-20 lg:pb-24">
       <div
         className="mx-auto max-w-page rounded-2xl lg:rounded-[1.75rem] px-5 md:px-10 lg:px-14 py-8 md:py-12 lg:py-16"
         style={{ backgroundColor: bg }}
@@ -910,7 +965,7 @@ function OtherWorksSection({
   return (
     <section
       data-nav-theme="dark"
-      className="bg-error-950 px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-28"
+      className="bg-error-950 px-6 md:px-10 lg:px-14 py-16 md:py-20 lg:py-28"
     >
       <div className="mx-auto grid max-w-page grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-14">
         {/* Left — eyebrow + staggered, two-tone heading. Sticks while the
@@ -1157,7 +1212,7 @@ function BuildingFutureSection({
   if (stats.length === 0) return null;
 
   return (
-    <section className="px-5 md:px-20 lg:px-32 pb-14 md:pb-20 lg:pb-24">
+    <section className="px-6 md:px-10 lg:px-14 pb-14 md:pb-20 lg:pb-24">
       <div className="mx-auto max-w-page">
         <Stagger
           className="flex flex-col gap-3 max-w-3xl mb-8 lg:mb-10"

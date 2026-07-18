@@ -84,7 +84,7 @@ export default function BlogSection({
   return (
     <section
       data-nav-theme="light"
-      className={`${sectionBg} px-5 sm:px-8 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-28`}
+      className={`${sectionBg} px-6 md:px-10 lg:px-14 py-16 md:py-24 lg:py-28`}
     >
       {/* Header */}
       <div className="flex items-center justify-between gap-4 mb-8 md:mb-12">

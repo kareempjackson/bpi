@@ -664,7 +664,7 @@ export default function HeroSection({
             </div>
 
             <motion.div
-              className="absolute bottom-0 left-0 z-10 px-8 lg:px-14 pb-52 lg:pb-72 max-w-4xl"
+              className="absolute bottom-0 left-0 z-10 px-6 md:px-10 lg:px-14 pb-52 lg:pb-72 max-w-4xl"
               style={pinned ? { opacity: copyOpacity, y: copyY } : undefined}
             >
               {/* Keyed by active slide so the copy re-animates on change,
@@ -722,7 +722,7 @@ export default function HeroSection({
             {/* Bottom bar — slider progress (left) + feature card (right).
                 Fades out on scroll alongside the headline copy. */}
             <motion.div
-              className="absolute inset-x-0 bottom-0 z-20 px-8 lg:px-14 pb-10 lg:pb-14 flex items-end justify-between gap-6 will-change-[opacity,transform]"
+              className="absolute inset-x-0 bottom-0 z-20 px-6 md:px-10 lg:px-14 pb-10 lg:pb-14 flex items-end justify-between gap-6 will-change-[opacity,transform]"
               style={
                 pinned
                   ? { opacity: copyOpacity, y: copyY, pointerEvents: bottomBarPE }

@@ -221,7 +221,7 @@ export default function Footer({
       {/* Newsletter row — spans the full footer width with just a
           gutter, so the logo sits flush to the left edge and the form
           stretches across the entire row, matching the reference. */}
-      <Stagger className="relative z-10 px-5 sm:px-8 md:px-16 lg:px-32 pt-12 sm:pt-16 md:pt-36 lg:pt-44">
+      <Stagger className="relative z-10 px-6 md:px-10 lg:px-14 pt-12 sm:pt-16 md:pt-36 lg:pt-44">
         <StaggerItem className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
           <span aria-label="BPI" className="shrink-0">
             <Logo
@@ -235,7 +235,7 @@ export default function Footer({
 
       {/* Centered content — title, columns, partners — stays capped at
           the 7xl page width so it sits in a comfortable reading band. */}
-      <div className="relative z-10 px-5 sm:px-8 md:px-16 lg:px-32 pb-12 md:pb-20 lg:pb-28">
+      <div className="relative z-10 px-6 md:px-10 lg:px-14 pb-12 md:pb-20 lg:pb-28">
         {/* Title on the left, nav columns on the right — they sit side
             by side from the lg breakpoint and stack on smaller screens. */}
         <div className="mt-16 md:mt-28 lg:mt-40 flex flex-col lg:flex-row lg:items-start lg:gap-12 xl:gap-16">
@@ -321,7 +321,7 @@ export default function Footer({
           it spans the full footer width edge-to-edge (just a small
           horizontal gutter), separating the legal/social strip
           visually from the centred content above. */}
-      <div className="relative z-10 px-5 sm:px-8 md:px-16 lg:px-32 pb-12 md:pb-16 lg:pb-20">
+      <div className="relative z-10 px-6 md:px-10 lg:px-14 pb-12 md:pb-16 lg:pb-20">
         <div className="mt-16 md:mt-24 lg:mt-32 pt-6 md:pt-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between text-xs md:text-sm text-white/65">
           <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-7">
             <span>

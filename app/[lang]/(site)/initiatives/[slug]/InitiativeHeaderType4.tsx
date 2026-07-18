@@ -51,7 +51,7 @@ export default function InitiativeHeaderType4({
       style={{ backgroundColor: base }}
     >
       <GridHoverBackdrop />
-      <div className="relative px-6 md:px-12 lg:px-20 xl:px-28 pt-24 md:pt-28 lg:pt-28 pb-10 md:pb-14 lg:pb-16">
+      <div className="relative px-6 md:px-10 lg:px-14 pt-24 md:pt-28 lg:pt-28 pb-10 md:pb-14 lg:pb-16">
         <div className="mx-auto w-full max-w-page">
           {/* Copy sits in the right ~70% — the empty left column is the design. */}
           <Stagger className="flex flex-col gap-3 lg:gap-4 lg:pl-[28%]">

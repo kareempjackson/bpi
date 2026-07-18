@@ -32,6 +32,12 @@ function splitHeadline(headline: string): { lead: string; rest: string } {
   return { lead: match[1], rest: match[2] };
 }
 
+// Fallback copy for the "How You'll Apply" section — used until the careersPage
+// applyHeading / applyBody fields are populated in Studio.
+const APPLY_HEADING = "How You'll Apply";
+const APPLY_BODY =
+  "Every application goes through BPI's HIOFU-powered Skills Passport, which allows candidates to be evaluated on verified skills and demonstrated capabilities rather than on a CV alone. Your completed Skills Passport is used only to evaluate you for the role you've applied to, and stays in our talent network for future opportunities at BPI and within the BPI ecosystem, if you choose to opt in.";
+
 async function getCareersPage(lang: string): Promise<CareersPage | null> {
   return loadQuery<CareersPage | null>(CAREERS_PAGE_QUERY, {
     params: { lang },
@@ -128,13 +134,13 @@ export default async function CareersPage({
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="pointer-events-none absolute bottom-8 right-6 md:bottom-12 md:right-12 lg:right-20 xl:right-28 h-28 w-28 md:h-44 md:w-44 lg:h-52 lg:w-52 text-error-500/35"
+            className="pointer-events-none absolute bottom-8 right-6 md:bottom-12 md:right-10 lg:right-14 h-28 w-28 md:h-44 md:w-44 lg:h-52 lg:w-52 text-error-500/35"
           >
             <path d="M5 5l14 14" />
             <path d="M19 9v10H9" />
           </svg>
 
-          <div className="relative flex flex-1 flex-col px-6 md:px-12 lg:px-20 xl:px-28 pt-16 md:pt-20 lg:pt-20 pb-10 md:pb-12 lg:pb-12">
+          <div className="relative flex flex-1 flex-col px-6 md:px-10 lg:px-14 pt-16 md:pt-20 lg:pt-20 pb-10 md:pb-12 lg:pb-12">
             <div className="mx-auto flex w-full max-w-page flex-1 flex-col">
               {/* "We are hiring." — white lead headline across the top. */}
               <Stagger
@@ -180,8 +186,11 @@ export default async function CareersPage({
                     </StaggerItem>
                   ) : null}
 
-                  <StaggerItem className="flex flex-col gap-7 max-w-sm lg:mt-auto">
-                    <p className="text-base md:text-lg text-white/65 leading-relaxed">
+                  <StaggerItem className="flex flex-col gap-7 lg:mt-auto">
+                    {/* Hero body per design spec: Albert Sans (via
+                        --font-display) Light 300, 20px / 152% line-height, no
+                        tracking, white. Kept on one line. */}
+                    <p className="whitespace-nowrap font-display text-base md:text-lg lg:text-[20px] font-light leading-[1.52] tracking-normal text-white">
                       {data.heroDescription}
                     </p>
                     <CtaLink
@@ -212,7 +221,7 @@ export default async function CareersPage({
 
         <section
           data-nav-theme="dark"
-          className="bg-error-950 px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-16 lg:h-dvh lg:flex lg:flex-col"
+          className="bg-error-950 px-6 md:px-10 lg:px-14 py-16 md:py-20 lg:py-16 lg:h-dvh lg:flex lg:flex-col"
         >
           <div className="mx-auto w-full max-w-page flex flex-col lg:flex-1 lg:min-h-0">
             {/* Heading + intro */}
@@ -228,7 +237,7 @@ export default async function CareersPage({
             {/* Portrait image (left) + narrative blocks (right). The grid takes
                 the remaining height and both columns stretch to match, so the
                 image is exactly as tall as the text column. */}
-            <div className="mt-10 lg:mt-12 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-stretch lg:flex-1 lg:min-h-0">
+            <div className="mt-10 lg:mt-12 grid grid-cols-1 lg:grid-cols-[0.95fr_1.05fr] gap-10 lg:gap-36 items-stretch lg:flex-1 lg:min-h-0">
               {whyMedia ? (
                 <Reveal
                   preset="scale"

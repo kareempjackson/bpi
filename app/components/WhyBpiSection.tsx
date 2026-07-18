@@ -29,7 +29,7 @@ export default function WhyBpiSection({
   return (
     <section
       data-nav-theme="light"
-      className="bg-error-500 px-5 sm:px-8 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-32"
+      className="bg-error-500 px-6 md:px-10 lg:px-14 py-16 md:py-24 lg:py-32"
     >
       <Stagger className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
         {/* Left — quote, body, CTA */}

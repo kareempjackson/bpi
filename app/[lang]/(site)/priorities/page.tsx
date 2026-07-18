@@ -168,6 +168,8 @@ export default async function PrioritiesPage({
     ? localizedHref(lang, pageData.heroCta.href)
     : contactHref;
 
+  // Impact stats band is hidden by default; an editor opts in via `showStats`.
+  const showStats = pageData?.showStats === true;
   const statsIntro =
     pageData?.statsIntro ??
     "Our commitment to excellence is reflected in the impact we continue to create across the pharmaceutical sector.";
@@ -206,18 +208,6 @@ export default async function PrioritiesPage({
   const prioritiesCtaHref = pageData?.prioritiesCta?.href
     ? localizedHref(lang, pageData.prioritiesCta.href)
     : contactHref;
-
-  const closingEyebrow = pageData?.closingEyebrow ?? "What We Are Building";
-  const closingHeadlineLine1 = pageData?.closingHeadlineLine1 ?? "Why BPI";
-  const closingHeadlineLine2 =
-    pageData?.closingHeadlineLine2 ?? "Political + Investment";
-  const closingBody =
-    pageData?.closingBody ??
-    "BPI is how a small island secures its own health sovereignty, reducing dependence on imported medicine and protecting the country from the next shipping disruption or export ban. For investors, it’s a state-backed partner and equity co-investor that de-risks land, regulatory pathways, financing, and market entry into a fast-diversifying global pharmaceutical industry.";
-  const closingCtaLabel = pageData?.closingCta?.label ?? "Partner With BPI";
-  const closingCtaHref = pageData?.closingCta?.href
-    ? localizedHref(lang, pageData.closingCta.href)
-    : `/${lang}/impact`;
 
   // Latest from BPI — newest posts (feature + compact cards). Editors control
   // the list by adding/removing posts and tuning `latestShowCount`.
@@ -296,7 +286,8 @@ export default async function PrioritiesPage({
         </div>
       </section>
 
-      {/* ── Impact stats ───────────────────────────────────────────── */}
+      {/* ── Impact stats (hidden by default; editor opt-in via showStats) ── */}
+      {showStats ? (
       <section
         data-nav-theme="light"
         className="bg-error-500 px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-24"
@@ -339,6 +330,7 @@ export default async function PrioritiesPage({
           </Stagger>
         </div>
       </section>
+      ) : null}
 
       {/* ── Strategic priorities ───────────────────────────────────── */}
       <section
@@ -396,53 +388,6 @@ export default async function PrioritiesPage({
               </div>
             )}
           </Reveal>
-        </div>
-      </section>
-
-      {/* ── Why BPI (closing) ──────────────────────────────────────── */}
-      <section
-        data-nav-theme="dark"
-        style={{ backgroundColor: "#01190d" }}
-        className="relative overflow-hidden px-6 md:px-12 lg:px-20 xl:px-28 py-20 md:py-28 lg:py-32"
-      >
-        <div className="mx-auto grid w-full max-w-page grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-          {/* Left — eyebrow + stepped two-tone headline. */}
-          <Stagger>
-            <StaggerItem
-              as="span"
-              className="text-sm font-medium tracking-[0.14em] text-white/70"
-            >
-              {closingEyebrow}
-            </StaggerItem>
-            <StaggerItem
-              as="h2"
-              className="mt-6 font-display text-[clamp(2.25rem,4vw,3.5rem)] font-bold leading-[1.12] tracking-[-0.02em]"
-            >
-              <span className="block text-white">{closingHeadlineLine1}</span>
-              <span className="block text-error-500 lg:ml-20">
-                {closingHeadlineLine2}
-              </span>
-            </StaggerItem>
-          </Stagger>
-
-          {/* Right — body, rule, CTA. */}
-          <Stagger className="flex flex-col lg:pt-8">
-            <StaggerItem
-              as="p"
-              className="text-lg md:text-xl text-white/85 leading-relaxed"
-            >
-              {closingBody}
-            </StaggerItem>
-            <StaggerItem className="mt-8 h-px w-full bg-white/15" />
-            <StaggerItem>
-              <CtaLink
-                href={closingCtaHref}
-                className="mt-10 inline-flex w-fit items-center rounded-round bg-error-500 px-6 py-2.5 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-(--ease-premium) hover:bg-error-400"
-              >
-                {closingCtaLabel}
-              </CtaLink>
-            </StaggerItem>
-          </Stagger>
         </div>
       </section>
 

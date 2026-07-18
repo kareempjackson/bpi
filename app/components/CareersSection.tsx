@@ -47,8 +47,8 @@ export default function CareersSection({
       data-nav-theme="light"
       className={`${isBlue ? "bg-[#E7F9FF]" : "bg-[#EAFBF1]"} ${
         contained
-          ? "px-6 md:px-12 lg:px-20 xl:px-28 pb-16 md:pb-24 lg:pb-28"
-          : "px-5 sm:px-8 md:px-12 lg:px-20 xl:px-28 pt-16 md:pt-24 lg:pt-32 pb-4 lg:pb-8"
+          ? "px-6 md:px-10 lg:px-14 pb-16 md:pb-24 lg:pb-28"
+          : "px-6 md:px-10 lg:px-14 pt-16 md:pt-24 lg:pt-32 pb-4 lg:pb-8"
       }`}
     >
       <div className={contained ? "mx-auto max-w-page" : ""}>

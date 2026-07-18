@@ -640,6 +640,9 @@ export const CAREERS_PAGE_QUERY = defineQuery(`
     "whyBulletsHeading": ${loc("whyBulletsHeading")},
     whyBullets,
 
+    "applyHeading": ${loc("applyHeading")},
+    "applyBody": ${loc("applyBody")},
+
     "jobsHeading": ${loc("jobsHeading")},
     "jobsDescription": ${loc("jobsDescription")},
     "jobsSearchPlaceholder": ${loc("jobsSearchPlaceholder")},
@@ -782,6 +785,7 @@ export const PRIORITIES_PAGE_QUERY = defineQuery(`
     heroCta${CTA_PROJECTION},
     heroImage${IMAGE_PROJECTION},
 
+    showStats,
     "statsIntro": ${loc("statsIntro")},
     "statsHeading": ${loc("statsHeading")},
     stats[]{
@@ -796,12 +800,6 @@ export const PRIORITIES_PAGE_QUERY = defineQuery(`
     },
     prioritiesCta${CTA_PROJECTION},
     prioritiesImage${IMAGE_PROJECTION},
-
-    "closingEyebrow": ${loc("closingEyebrow")},
-    "closingHeadlineLine1": ${loc("closingHeadlineLine1")},
-    "closingHeadlineLine2": ${loc("closingHeadlineLine2")},
-    "closingBody": ${loc("closingBody")},
-    closingCta${CTA_PROJECTION},
 
     "latestHeading": ${loc("latestHeading")},
     latestShowCount,
@@ -1176,6 +1174,35 @@ export const EVENT_FOR_SYNC_QUERY = defineQuery(`
     "imageUrl": image.asset.asset->url,
     eventbriteId,
     syncHash
+  }
+`);
+
+export const IMPACT_PAGE_QUERY = defineQuery(`
+  *[_type == "impactPage"][0]{
+    "seoTitle": ${loc("seoTitle")},
+    "seoDescription": ${loc("seoDescription")},
+
+    "heroHeading": ${loc("heroHeading")},
+    "heroBody": ${loc("heroBody")},
+    heroImage${IMAGE_PROJECTION},
+    heroCta${CTA_PROJECTION},
+
+    "whyEyebrow": ${loc("whyEyebrow")},
+    "whyHeadingLead": ${loc("whyHeadingLead")},
+    "whyHeadingTrail": ${loc("whyHeadingTrail")},
+    "whyBody": ${loc("whyBody")},
+    "whyQuote": ${loc("whyQuote")},
+    "whyAttributionName": ${loc("whyAttributionName")},
+    "whyAttributionDate": ${loc("whyAttributionDate")},
+    whyPortrait${IMAGE_PROJECTION},
+
+    facilityImage${IMAGE_PROJECTION},
+
+    trajectoryBlocks[]{
+      "heading": ${loc("heading")},
+      "body": ${loc("body")},
+      highlight
+    }
   }
 `);
 

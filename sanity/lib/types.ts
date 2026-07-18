@@ -601,6 +601,9 @@ export type CareersPage = {
   whyBulletsHeading: string;
   whyBullets: string[];
 
+  applyHeading?: string | null;
+  applyBody?: string | null;
+
   jobsHeading: string;
   jobsDescription: string;
   jobsSearchPlaceholder?: string | null;
@@ -731,6 +734,7 @@ export type PrioritiesPage = {
   heroCta?: Cta | null;
   heroImage?: SanityImage | null;
 
+  showStats?: boolean | null;
   statsIntro?: string | null;
   statsHeading?: string | null;
   stats?: { value?: string | null; description?: string | null }[] | null;
@@ -740,12 +744,6 @@ export type PrioritiesPage = {
   priorities?: { label?: string | null }[] | null;
   prioritiesCta?: Cta | null;
   prioritiesImage?: SanityImage | null;
-
-  closingEyebrow?: string | null;
-  closingHeadlineLine1?: string | null;
-  closingHeadlineLine2?: string | null;
-  closingBody?: string | null;
-  closingCta?: Cta | null;
 
   latestHeading?: string | null;
   latestShowCount?: number | null;
@@ -973,6 +971,35 @@ export type ContactPage = {
   formSubmitLabel: string;
   formBg?: string | null;
   formImage: SanityImage;
+};
+
+export type ImpactPage = {
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+
+  heroHeading?: string | null;
+  heroBody?: string | null;
+  heroImage?: SanityImage | null;
+  heroCta?: Cta;
+
+  whyEyebrow?: string | null;
+  whyHeadingLead?: string | null;
+  whyHeadingTrail?: string | null;
+  whyBody?: string | null;
+  whyQuote?: string | null;
+  whyAttributionName?: string | null;
+  whyAttributionDate?: string | null;
+  whyPortrait?: SanityImage | null;
+
+  facilityImage?: SanityImage | null;
+
+  trajectoryBlocks?:
+    | {
+        heading?: string | null;
+        body?: string | null;
+        highlight?: boolean | null;
+      }[]
+    | null;
 };
 
 export type AboutPage = {

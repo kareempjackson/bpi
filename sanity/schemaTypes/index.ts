@@ -7,6 +7,7 @@ import { contactPage } from "./documents/contactPage";
 import { contactSubmission } from "./documents/contactSubmission";
 import { event } from "./documents/event";
 import { homePage } from "./documents/homePage";
+import { impactPage } from "./documents/impactPage";
 import { initiative } from "./documents/initiative";
 import { initiativesPage } from "./documents/initiativesPage";
 import { investorsPage } from "./documents/investorsPage";
@@ -81,6 +82,7 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   siteSettings,
   homePage,
   aboutPage,
+  impactPage,
   initiativesPage,
   contactPage,
   careersPage,

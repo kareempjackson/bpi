@@ -12,6 +12,9 @@ export type SectorSlide = {
   description?: string;
   href?: string;
   imageSrc?: string;
+  /** When set, the drawer plays this video (muted, looping) in place of the
+   *  still. `imageSrc` is used as its poster. */
+  videoSrc?: string;
   imageAlt?: string;
 };
 
@@ -135,8 +138,23 @@ export default function SectorsStack({ slides }: { slides: SectorSlide[] }) {
                         </CtaLink>
                       ) : null}
                     </div>
-                    {/* Large still on the right. */}
-                    {s.imageSrc ? (
+                    {/* Large media on the right — the sector's video (muted,
+                        looping) when one is set, otherwise its still image. */}
+                    {s.videoSrc ? (
+                      <div className="relative aspect-2/1 w-full shrink-0 overflow-hidden rounded-2xl bg-primary-500/5 lg:w-[46%]">
+                        <video
+                          src={s.videoSrc}
+                          poster={s.imageSrc}
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                          preload="metadata"
+                          aria-label={s.imageAlt || s.title}
+                          className="absolute inset-0 h-full w-full object-cover"
+                        />
+                      </div>
+                    ) : s.imageSrc ? (
                       <div className="relative aspect-2/1 w-full shrink-0 overflow-hidden rounded-2xl bg-primary-500/5 lg:w-[46%]">
                         <Image
                           src={s.imageSrc}

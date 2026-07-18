@@ -10,6 +10,7 @@ export const careersPage = defineType({
     { name: "seo", title: "SEO" },
     { name: "hero", title: "Hero", default: true },
     { name: "why", title: "Why work with us" },
+    { name: "apply", title: "How you'll apply" },
     { name: "jobs", title: "Jobs section" },
     { name: "legal", title: "Equal opportunity" },
   ],
@@ -126,6 +127,23 @@ export const careersPage = defineType({
         "Meaningful impact on healthcare delivery",
         "Commitment to excellence and sustainability",
       ],
+    }),
+
+    // ──────────────────────────────────────────────────── How you'll apply ──
+    defineField({
+      name: "applyHeading",
+      title: "Heading",
+      description: "e.g. “How You'll Apply”.",
+      type: "internationalizedArrayString",
+      group: "apply",
+    }),
+    defineField({
+      name: "applyBody",
+      title: "Body",
+      description:
+        "Explanation shown above the jobs list. Separate paragraphs with a blank line.",
+      type: "internationalizedArrayText",
+      group: "apply",
     }),
 
     // ──────────────────────────────────────────────────────── Jobs panel ──

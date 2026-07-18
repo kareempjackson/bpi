@@ -6,6 +6,7 @@ const SINGLETON_IDS = new Set<string>([
   "siteSettings",
   "homePage",
   "aboutPage",
+  "impactPage",
   "initiativesPage",
   "contactPage",
   "careersPage",
@@ -37,6 +38,12 @@ export const structure: StructureResolver = (S) =>
         .id("aboutPage")
         .child(
           S.document().schemaType("aboutPage").documentId("aboutPage"),
+        ),
+      S.listItem()
+        .title("Impact page")
+        .id("impactPage")
+        .child(
+          S.document().schemaType("impactPage").documentId("impactPage"),
         ),
       S.listItem()
         .title("Initiatives page")

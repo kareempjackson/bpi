@@ -559,8 +559,8 @@ export default function SectorsSection({
         <div
           className={
             pinned
-              ? "sticky top-0 h-screen overflow-hidden flex flex-col px-6 md:px-20 lg:px-32 pt-12 lg:pt-16 pb-4 lg:pb-8"
-              : "relative flex flex-col px-6 md:px-20 lg:px-32 pt-12 lg:pt-16 pb-14 md:pb-20 lg:pb-28"
+              ? "sticky top-0 h-screen overflow-hidden flex flex-col px-6 md:px-10 lg:px-14 pt-12 lg:pt-16 pb-4 lg:pb-8"
+              : "relative flex flex-col px-6 md:px-10 lg:px-14 pt-12 lg:pt-16 pb-14 md:pb-20 lg:pb-28"
           }
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}

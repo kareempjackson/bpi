@@ -126,7 +126,7 @@ export default function ArchitectureOfCareSection({
   return (
     <section
       data-nav-theme="light"
-      className="bg-error-25 px-5 md:px-20 lg:px-32 pt-10 md:pt-20 lg:pt-28 pb-8 md:pb-16 lg:pb-24"
+      className="bg-error-25 px-6 md:px-10 lg:px-14 pt-10 md:pt-20 lg:pt-28 pb-8 md:pb-16 lg:pb-24"
     >
       <div className="mx-auto max-w-page">
         <Stagger className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-20 items-start">
