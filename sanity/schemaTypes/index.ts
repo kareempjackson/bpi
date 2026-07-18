@@ -13,6 +13,7 @@ import { initiativesPage } from "./documents/initiativesPage";
 import { investorsPage } from "./documents/investorsPage";
 import { job } from "./documents/job";
 import { newsletterSubscription } from "./documents/newsletterSubscription";
+import { partnersPage } from "./documents/partnersPage";
 import { portalPage } from "./documents/portalPage";
 import { portalResource } from "./documents/portalResource";
 import { portalUser } from "./documents/portalUser";
@@ -90,6 +91,7 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   sectorsPage,
   blogPage,
   investorsPage,
+  partnersPage,
   initiative,
   priority,
   sector,

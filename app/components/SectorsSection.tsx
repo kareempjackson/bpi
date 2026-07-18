@@ -807,6 +807,12 @@ export default function SectorsSection({
                   const diagram = sectionRef.current?.querySelector<HTMLElement>(
                     "div.aspect-3\\/2",
                   );
+                  // The porthole's live playback position, so the zoom clone
+                  // continues from the exact frame on screen instead of
+                  // restarting the video from zero.
+                  const nodeVideo =
+                    e.currentTarget.querySelector<HTMLVideoElement>("video");
+                  const videoTime = nodeVideo?.currentTime;
                   if (viewTransition && diagram) {
                     const rect = diagram.getBoundingClientRect();
                     viewTransition.zoomReveal({
@@ -816,6 +822,7 @@ export default function SectorsSection({
                       diameter: (n.r / VIEWBOX_W) * rect.width * 2,
                       videoSrc: n.videoSrc,
                       imageSrc: n.imageSrc,
+                      videoTime,
                     });
                   } else if (viewTransition) {
                     viewTransition.navigate(href, {

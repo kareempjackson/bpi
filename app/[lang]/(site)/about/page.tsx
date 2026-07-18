@@ -197,7 +197,7 @@ export default async function AboutPage({
 
       <section
         data-nav-theme="light"
-        className="bg-error-25 px-6 md:px-12 lg:px-20 xl:px-28 pt-28 md:pt-36 lg:pt-44 pb-12 md:pb-16 lg:pb-24"
+        className="bg-error-25 px-6 md:px-10 lg:px-14 pt-28 md:pt-36 lg:pt-44 pb-12 md:pb-16 lg:pb-24"
       >
         <div className="mx-auto max-w-page">
           <Stagger
@@ -231,7 +231,7 @@ export default async function AboutPage({
 
       <DifferenceWeMakeSection data={data} />
 
-      <section className="px-5 md:px-20 lg:px-32 pt-12 md:pt-12 lg:pt-16 pb-12 md:pb-12 lg:pb-16">
+      <section className="px-6 md:px-10 lg:px-14 pt-12 md:pt-12 lg:pt-16 pb-12 md:pb-12 lg:pb-16">
         <div className="mx-auto max-w-page">
           <Stagger className="max-w-2xl mb-8 lg:mb-8">
             <StaggerItem as="h2" className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
@@ -257,14 +257,14 @@ export default async function AboutPage({
 
       {/* Full-width video/media banner — sits directly above the numbers. */}
       {bannerMedia ? (
-        <section className="px-5 md:px-20 lg:px-32 pt-8 lg:pt-10 pb-8 lg:pb-10">
+        <section className="px-6 md:px-10 lg:px-14 pt-8 lg:pt-10 pb-8 lg:pb-10">
           <div className="mx-auto max-w-page">
             <AboutBannerVideo media={bannerMedia} />
           </div>
         </section>
       ) : null}
 
-      <section className="px-5 md:px-20 lg:px-32 pt-12 md:pt-12 lg:pt-16 pb-12 md:pb-12 lg:pb-16">
+      <section className="px-6 md:px-10 lg:px-14 pt-12 md:pt-12 lg:pt-16 pb-12 md:pb-12 lg:pb-16">
         <div className="mx-auto max-w-page">
           <Stagger className="max-w-3xl mb-8 lg:mb-8">
             <StaggerItem as="h2" className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
@@ -291,7 +291,7 @@ export default async function AboutPage({
         {/* Full-bleed dark-green band; the content inside is constrained and
             padded to line up with the team section's max-w-page column. */}
         <div className="bg-[#13362A] py-12 md:py-16 lg:py-24">
-          <div className="px-5 md:px-20 lg:px-32">
+          <div className="px-6 md:px-10 lg:px-14">
             <Stagger className="mx-auto max-w-page">
               <StaggerItem className="mb-8 lg:mb-8">
                 <p className="text-[10px] lg:text-xs font-bold tracking-[0.14em] text-white/60 uppercase">
@@ -310,7 +310,7 @@ export default async function AboutPage({
         </div>
       </section>
 
-      <section className="px-5 md:px-20 lg:px-32 pt-12 md:pt-10 lg:pt-14 pb-14 md:pb-14 lg:pb-20">
+      <section className="px-6 md:px-10 lg:px-14 pt-12 md:pt-10 lg:pt-14 pb-14 md:pb-14 lg:pb-20">
         <Stagger className="mx-auto max-w-page">
           <StaggerItem className="max-w-md mb-8 lg:mb-10">
             <h2 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
@@ -421,7 +421,7 @@ function DifferenceWeMakeSection({ data }: { data: AboutPage }) {
   }
 
   return (
-    <section className="my-12 md:my-16 lg:my-24 px-5 md:px-20 lg:px-32 pt-12 md:pt-12 lg:pt-16 pb-12 md:pb-12 lg:pb-16">
+    <section className="my-12 md:my-16 lg:my-24 px-6 md:px-10 lg:px-14 pt-12 md:pt-12 lg:pt-16 pb-12 md:pb-12 lg:pb-16">
       <div className="mx-auto max-w-page grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-20 items-start">
         <Stagger className="max-w-sm">
           {eyebrow ? (
@@ -726,7 +726,7 @@ function PillarCard({ pillar }: { pillar: PillarData }) {
 
 function EmptyState() {
   return (
-    <main className="bg-error-25 min-h-[60vh] flex items-center justify-center px-5 md:px-20 lg:px-32 py-20">
+    <main className="bg-error-25 min-h-[60vh] flex items-center justify-center px-6 md:px-10 lg:px-14 py-20">
       <div className="mx-auto max-w-page text-center">
         <h1 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
           About page not yet configured

@@ -1177,6 +1177,33 @@ export const EVENT_FOR_SYNC_QUERY = defineQuery(`
   }
 `);
 
+export const PARTNERS_PAGE_QUERY = defineQuery(`
+  *[_type == "partnersPage"][0]{
+    "seoTitle": ${loc("seoTitle")},
+    "seoDescription": ${loc("seoDescription")},
+
+    "heroHeading": ${loc("heroHeading")},
+    "heroBody": ${loc("heroBody")},
+    heroImage${IMAGE_PROJECTION},
+    heroCta${CTA_PROJECTION},
+
+    partnerGroups[]{
+      "eyebrow": ${loc("eyebrow")},
+      "headingLead": ${loc("headingLead")},
+      "headingTrail": ${loc("headingTrail")},
+      layout,
+      cards[]{
+        "title": ${loc("title")},
+        "description": ${loc("description")},
+        tone
+      },
+      cta${CTA_PROJECTION},
+      secondaryCta${CTA_PROJECTION},
+      image${IMAGE_PROJECTION}
+    }
+  }
+`);
+
 export const IMPACT_PAGE_QUERY = defineQuery(`
   *[_type == "impactPage"][0]{
     "seoTitle": ${loc("seoTitle")},

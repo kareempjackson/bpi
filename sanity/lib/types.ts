@@ -973,6 +973,35 @@ export type ContactPage = {
   formImage: SanityImage;
 };
 
+export type PartnerCard = {
+  title?: string | null;
+  description?: string | null;
+  tone?: string | null;
+};
+
+export type PartnerGroup = {
+  eyebrow?: string | null;
+  headingLead?: string | null;
+  headingTrail?: string | null;
+  layout?: "cards" | "list" | "panel" | "feature" | "split" | null;
+  cards?: PartnerCard[] | null;
+  cta?: Cta;
+  secondaryCta?: Cta;
+  image?: SanityImage | null;
+};
+
+export type PartnersPage = {
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+
+  heroHeading?: string | null;
+  heroBody?: string | null;
+  heroImage?: SanityImage | null;
+  heroCta?: Cta;
+
+  partnerGroups?: PartnerGroup[] | null;
+};
+
 export type ImpactPage = {
   seoTitle?: string | null;
   seoDescription?: string | null;

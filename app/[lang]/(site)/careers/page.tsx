@@ -102,6 +102,11 @@ export default async function CareersPage({
       ? headlineRest.slice(headlineRestLastSpace + 1)
       : headlineRest;
 
+  const applyParagraphs = (data.applyBody ?? APPLY_BODY)
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
   const jobsForSection: JobsSectionJob[] = jobs.map((j) => ({
     slug: j.slug,
     title: j.title,
@@ -279,6 +284,27 @@ export default async function CareersPage({
               </Stagger>
             </div>
           </div>
+        </section>
+
+        {/* How You'll Apply — introduces the Skills Passport process above the
+            jobs list. Light band, nav-aligned, heading-left / body-right. */}
+        <section
+          data-nav-theme="light"
+          className="bg-error-25 px-6 md:px-10 lg:px-14 py-16 md:py-24 lg:py-28"
+        >
+          <Stagger className="mx-auto grid max-w-page grid-cols-1 gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
+            <StaggerItem
+              as="h2"
+              className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-primary-500 leading-tight tracking-[-0.02em]"
+            >
+              {data.applyHeading ?? APPLY_HEADING}
+            </StaggerItem>
+            <StaggerItem className="flex flex-col gap-5 text-base md:text-lg text-primary-500/75 leading-relaxed">
+              {applyParagraphs.map((p, i) => (
+                <p key={i}>{p}</p>
+              ))}
+            </StaggerItem>
+          </Stagger>
         </section>
 
         <JobsSection

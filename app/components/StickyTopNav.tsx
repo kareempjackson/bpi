@@ -40,6 +40,18 @@ const FALLBACK_BG = "#eafbf1"; // matches bg-error-25 in globals.css
 const HERO_PATHS = new Set<string>(["/"]);
 
 /**
+ * "Overlay" routes: pages whose header is a full-bleed image the nav should
+ * float over. Unlike hero pages, the nav stays *visible* here (it does not
+ * hide on scroll) — it's just positioned `fixed` instead of `sticky` so the
+ * header image sits behind it rather than being pushed down by a reserved nav
+ * strip. Prefix match so every blog post (`/blog/<slug>`) qualifies, but not
+ * the blog index (`/blog`).
+ */
+function isOverlayRoute(routePath: string): boolean {
+  return routePath.startsWith("/blog/");
+}
+
+/**
  * Hero background colour per route (locale-stripped path). The live sampler
  * only reads the section under the nav *after* the first paint, so on a hard
  * load — or the moment a client-side navigation commits — the nav would briefly
@@ -131,6 +143,10 @@ export default function StickyTopNav({
   // Route comparisons use the locale-stripped path so `/en`, `/es/about`, etc.
   // resolve like `/`, `/about`.
   const routePath = stripLocale(pathname);
+  // Overlay routes (blog posts) position the nav `fixed` so their full-bleed
+  // image header sits behind it. Derived straight from the path so it's stable
+  // across SSR + client without a state flip.
+  const overlay = isOverlayRoute(routePath);
   // Resolve `hasHero` from the route up front — `usePathname` is valid
   // during SSR so the initial server-rendered nav matches what the user
   // will see on hydration: hidden over hero pages, visible on non-hero
@@ -149,6 +165,11 @@ export default function StickyTopNav({
   const [overHero, setOverHero] = useState(initialHasHero);
   const [bg, setBg] = useState<string>(initialTheme.bg);
   const [isDark, setIsDark] = useState(initialTheme.dark);
+  // True when the section under the nav opts into a fully-transparent nav
+  // (a `data-nav-bg` with alpha 0). The bar then drops its frosted-glass
+  // backdrop-blur and paints no background, so the logo/menu sit directly on
+  // the header as if part of it.
+  const [transparent, setTransparent] = useState(false);
   // Tracks whether the page has scrolled past the top. Inner (non-hero)
   // pages render an enlarged logo while pinned at the top, then shrink it
   // to the default size once the user scrolls.
@@ -158,6 +179,7 @@ export default function StickyTopNav({
   const overHeroRef = useRef(initialHasHero);
   const bgRef = useRef<string>(initialTheme.bg);
   const isDarkRef = useRef<boolean>(initialTheme.dark);
+  const transparentRef = useRef(false);
   const lastYRef = useRef(0);
   const surfaceRef = useRef<HTMLDivElement>(null);
 
@@ -180,6 +202,7 @@ export default function StickyTopNav({
     setScrolled(false);
     setBg(nextTheme.bg);
     setIsDark(nextTheme.dark);
+    setTransparent(false);
     // Pause CSS transitions for the brief window between this reset
     // and the dynamic detect pass — otherwise the nav visibly animates
     // its colour/translate from the old route's values to the new
@@ -208,6 +231,7 @@ export default function StickyTopNav({
     overHeroRef.current = heroExists;
     bgRef.current = routeTheme.bg;
     isDarkRef.current = routeTheme.dark;
+    transparentRef.current = false;
 
     let raf = 0;
     lastYRef.current = window.scrollY;
@@ -230,7 +254,9 @@ export default function StickyTopNav({
       themeMeta.setAttribute("content", color);
     };
 
-    const detect = (): { color: string; dark: boolean } | null => {
+    const detect = ():
+      | { color: string; dark: boolean; transparent: boolean }
+      | null => {
       const surface = surfaceRef.current;
       if (!surface) return null;
 
@@ -253,7 +279,9 @@ export default function StickyTopNav({
           window.innerWidth * 0.82,
         ];
 
-        let chosen: { color: string; dark: boolean } | null = null;
+        let chosen:
+          | { color: string; dark: boolean; transparent: boolean }
+          | null = null;
         outer: for (const x of samples) {
           const els = document.elementsFromPoint(x, sampleY);
           for (const el of els) {
@@ -268,7 +296,11 @@ export default function StickyTopNav({
               const dark = parsed
                 ? luminance(parsed[0], parsed[1], parsed[2]) < 0.5
                 : false;
-              chosen = { color, dark };
+              // A fully-transparent override (alpha 0) means "no bar" — the
+              // nav drops its backdrop-blur and paints nothing, sitting
+              // directly on the header. The RGB still drives text contrast.
+              const transparent = parsed ? parsed[3] === 0 : false;
+              chosen = { color, dark, transparent };
               break outer;
             }
 
@@ -276,7 +308,7 @@ export default function StickyTopNav({
             const parsed = parseRgb(cs.backgroundColor);
             if (parsed && parsed[3] > 0.5) {
               const dark = luminance(parsed[0], parsed[1], parsed[2]) < 0.5;
-              chosen = { color: cs.backgroundColor, dark };
+              chosen = { color: cs.backgroundColor, dark, transparent: false };
               break outer;
             }
           }
@@ -379,11 +411,16 @@ export default function StickyTopNav({
             setBg(detected.color);
           }
           // Match the mobile status-bar tint to whatever the nav is
-          // sampling, so the time/battery area extends the page colour.
-          setThemeColor(detected.color);
+          // sampling. For a transparent nav there's no bar colour to match,
+          // so tint the chrome the site's dark header tone instead.
+          setThemeColor(detected.transparent ? "#01190d" : detected.color);
           if (detected.dark !== isDarkRef.current) {
             isDarkRef.current = detected.dark;
             setIsDark(detected.dark);
+          }
+          if (detected.transparent !== transparentRef.current) {
+            transparentRef.current = detected.transparent;
+            setTransparent(detected.transparent);
           }
         }
       }
@@ -434,7 +471,7 @@ export default function StickyTopNav({
       // `translateY` on scroll-up/down, so keep it on its own compositor
       // layer — the show/hide is then a pure composited transform with no
       // layout or paint per scroll frame.
-      className={`${hasHero ? "fixed" : "sticky"} top-0 inset-x-0 z-40 transform-gpu will-change-transform ${
+      className={`${hasHero || overlay ? "fixed" : "sticky"} top-0 inset-x-0 z-40 transform-gpu will-change-transform ${
         ready
           ? "transition-transform duration-500 ease-[var(--ease-premium)]"
           : ""
@@ -444,8 +481,11 @@ export default function StickyTopNav({
         ref={surfaceRef}
         // `isolate` gives the backdrop-filter its own stacking context so
         // its repaint stays bounded to this thin bar rather than compositing
-        // against the whole page.
-        className={`isolate backdrop-blur-md backdrop-saturate-150 ${
+        // against the whole page. When `transparent`, the blur is dropped so
+        // the bar leaves no frosted footprint over the header image.
+        className={`isolate ${
+          transparent ? "" : "backdrop-blur-md backdrop-saturate-150"
+        } ${
           scrolled ? "pt-2 md:pt-3 pb-2 md:pb-3" : "pt-5 md:pt-6 pb-4 md:pb-5"
         } ${
           ready

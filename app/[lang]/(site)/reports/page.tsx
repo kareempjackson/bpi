@@ -201,7 +201,7 @@ export default async function ReportsPage({
       {/* ── Publications grid ──────────────────────────────────────── */}
       <section
         data-nav-theme="light"
-        className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-28"
+        className="px-6 md:px-10 lg:px-14 py-16 md:py-24 lg:py-28"
       >
         <div className="mx-auto w-full max-w-page">
           <PublicationsGrid lang={lang} posts={PUBLICATIONS} />
@@ -211,7 +211,7 @@ export default async function ReportsPage({
       {/* ── Newsletter CTA ─────────────────────────────────────────── */}
       <section
         data-nav-theme="light"
-        className="px-6 md:px-12 lg:px-20 xl:px-28 pb-20 md:pb-28 lg:pb-32"
+        className="px-6 md:px-10 lg:px-14 pb-20 md:pb-28 lg:pb-32"
       >
         <div className="mx-auto w-full max-w-page">
           <Stagger

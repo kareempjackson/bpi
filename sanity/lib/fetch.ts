@@ -35,6 +35,7 @@ export const TAG = {
   contactPage: "contactPage",
   careersPage: "careersPage",
   investorsPage: "investorsPage",
+  partnersPage: "partnersPage",
   prioritiesPage: "prioritiesPage",
   priority: "priority",
   sectorsPage: "sectorsPage",

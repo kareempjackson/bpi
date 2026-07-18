@@ -144,8 +144,10 @@ export default function BlogBrowser({
 
       {posts.length > 0 ? (
         <div className="mt-12 lg:mt-16 grid grid-cols-1 lg:grid-cols-[26rem_1fr] gap-8 lg:gap-12">
-          {/* Filter sidebar (left) */}
-          <aside className="lg:sticky lg:top-24 lg:self-start">
+          {/* Filter sidebar (left). Sticky offset clears the sticky top nav
+              (≈96px tall when scrolled) plus a gap, so the nav never covers the
+              filter controls when the sidebar pins. */}
+          <aside className="lg:sticky lg:top-32 lg:self-start">
             {heading ? (
               <h2 className="font-display text-display-xs md:text-display-sm font-bold text-primary-500 leading-[1.05] tracking-[-0.02em]">
                 {heading}

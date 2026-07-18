@@ -43,6 +43,13 @@ type ZoomRevealOptions = {
   /** Live media to zoom — video preferred, image as fallback/poster. */
   videoSrc?: string;
   imageSrc?: string;
+  /**
+   * The porthole video's playback position (seconds) at click time. The zoom
+   * clone seeks here on mount so the dive continues from the exact frame the
+   * node was showing — no restart-from-zero flash — and the same position is
+   * handed to the destination hero video so playback never breaks.
+   */
+  videoTime?: number;
 };
 
 type ViewTransitionContextValue = {
@@ -159,6 +166,13 @@ export default function ViewTransitionProvider({
   // `armed` flips one frame after mount so the media box transitions from the
   // node's circle to full-screen (a same-render value change wouldn't animate).
   const [armed, setArmed] = useState(false);
+  // The zoom clone starts hidden and is only shown — and the zoom only armed —
+  // once it has actually seeked to the porthole's frame. Until then the live
+  // porthole video shows straight through the transparent overlay box (they sit
+  // in the exact same spot), so there's no blank-then-repaint blink when the
+  // fresh <video> loads and seeks. Image nodes are ready immediately.
+  const [mediaReady, setMediaReady] = useState(false);
+  const mediaReadyTimer = useRef<number | null>(null);
   // The destination hero's measured rect. When set, the full-screen media flies
   // into it (the "unbroken shot"); when null, the reveal is a plain dissolve.
   const [landRect, setLandRect] = useState<LandRect | null>(null);
@@ -168,6 +182,10 @@ export default function ViewTransitionProvider({
   const minHoldRef = useRef(false);
   const zoomStartPathRef = useRef<string | null>(null);
   const zoomHrefRef = useRef("");
+  // The live zoom-clone <video>, so we can (a) seek it to the porthole's
+  // playback position on mount and (b) read its position at the handoff to
+  // continue the destination hero video from the same frame.
+  const overlayVideoRef = useRef<HTMLVideoElement | null>(null);
   const zoomStallTimer = useRef<number | null>(null);
   const minHoldTimer = useRef<number | null>(null);
 
@@ -193,6 +211,9 @@ export default function ViewTransitionProvider({
       zoomStartPathRef.current = pathname;
       zoomHrefRef.current = opts.href;
       setArmed(false);
+      // Image nodes have nothing to seek, so they're ready at once; video nodes
+      // flip ready from the clone's seeked/playing events (or the safety timer).
+      setMediaReady(!opts.videoSrc || !opts.videoTime);
       setOverlay(opts);
       setPhase("zooming");
       // The route push fires only once the media has covered the screen (the
@@ -202,9 +223,25 @@ export default function ViewTransitionProvider({
     [phase, pathname, router],
   );
 
-  // Arm the box transition one paint after mount (double rAF).
+  // Safety net: never let a stalled seek block the open. If the clone hasn't
+  // reported ready shortly after mount, proceed anyway (worst case a small
+  // repaint, better than a hang).
   useEffect(() => {
-    if (phase !== "zooming") return;
+    if (phase !== "zooming" || mediaReady) return;
+    mediaReadyTimer.current = window.setTimeout(() => setMediaReady(true), 260);
+    return () => {
+      if (mediaReadyTimer.current !== null) {
+        window.clearTimeout(mediaReadyTimer.current);
+        mediaReadyTimer.current = null;
+      }
+    };
+  }, [phase, mediaReady]);
+
+  // Arm the box transition one paint after the clone is ready (double rAF), so
+  // the zoom only begins once the clone is showing the porthole's exact frame —
+  // the swap from the live porthole to the clone is then invisible.
+  useEffect(() => {
+    if (phase !== "zooming" || !mediaReady) return;
     let raf1 = 0;
     let raf2 = 0;
     raf1 = requestAnimationFrame(() => {
@@ -214,12 +251,14 @@ export default function ViewTransitionProvider({
       cancelAnimationFrame(raf1);
       cancelAnimationFrame(raf2);
     };
-  }, [phase]);
+  }, [phase, mediaReady]);
 
   // Media has covered the screen → push the route (it loads behind the
-  // full-screen media) and start watching for the commit.
+  // full-screen media) and start watching for the commit. Timed from `armed`
+  // (the actual zoom start), not the phase change, so the delay spent waiting
+  // for the clone to seek doesn't eat into the zoom's on-screen duration.
   useEffect(() => {
-    if (phase !== "zooming") return;
+    if (phase !== "zooming" || !armed) return;
     const t = window.setTimeout(() => {
       zoomDoneRef.current = true;
       setPhase((p) => (p === "zooming" ? "holding" : p));
@@ -237,7 +276,7 @@ export default function ViewTransitionProvider({
       tryReveal();
     }, ZOOM_MS);
     return () => window.clearTimeout(t);
-  }, [phase, router, tryReveal]);
+  }, [phase, armed, router, tryReveal]);
 
   // Route committed → mark arrived, maybe reveal.
   useEffect(() => {
@@ -293,6 +332,24 @@ export default function ViewTransitionProvider({
             landing = true;
           }
         }
+        // Hand playback to the destination hero video the instant we commit to
+        // landing — while the opaque overlay still fully covers it for the whole
+        // fly-in. Seek it to the clone's current frame and play NOW; both videos
+        // then advance in real time from the same position, so when the overlay
+        // is removed the hero is already playing the matching frame. Its
+        // seek-blank happens entirely behind the cover, so nothing blinks.
+        if (landing) {
+          const heroVideo = hero?.querySelector<HTMLVideoElement>("video");
+          const clone = overlayVideoRef.current;
+          if (heroVideo && clone && Number.isFinite(clone.currentTime)) {
+            const dest = heroVideo.duration || 0;
+            heroVideo.currentTime =
+              dest > 0 ? clone.currentTime % dest : clone.currentTime;
+            const play = heroVideo.play();
+            if (play && typeof play.catch === "function") play.catch(() => {});
+          }
+        }
+
         const dur = landing ? LAND_MS : SETTLE_MS + FADE_MS;
         teardown = window.setTimeout(() => {
           setPhase("idle");
@@ -418,6 +475,7 @@ export default function ViewTransitionProvider({
           >
             {overlay.videoSrc ? (
               <video
+                ref={overlayVideoRef}
                 src={overlay.videoSrc}
                 poster={overlay.imageSrc}
                 autoPlay
@@ -427,11 +485,30 @@ export default function ViewTransitionProvider({
                 preload="auto"
                 disableRemotePlayback
                 disablePictureInPicture
+                onLoadedMetadata={(e) => {
+                  // Continue from the porthole's frame instead of restarting at
+                  // zero. Kept hidden (opacity 0) until the seek lands so the
+                  // seek's blank frame never shows — the live porthole behind
+                  // covers it until then.
+                  const t = overlay.videoTime;
+                  const v = e.currentTarget;
+                  if (t && Number.isFinite(t) && v.duration) {
+                    v.currentTime = t % v.duration;
+                  } else {
+                    setMediaReady(true);
+                  }
+                }}
+                onSeeked={() => setMediaReady(true)}
+                onPlaying={() => setMediaReady(true)}
                 style={{
                   width: "100%",
                   height: "100%",
                   objectFit: "cover",
                   display: "block",
+                  // Instant (no transition): once ready the clone shows the
+                  // identical frame the porthole is showing, so the swap is
+                  // imperceptible; a fade would double-expose the same image.
+                  opacity: mediaReady ? 1 : 0,
                   ...mediaTween,
                 }}
               />
@@ -456,7 +533,9 @@ export default function ViewTransitionProvider({
               style={{
                 background:
                   "radial-gradient(ellipse 80% 70% at 50% 42%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.35) 100%)",
-                opacity: revealing ? 0 : 1,
+                // Off until the clone is shown, so it never darkens the live
+                // porthole peeking through the not-yet-ready overlay box.
+                opacity: revealing || !mediaReady ? 0 : 1,
                 transition: `opacity ${boxDur}ms ${EASE}`,
               }}
             />

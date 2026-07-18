@@ -216,7 +216,7 @@ export default function MissionCarousel({ children }: Props) {
         tabIndex={0}
         onKeyDown={onKeyNav}
         aria-label="Mission cards scroller. Use arrow keys to navigate."
-        className="no-scrollbar overflow-x-auto -mx-5 md:-mx-20 lg:-mx-32 px-5 md:px-20 lg:px-32 scroll-pl-5 md:scroll-pl-20 lg:scroll-pl-32 pb-1 snap-x snap-mandatory focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 focus-visible:ring-offset-4 focus-visible:ring-offset-error-25 rounded-lg"
+        className="no-scrollbar overflow-x-auto -mx-6 md:-mx-10 lg:-mx-14 px-6 md:px-10 lg:px-14 scroll-pl-6 md:scroll-pl-10 lg:scroll-pl-14 pb-1 snap-x snap-mandatory focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 focus-visible:ring-offset-4 focus-visible:ring-offset-error-25 rounded-lg"
       >
         <div className="flex gap-2 lg:gap-3 min-w-max items-center pr-[22vw]">
           {items.map((child, i) => (

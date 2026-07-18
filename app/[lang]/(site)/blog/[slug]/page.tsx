@@ -165,8 +165,16 @@ export default async function BlogPostPage({ params }: RouteProps) {
   return (
     <main className="bg-error-25">
       {/* Full-bleed image hero — title overlaid bottom-left, share widget
-          bottom-right (matches the article hero design). */}
-      <section className="relative flex min-h-[88vh] w-full flex-col justify-end overflow-hidden bg-primary-500">
+          bottom-right (matches the article hero design). The sticky nav sits
+          directly on this header: a fully-transparent `data-nav-bg` (alpha 0)
+          tells the nav to drop its frosted backdrop and paint no background, so
+          the logo/menu float on the cover image as part of the header. The RGB
+          is dark, so the nav keeps white text/icons for legibility. */}
+      <section
+        data-nav-theme="dark"
+        data-nav-bg="rgba(1, 25, 13, 0)"
+        className="relative flex min-h-[88vh] w-full flex-col justify-end overflow-hidden bg-primary-500"
+      >
         {media?.kind === "video" ? (
           <video
             src={media.src}
