@@ -124,6 +124,9 @@ function mediaImageSrc(m: ResolvedMedia | null): string | undefined {
   if (!m) return undefined;
   return m.kind === "image" ? m.src : m.poster;
 }
+function mediaVideoSrc(m: ResolvedMedia | null): string | undefined {
+  return m?.kind === "video" ? m.src : undefined;
+}
 
 export async function generateMetadata({
   params,
@@ -182,6 +185,7 @@ export default async function InitiativesPage({
         lead={homeData?.careersLead ?? undefined}
         body={homeData?.careersBody ?? undefined}
         imageSrc={mediaImageSrc(careersMedia) ?? mediaImageSrc(buildingMedia)}
+        videoSrc={mediaVideoSrc(careersMedia)}
         imageAlt={careersMedia?.alt ?? buildingMedia?.alt}
         primaryLabel={homeData?.careersPrimaryCta?.label ?? undefined}
         primaryHref={

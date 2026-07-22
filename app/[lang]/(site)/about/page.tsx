@@ -197,9 +197,11 @@ export default async function AboutPage({
         </div>
       </section>
 
+      <NeedForChangeSection />
+
       <section
         data-nav-theme="light"
-        className="bg-error-25 px-6 md:px-10 lg:px-14 pt-28 md:pt-36 lg:pt-44 pb-12 md:pb-16 lg:pb-24"
+        className="bg-error-25 px-6 md:px-10 lg:px-14 pt-16 md:pt-24 lg:pt-28 pb-12 md:pb-16 lg:pb-24"
       >
         <div className="mx-auto max-w-page">
           <Stagger
@@ -399,6 +401,60 @@ function splitTrailingSentence(text: string): { lead: string; trailing: string }
     lead: trimmed.slice(0, idx + 1).trim(),
     trailing: trimmed.slice(idx + 2).trim(),
   };
+}
+
+// "The need for change" — an image-free editorial two-column section that
+// opens the About narrative, sitting directly above the Vision block. A short
+// label sits on the left; on the right, an intro paragraph leads into a large
+// pull-quote statement, followed by a closing paragraph. Copy is static for
+// now (matches the approved design); it can be lifted into Studio later.
+function NeedForChangeSection() {
+  const heading = "The need for change";
+  const intro =
+    "In 2020, the COVID-19 pandemic exposed what small island states already knew: when global supply chains fracture, the Caribbean waits longest and receives least. Barbados imported almost every medicine its population needed.";
+  const statement =
+    "That dependency cost the country during the pandemic, and it continues to cost it today.";
+  const closing =
+    "Barbados Pharmaceutical Inc. was established in 2023 by the Government of Barbados, operating under the Ministry of Health and Wellness, to address that structural vulnerability directly. BPI's mandate is to develop the pharmaceutical ecosystem needed to attract investment, build local manufacturing capacity, and position Barbados as a production and distribution hub for CARICOM and beyond.";
+
+  return (
+    <section
+      data-nav-theme="light"
+      className="bg-error-25 px-6 md:px-10 lg:px-14 pt-28 md:pt-36 lg:pt-44 pb-4 md:pb-6 lg:pb-8"
+    >
+      <div className="mx-auto max-w-page grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-20 items-start">
+        <Stagger className="max-w-sm">
+          <StaggerItem
+            as="h2"
+            className="font-display text-xl md:text-2xl font-bold text-primary-500 leading-tight tracking-[-0.01em]"
+          >
+            {heading}
+          </StaggerItem>
+        </Stagger>
+
+        <Stagger className="flex flex-col gap-8 md:gap-10 lg:gap-12">
+          <StaggerItem
+            as="p"
+            className="text-sm lg:text-base text-primary-500/70 leading-relaxed"
+          >
+            {intro}
+          </StaggerItem>
+          <StaggerItem
+            as="p"
+            className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-primary-500 leading-[1.15] tracking-[-0.01em]"
+          >
+            {statement}
+          </StaggerItem>
+          <StaggerItem
+            as="p"
+            className="text-sm lg:text-base text-primary-500/70 leading-relaxed"
+          >
+            {closing}
+          </StaggerItem>
+        </Stagger>
+      </div>
+    </section>
+  );
 }
 
 // "The Difference We Make" — a simple, image-free two-column statement that

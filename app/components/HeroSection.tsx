@@ -359,64 +359,40 @@ export default function HeroSection({
   } as CSSProperties;
 
   // ─── Scroll choreography ──────────────────────────────────────────────
-  // The section is 180vh with a sticky child; scrolling through it drives the
-  // whole hero exit. `useScroll` with offset ["start start", "end end"] yields
-  // progress 0 when the section top meets the viewport top and 1 when its
-  // bottom meets the viewport bottom — exactly the old `-rect.top / (offsetH -
-  // innerH)` range. A light spring on that progress adds a silky lag to the
-  // card scale-up and nav exit (the "upgraded feel") without rubber-banding.
+  // One restrained parallax — nothing else. The hero is a plain 100dvh
+  // section that simply scrolls away; as it goes, the video layer drifts a
+  // touch slower than the page, giving depth without the old scale-up
+  // "expand". `useScroll` runs 0 → 1 across the hero's own height (its top at
+  // the viewport top → the hero fully scrolled past). A gentle spring on that
+  // progress keeps the drift smooth and buttery, never rubber-banding.
   const { scrollYProgress } = useScroll({
     target: sectionRef,
-    offset: ["start start", "end end"],
+    offset: ["start start", "end start"],
   });
   const p = useSpring(scrollYProgress, {
-    stiffness: 300,
-    damping: 40,
-    mass: 0.35,
+    stiffness: 120,
+    damping: 30,
+    mass: 0.4,
   });
 
-  // Card scales 1 → 1.7 (covers the viewport; the notch corners fall offscreen
-  // so the user sees clean full-bleed video). useTransform clamps at the range
-  // edges by default, matching the old clamp01/local helpers.
-  const cardScale = useTransform(p, [0, 1], [1, 1.7]);
-  // Headline copy + bottom bar fade and lift out over the first 40%.
-  const copyOpacity = useTransform(p, [0, 0.4], [1, 0]);
-  const copyY = useTransform(p, [0, 0.4], [0, -60]);
-  const bottomBarPE = useTransform(copyOpacity, (o) =>
-    o < 0.05 ? "none" : "auto",
-  );
-  // Whole hero dims slightly as it hands off (last 15%).
-  const heroOpacity = useTransform(p, [0.85, 1], [1, 0.7]);
-  // Brand tint deepens 0.38 → 0.73 through the mid-scroll.
-  const tintOpacity = useTransform(p, [0.2, 0.9], [0.38, 0.73]);
-  // Subtle video parallax: drifts down 40px against the card's scale-up.
-  const videoY = useTransform(p, [0, 1], [0, 40]);
-  // Pause the Ken-Burns drift once scrolled off the top — the scale-up carries
-  // the motion, so idling this layer trims compositing. The `--kb-play` var
-  // (feeding `.hero-video`'s play-state) is set on the plain slide-media div so
-  // it cascades to the media without mixing a CSS var into a motion style.
-  // Toggled off the raw progress (not the spring) so it flips immediately.
+  // Video parallax — drifts down within the layer's 8% overflow slack (see the
+  // `top-[-8%] bottom-[-8%]` wrapper below), so no edge is ever revealed. This
+  // is the only scroll-driven transform now.
+  const videoY = useTransform(p, [0, 1], ["0%", "6%"]);
+  // Pause the Ken-Burns drift once scrolled off the very top — the parallax
+  // carries the motion, so idling this layer trims compositing. The `--kb-play`
+  // var (feeding `.hero-video`'s play-state) is set on the plain slide-media
+  // div so it cascades to the media without mixing a CSS var into a motion
+  // style. Toggled off the raw progress (not the spring) so it flips at once.
   const [kbPaused, setKbPaused] = useState(false);
   useMotionValueEvent(scrollYProgress, "change", (v) => {
     const next = v > 0.001;
     setKbPaused((prev) => (prev === next ? prev : next));
   });
 
-  // Hero-embedded nav exits in a staggered cascade: the logo leads, then each
-  // nav link, then the utility cluster + menu — a "pushed aside" lift. The
-  // global sticky nav takes over on scroll-up.
-  const logoP = useTransform(p, (v) => easeOutCubic(local(v, 0.02, 0.16)));
-  const logoOpacity = useTransform(logoP, (l) => 1 - l);
-  const logoY = useTransform(logoP, (l) => l * -12);
-
-  // The nav container drops pointer-events once the last item has lifted away.
-  const navItemCount = NAV_LINKS.length + 2; // links + utility cluster + menu
-  const navLastEnd = 0.04 + (navItemCount - 1) * 0.025 + 0.12;
-  const navContainerPE = useTransform(p, (v) =>
-    easeOutCubic(local(v, 0, navLastEnd)) > 0.95 ? "none" : "auto",
-  );
-
-  const pinned = isDesktop && !reducedMotion;
+  // Parallax runs only on desktop with motion allowed; mobile and
+  // reduced-motion get a plain static hero that just scrolls away.
+  const parallax = isDesktop && !reducedMotion;
 
   // CSS `clip-path: path("...")` with the raw path data directly. Using
   // `url(#hero-clip-bbox)` referencing a hidden 0×0 SVG renders correctly
@@ -431,21 +407,13 @@ export default function HeroSection({
         ref={sectionRef}
         data-page-hero
         className="relative bg-error-25"
-        style={pinned ? { height: "180vh" } : undefined}
       >
-        <motion.div
-          className={
-            pinned
-              ? "sticky top-0 h-dvh overflow-hidden p-1.5 lg:p-4"
-              : "h-dvh overflow-hidden p-1.5 lg:p-4"
-          }
-          style={pinned ? { opacity: heroOpacity } : undefined}
-        >
+        <div className="h-dvh overflow-hidden p-1.5 lg:p-4">
           <div className="relative w-full h-full" style={heroVars}>
-            {/* Hero card — clipped to notch shape via CSS clip-path on a plain div.
-                Scales freely on scroll because there's no SVG clipPath/foreignObject
-                in the transform path. */}
-            <motion.div
+            {/* Hero card — clipped to the notch shape via CSS clip-path on a
+                plain div (no SVG clipPath/foreignObject). It holds a fixed size
+                now; only the video layer inside it parallaxes on scroll. */}
+            <div
               ref={cardRef}
               className="absolute inset-0 hero-anim-fade"
               style={
@@ -455,13 +423,12 @@ export default function HeroSection({
                   transformOrigin: "center",
                   backgroundColor: "#000036",
                   "--anim-delay": "0s",
-                  ...(pinned ? { scale: cardScale } : {}),
                 } as CSSProperties
               }
             >
               <motion.div
-                className="absolute inset-x-0 top-[-6%] bottom-[-6%] will-change-transform"
-                style={pinned ? { y: videoY } : undefined}
+                className="absolute inset-x-0 top-[-8%] bottom-[-8%] will-change-transform"
+                style={parallax ? { y: videoY } : undefined}
               >
                 {/* Active slide background — keyed by index so a slide change
                     remounts the media and crossfades it in. `--kb-play` cascades
@@ -471,7 +438,7 @@ export default function HeroSection({
                   className="hero-slide-media absolute inset-0"
                   style={
                     {
-                      "--kb-play": pinned && kbPaused ? "paused" : "running",
+                      "--kb-play": parallax && kbPaused ? "paused" : "running",
                     } as CSSProperties
                   }
                 >
@@ -503,11 +470,11 @@ export default function HeroSection({
               </motion.div>
 
               {/* Brand tint — opacity bumps as we scroll deeper */}
-              <motion.div
+              <div
                 className="absolute inset-0"
                 style={{
                   backgroundColor: "#000036",
-                  opacity: pinned ? tintOpacity : 0.38,
+                  opacity: 0.38,
                 }}
               />
 
@@ -538,17 +505,16 @@ export default function HeroSection({
 
               {/* Bottom scrim — keeps headline legible */}
               <div className="absolute inset-x-0 bottom-0 h-[50%] bg-linear-to-t from-black/90 via-black/60 to-transparent" />
-            </motion.div>
+            </div>
 
-            <motion.div
+            <div
               data-page-header
-              className="absolute z-20 flex items-center will-change-[opacity,transform]"
+              className="absolute z-20 flex items-center"
               style={
                 {
                   left: "var(--hero-logo-left)",
                   top: 0,
                   height: "var(--hero-notch-h)",
-                  ...(pinned ? { opacity: logoOpacity, y: logoY } : {}),
                 } as CSSProperties
               }
             >
@@ -557,10 +523,10 @@ export default function HeroSection({
                 className="block text-white hero-anim"
                 style={{ "--anim-delay": "0.15s" } as CSSProperties}
               />
-            </motion.div>
+            </div>
 
-            <motion.div
-              className="absolute z-30 hidden md:flex items-center justify-end gap-8 lg:gap-12 will-change-[opacity,transform]"
+            <div
+              className="absolute z-30 hidden md:flex items-center justify-end gap-8 lg:gap-12"
               style={{
                 // Slightly inset from the card's right edge so the whole nav
                 // cluster sits a touch left, trimming the empty space on the
@@ -569,7 +535,6 @@ export default function HeroSection({
                 top: 0,
                 height: "var(--hero-notch-h)",
                 maxWidth: "var(--hero-notch-w)",
-                ...(pinned ? { pointerEvents: navContainerPE } : {}),
               }}
             >
               <nav data-page-header className="flex items-center gap-8 lg:gap-12 translate-x-3 lg:translate-x-5 font-sans text-[12px] leading-[16.8px] font-semibold uppercase tracking-[-0.24px] text-center text-black whitespace-nowrap">
@@ -579,7 +544,7 @@ export default function HeroSection({
                       key={link.href}
                       index={i}
                       progress={p}
-                      pinned={pinned}
+                      pinned={false}
                       className="will-change-[opacity,transform]"
                     >
                       <span
@@ -599,7 +564,7 @@ export default function HeroSection({
                       key={link.href}
                       index={i}
                       progress={p}
-                      pinned={pinned}
+                      pinned={false}
                       className="will-change-[opacity,transform]"
                     >
                       <CtaLink
@@ -623,7 +588,7 @@ export default function HeroSection({
               <HeroNavItem
                 index={NAV_LINKS.length}
                 progress={p}
-                pinned={pinned}
+                pinned={false}
                 data-page-header
                 className="flex items-center gap-3.5 will-change-[opacity,transform] text-black"
               >
@@ -649,7 +614,7 @@ export default function HeroSection({
               <HeroNavItem
                 index={NAV_LINKS.length + 1}
                 progress={p}
-                pinned={pinned}
+                pinned={false}
                 className="-ml-4 lg:-ml-6 mr-3 lg:mr-4 will-change-[opacity,transform]"
               >
                 <div
@@ -659,7 +624,7 @@ export default function HeroSection({
                   <MenuLauncher size={120} menuConfig={menuConfig} />
                 </div>
               </HeroNavItem>
-            </motion.div>
+            </div>
 
             <div
               className="absolute top-0 right-2 z-30 md:hidden hero-anim-fade"
@@ -668,12 +633,8 @@ export default function HeroSection({
               <MenuLauncher size={104} menuConfig={menuConfig} />
             </div>
 
-            <motion.div
-              className="absolute bottom-0 left-0 z-10 px-6 md:px-10 lg:px-14 pb-52 lg:pb-72 max-w-4xl"
-              style={pinned ? { opacity: copyOpacity, y: copyY } : undefined}
-            >
-              {/* Keyed by active slide so the copy re-animates on change,
-                  while the scroll-driven fade stays on the stable parent. */}
+            <div className="absolute bottom-0 left-0 z-10 px-6 md:px-10 lg:px-14 pb-52 lg:pb-72 max-w-4xl">
+              {/* Keyed by active slide so the copy re-animates on change. */}
               <div key={safeActive}>
                 <h1
                   className="hero-anim font-display text-display-lg lg:text-display-xl font-semibold text-white tracking-[-0.03em] leading-[1.02]"
@@ -725,18 +686,10 @@ export default function HeroSection({
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
-            {/* Bottom bar — slider progress (left) + feature card (right).
-                Fades out on scroll alongside the headline copy. */}
-            <motion.div
-              className="absolute inset-x-0 bottom-0 z-20 px-6 md:px-10 lg:px-14 pb-10 lg:pb-14 flex items-end justify-between gap-6 will-change-[opacity,transform]"
-              style={
-                pinned
-                  ? { opacity: copyOpacity, y: copyY, pointerEvents: bottomBarPE }
-                  : undefined
-              }
-            >
+            {/* Bottom bar — slider progress (left) + feature card (right). */}
+            <div className="absolute inset-x-0 bottom-0 z-20 px-6 md:px-10 lg:px-14 pb-10 lg:pb-14 flex items-end justify-between gap-6">
               {/* Left: a single preview of the active slide, above the
                   clickable progress toggles. The preview is exactly one
                   segment wide and carries a thin green border; the lines
@@ -819,9 +772,9 @@ export default function HeroSection({
                   posterAlt={feature.posterAlt ?? ""}
                 />
               ) : null}
-            </motion.div>
+            </div>
           </div>
-        </motion.div>
+        </div>
       </section>
     </>
   );

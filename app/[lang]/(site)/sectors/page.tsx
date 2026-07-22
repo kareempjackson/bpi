@@ -316,6 +316,7 @@ export default async function SectorsPage({
             imageSrc={
               mediaImageSrc(careersMedia) ?? mediaImageSrc(buildingMedia)
             }
+            videoSrc={mediaVideoSrc(careersMedia)}
             imageAlt={careersMedia?.alt ?? buildingMedia?.alt}
             primaryLabel={data?.careersPrimaryCta?.label ?? undefined}
             primaryHref={

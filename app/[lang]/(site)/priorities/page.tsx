@@ -37,6 +37,9 @@ function mediaImageSrc(m: ResolvedMedia | null): string | undefined {
   if (!m) return undefined;
   return m.kind === "image" ? m.src : m.poster;
 }
+function mediaVideoSrc(m: ResolvedMedia | null): string | undefined {
+  return m?.kind === "video" ? m.src : undefined;
+}
 
 // Editor-managed content for this page. Every field is optional — the page
 // falls back to the defaults below so it renders fully before the document is
@@ -519,6 +522,7 @@ export default async function PrioritiesPage({
             imageSrc={
               mediaImageSrc(careersMedia) ?? mediaImageSrc(buildingMedia)
             }
+            videoSrc={mediaVideoSrc(careersMedia)}
             imageAlt={careersMedia?.alt ?? buildingMedia?.alt}
             primaryLabel={homeData.careersPrimaryCta?.label ?? undefined}
             primaryHref={homeData.careersPrimaryCta?.href ?? undefined}

@@ -604,7 +604,7 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
               {/* Statement + body + CTAs — right column. The statement's first
                   line is indented on desktop so it steps in past the eyebrow. */}
               <StaggerItem className="flex flex-col gap-10 md:gap-14 lg:col-span-9 lg:gap-20">
-                <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.4] tracking-[-0.02em] text-(--ink)/45 lg:indent-[22%]">
+                <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold leading-[1.4] tracking-[-0.02em] text-(--ink)/45 lg:indent-[22%]">
                   {priority.practiceStatementLead}
                   {priority.practiceStatementHighlight ? (
                     <>
