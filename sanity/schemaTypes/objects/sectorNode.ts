@@ -49,7 +49,7 @@ export const sectorNode = defineType({
     defineField({
       name: "description",
       title: "Description",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
     }),
     defineField({
       name: "media",

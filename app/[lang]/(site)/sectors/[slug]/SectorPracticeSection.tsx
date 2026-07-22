@@ -2,9 +2,10 @@ import type { CSSProperties } from "react";
 
 import CtaLink from "@/app/components/CtaLink";
 import MediaImage from "@/app/components/MediaImage";
+import PortableTextBody from "@/app/components/PortableTextBody";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import { localizedHref } from "@/app/lib/locale";
-import type { ResolvedMedia } from "@/sanity/lib/types";
+import type { PortableTextBlock, ResolvedMedia } from "@/sanity/lib/types";
 
 /**
  * "What This Looks Like In Practice" — a two-column detail block (heading left;
@@ -55,9 +56,9 @@ function headingLines(heading: string) {
 
 type Props = {
   heading?: string | null;
-  lead?: string | null;
-  /** Supporting body paragraphs, already split. */
-  paragraphs: string[];
+  lead?: PortableTextBlock[] | string | null;
+  /** Supporting body prose (Portable Text, or legacy string). */
+  body?: PortableTextBlock[] | string | null;
   /** Optional "Programs Underway"-style subheading above the bullet list. */
   listHeading?: string | null;
   /** Optional bullet list — bold term + description. */
@@ -84,7 +85,7 @@ type Props = {
 export default function SectorPracticeSection({
   heading,
   lead,
-  paragraphs,
+  body,
   listHeading,
   list,
   createsLabel,
@@ -156,22 +157,21 @@ export default function SectorPracticeSection({
           {/* Right — lead, body, optional programs list, (buttons). */}
           <Stagger className="flex max-w-5xl flex-col gap-7">
             {lead ? (
-              <StaggerItem
-                as="p"
-                className="text-xl md:text-2xl text-(--ink) leading-relaxed tracking-[-0.01em]"
-              >
-                {lead}
+              <StaggerItem as="div">
+                <PortableTextBody
+                  value={lead}
+                  paragraphClassName="text-xl md:text-2xl text-(--ink) leading-relaxed tracking-[-0.01em]"
+                />
               </StaggerItem>
             ) : null}
-            {paragraphs.map((p, i) => (
-              <StaggerItem
-                as="p"
-                key={i}
-                className="text-base md:text-lg text-(--ink)/70 leading-[1.75]"
-              >
-                {p}
+            {body ? (
+              <StaggerItem as="div">
+                <PortableTextBody
+                  value={body}
+                  paragraphClassName="text-base md:text-lg text-(--ink)/70 leading-[1.75]"
+                />
               </StaggerItem>
-            ))}
+            ) : null}
             {hasList ? (
               <StaggerItem>
                 <div className="flex flex-col gap-5 pt-1">

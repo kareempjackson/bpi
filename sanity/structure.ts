@@ -3,6 +3,7 @@ import type { StructureResolver } from "sanity/structure";
 import { apiVersion } from "./env";
 
 const SINGLETON_IDS = new Set<string>([
+  "brandSettings",
   "siteSettings",
   "homePage",
   "aboutPage",
@@ -15,12 +16,19 @@ const SINGLETON_IDS = new Set<string>([
   "blogPage",
   "investorsPage",
   "partnersPage",
+  "eventsPage",
 ]);
 
 export const structure: StructureResolver = (S) =>
   S.list()
     .title("Content")
     .items([
+      S.listItem()
+        .title("Brand")
+        .id("brandSettings")
+        .child(
+          S.document().schemaType("brandSettings").documentId("brandSettings"),
+        ),
       S.listItem()
         .title("Site settings")
         .id("siteSettings")
@@ -96,14 +104,23 @@ export const structure: StructureResolver = (S) =>
         .child(
           S.document().schemaType("partnersPage").documentId("partnersPage"),
         ),
+      S.listItem()
+        .title("Events page")
+        .id("eventsPage")
+        .child(
+          S.document().schemaType("eventsPage").documentId("eventsPage"),
+        ),
       S.divider(),
       S.documentTypeListItem("initiative").title("Initiatives"),
       S.documentTypeListItem("priority").title("Strategic priorities"),
       S.documentTypeListItem("sector").title("Sectors"),
       S.documentTypeListItem("event").title("Events"),
+      S.documentTypeListItem("engagement").title("Engagements (events we attend)"),
       S.documentTypeListItem("job").title("Jobs"),
       S.documentTypeListItem("post").title("Posts"),
       S.documentTypeListItem("tag").title("Tags"),
+      S.divider(),
+      S.documentTypeListItem("sharedSection").title("Reusable sections"),
       S.divider(),
       // ── Investor / Partner portal ──────────────────────────────────────
       S.listItem()
@@ -144,7 +161,9 @@ export const structure: StructureResolver = (S) =>
           id !== "priority" &&
           id !== "sector" &&
           id !== "event" &&
+          id !== "engagement" &&
           id !== "job" &&
+          id !== "sharedSection" &&
           id !== "contactSubmission" &&
           id !== "newsletterSubscription" &&
           id !== "portalUser" &&

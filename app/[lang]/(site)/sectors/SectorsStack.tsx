@@ -5,11 +5,13 @@ import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import CtaLink from "@/app/components/CtaLink";
+import PortableTextBody from "@/app/components/PortableTextBody";
+import type { PortableTextBlock } from "@/sanity/lib/types";
 
 export type SectorSlide = {
   nodeId: string;
   title: string;
-  description?: string;
+  description?: PortableTextBlock[] | string | null;
   href?: string;
   imageSrc?: string;
   /** When set, the drawer plays this video (muted, looping) in place of the
@@ -121,12 +123,11 @@ export default function SectorsStack({ slides }: { slides: SectorSlide[] }) {
                     {/* Body copy + link on the left. */}
                     <div className="flex flex-1 flex-col gap-6 lg:pt-2">
                       {s.description ? (
-                        <p
-                          className="max-w-xl text-base leading-relaxed md:text-lg"
-                          style={{ color: ink }}
-                        >
-                          {s.description}
-                        </p>
+                        <PortableTextBody
+                          value={s.description}
+                          paragraphClassName="max-w-xl text-base leading-relaxed md:text-lg"
+                          paragraphStyle={{ color: ink }}
+                        />
                       ) : null}
                       {s.href ? (
                         <CtaLink

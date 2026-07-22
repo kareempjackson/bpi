@@ -16,5 +16,49 @@ export const portableText = defineField({
   name: "portableText",
   title: "Body",
   type: "array",
-  of: [{ type: "block" }, { type: "image", options: { hotspot: true } }],
+  of: [
+    {
+      type: "block",
+      // Standard on-brand toolbar. Styles map to the brand text styles in
+      // <PortableTextBody>; decorators + the link annotation cover real
+      // editorial needs without inviting off-brand formatting.
+      styles: [
+        { title: "Normal", value: "normal" },
+        { title: "Heading 2", value: "h2" },
+        { title: "Heading 3", value: "h3" },
+        { title: "Quote", value: "blockquote" },
+      ],
+      lists: [
+        { title: "Bulleted", value: "bullet" },
+        { title: "Numbered", value: "number" },
+      ],
+      marks: {
+        decorators: [
+          { title: "Bold", value: "strong" },
+          { title: "Italic", value: "em" },
+          { title: "Underline", value: "underline" },
+        ],
+        annotations: [
+          {
+            name: "link",
+            type: "object",
+            title: "Link",
+            fields: [
+              {
+                name: "href",
+                type: "url",
+                title: "URL",
+                validation: (Rule) =>
+                  Rule.uri({
+                    scheme: ["http", "https", "mailto", "tel"],
+                    allowRelative: true,
+                  }),
+              },
+            ],
+          },
+        ],
+      },
+    },
+    { type: "image", options: { hotspot: true } },
+  ],
 });

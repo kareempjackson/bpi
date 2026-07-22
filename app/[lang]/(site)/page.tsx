@@ -16,7 +16,8 @@ import HeroSection, {
 } from "@/app/components/HeroSection";
 import InitiativesSection from "@/app/components/InitiativesSection";
 import LeaderSection from "@/app/components/LeaderSection";
-import PageSections from "@/app/components/PageSections";
+import Zone from "@/app/components/sections/Zone";
+import type { RenderedBlock } from "@/app/components/sections/registry";
 import StackCard from "@/app/components/StackCard";
 import WhyBpiSection from "@/app/components/WhyBpiSection";
 import { resolveImage, resolveMedia } from "@/sanity/lib/image";
@@ -586,7 +587,10 @@ export default async function Home({
         secondaryLabel={data.careersSecondaryCta?.label}
         secondaryHref={data.careersSecondaryCta?.href}
       />
-      <PageSections sections={data.pageSections} />
+      <Zone
+        blocks={data.pageSections as unknown as RenderedBlock[]}
+        lang={lang}
+      />
       <BuildingSection
         headlineLine1={data.buildingHeadlineLine1}
         headlineLine2={data.buildingHeadlineLine2}

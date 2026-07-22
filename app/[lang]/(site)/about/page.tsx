@@ -9,7 +9,9 @@ import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
 import Logo from "@/app/components/Logo";
 import LazyVideo from "@/app/components/LazyVideo";
 import MediaImage from "@/app/components/MediaImage";
-import PageSections from "@/app/components/PageSections";
+import PortableTextBody from "@/app/components/PortableTextBody";
+import Zone from "@/app/components/sections/Zone";
+import type { RenderedBlock } from "@/app/components/sections/registry";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import LeaderShape from "@/app/components/shapes/LeaderShape";
 import AboutBannerVideo from "./AboutBannerVideo";
@@ -207,9 +209,11 @@ export default async function AboutPage({
               <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-primary-500 leading-tight tracking-[-0.01em]">
                 {data.visionHeading}
               </h2>
-              <p className="mt-3 text-sm lg:text-base text-primary-500/70 leading-relaxed">
-                {data.visionDescription}
-              </p>
+              <PortableTextBody
+                value={data.visionDescription}
+                className="mt-3"
+                paragraphClassName="text-sm lg:text-base text-primary-500/70 leading-relaxed"
+              />
             </StaggerItem>
             <StaggerItem className="flex flex-wrap items-center gap-2 md:gap-3 shrink-0 md:ml-auto">
               <CtaButton cta={data.visionPrimaryCta} variant="primary" />
@@ -237,8 +241,11 @@ export default async function AboutPage({
             <StaggerItem as="h2" className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
               {data.missionHeading}
             </StaggerItem>
-            <StaggerItem as="p" className="mt-3 text-sm lg:text-base text-primary-500/75 leading-relaxed">
-              {data.missionDescription}
+            <StaggerItem className="mt-3">
+              <PortableTextBody
+                value={data.missionDescription}
+                paragraphClassName="text-sm lg:text-base text-primary-500/75 leading-relaxed"
+              />
             </StaggerItem>
           </Stagger>
 
@@ -270,8 +277,11 @@ export default async function AboutPage({
             <StaggerItem as="h2" className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
               {data.statsHeading}
             </StaggerItem>
-            <StaggerItem as="p" className="mt-3 text-sm lg:text-base text-primary-500/75 leading-relaxed">
-              {data.statsDescription}
+            <StaggerItem className="mt-3">
+              <PortableTextBody
+                value={data.statsDescription}
+                paragraphClassName="text-sm lg:text-base text-primary-500/75 leading-relaxed"
+              />
             </StaggerItem>
           </Stagger>
 
@@ -316,9 +326,11 @@ export default async function AboutPage({
             <h2 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
               {data.leadershipHeading}
             </h2>
-            <p className="mt-3 text-sm lg:text-base text-primary-500/75 leading-relaxed">
-              {data.leadershipDescription}
-            </p>
+            <PortableTextBody
+              value={data.leadershipDescription}
+              className="mt-3"
+              paragraphClassName="text-sm lg:text-base text-primary-500/75 leading-relaxed"
+            />
           </StaggerItem>
 
           <StaggerItem>
@@ -338,7 +350,10 @@ export default async function AboutPage({
         </Stagger>
       </section>
 
-      <PageSections sections={data.pageSections} />
+      <Zone
+        blocks={data.pageSections as unknown as RenderedBlock[]}
+        lang={lang}
+      />
     </main>
   );
 }
@@ -602,9 +617,10 @@ function MissionCardItem({ card }: { card: MissionCardData }) {
           <h3 className="font-display text-xl md:text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.15] tracking-tight">
             {card.title}
           </h3>
-          <p className="text-sm md:text-base lg:text-lg text-primary-500/75 leading-relaxed max-w-md">
-            {card.description}
-          </p>
+          <PortableTextBody
+            value={card.description}
+            paragraphClassName="text-sm md:text-base lg:text-lg text-primary-500/75 leading-relaxed max-w-md"
+          />
         </div>
         {card.href ? (
           <CtaLink
@@ -695,9 +711,10 @@ function PillarCard({ pillar }: { pillar: PillarData }) {
           <h3 className="font-display text-lg lg:text-xl font-bold tracking-[0.02em] text-white uppercase leading-snug">
             {pillar.eyebrow}
           </h3>
-          <p className="whitespace-pre-line text-sm lg:text-base text-white/70 leading-relaxed">
-            {pillar.description}
-          </p>
+          <PortableTextBody
+            value={pillar.description}
+            paragraphClassName="whitespace-pre-line text-sm lg:text-base text-white/70 leading-relaxed"
+          />
         </div>
       </div>
     );
@@ -713,9 +730,10 @@ function PillarCard({ pillar }: { pillar: PillarData }) {
         <h3 className="font-display text-lg lg:text-xl font-bold tracking-[0.02em] text-primary-500 uppercase leading-snug">
           {pillar.eyebrow}
         </h3>
-        <p className="text-sm lg:text-base text-primary-500/70 leading-relaxed">
-          {pillar.description}
-        </p>
+        <PortableTextBody
+          value={pillar.description}
+          paragraphClassName="text-sm lg:text-base text-primary-500/70 leading-relaxed"
+        />
       </div>
       {hasMedia ? (
         <div className="mt-auto pt-10 md:pt-12">{mediaBlock}</div>

@@ -54,7 +54,7 @@ export const initiativesPage = defineType({
     defineField({
       name: "heroBody",
       title: "Body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "hero",
     }),
     defineField({
@@ -91,7 +91,7 @@ export const initiativesPage = defineType({
     defineField({
       name: "workInMotionBody",
       title: "Body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "workInMotion",
     }),
     defineField({
@@ -145,7 +145,7 @@ export const initiativesPage = defineType({
     defineField({
       name: "featuredStatBody",
       title: "Featured stat / secondary line",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "featured",
       description:
         "Short supporting line shown lower-right of the featured banner (e.g. \"Producing 12 million bags annually, it creates the first pharmaceutical trade route between Africa and the Caribbean.\").",
@@ -234,7 +234,7 @@ export const initiativesPage = defineType({
     defineField({
       name: "otherWorksBody",
       title: "Body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "otherWorks",
     }),
     defineField({
@@ -246,7 +246,7 @@ export const initiativesPage = defineType({
     defineField({
       name: "otherWorksBlueBody",
       title: "Blue panel — body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "otherWorks",
     }),
     defineField({
@@ -275,7 +275,7 @@ export const initiativesPage = defineType({
     defineField({
       name: "otherWorksGreenBody",
       title: "Green panel — body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "otherWorks",
     }),
     defineField({
@@ -345,7 +345,7 @@ export const initiativesPage = defineType({
     defineField({
       name: "buildingFutureBody",
       title: "Body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "buildingFuture",
     }),
     defineField({

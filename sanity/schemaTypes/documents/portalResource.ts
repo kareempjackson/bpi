@@ -20,7 +20,7 @@ export const portalResource = defineType({
     defineField({
       name: "description",
       title: "Description",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
     }),
     defineField({
       name: "kind",

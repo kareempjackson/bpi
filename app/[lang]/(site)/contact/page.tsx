@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 
 import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
 import MediaImage from "@/app/components/MediaImage";
+import PortableTextBody from "@/app/components/PortableTextBody";
 import { Stagger, StaggerItem } from "@/app/components/motion";
-import PageSections from "@/app/components/PageSections";
+import Zone from "@/app/components/sections/Zone";
+import type { RenderedBlock } from "@/app/components/sections/registry";
 import { resolveMedia } from "@/sanity/lib/image";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
 import { CONTACT_PAGE_QUERY } from "@/sanity/lib/queries";
@@ -177,9 +179,11 @@ export default async function ContactPage({
             <h2 className="font-display text-display-sm lg:text-display-md font-semibold text-primary-500 leading-[1.1] tracking-[-0.01em]">
               {data.formHeading}
             </h2>
-            <p className="mt-4 text-base text-primary-500/80 leading-relaxed max-w-md">
-              {data.formDescription}
-            </p>
+            <PortableTextBody
+              value={data.formDescription}
+              className="mt-4 max-w-md"
+              paragraphClassName="text-base text-primary-500/80 leading-relaxed"
+            />
 
             <ContactForm submitLabel={data.formSubmitLabel} />
           </div>
@@ -250,7 +254,10 @@ export default async function ContactPage({
           </Stagger>
         </div>
       </section>
-      <PageSections sections={data.pageSections} />
+      <Zone
+        blocks={data.pageSections as unknown as RenderedBlock[]}
+        lang={lang}
+      />
     </main>
   );
 }

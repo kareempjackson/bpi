@@ -1,6 +1,12 @@
 import MediaImage from "@/app/components/MediaImage";
+import PortableTextBody from "@/app/components/PortableTextBody";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
-import type { InvestorRole, ResolvedMedia } from "@/sanity/lib/types";
+import type {
+  InvestorRole,
+  PortableTextBlock,
+  ResolvedMedia,
+} from "@/sanity/lib/types";
+import InvestorsRolesTable from "./InvestorsRolesTable";
 
 /**
  * "How BPI Works" — a dark band carrying a divided table of BPI's four roles,
@@ -19,16 +25,16 @@ export default function InvestorsHowItWorks({
   bg,
 }: {
   heading?: string | null;
-  intro?: string | null;
+  intro?: PortableTextBlock[] | string | null;
   roles?: InvestorRole[] | null;
   media: ResolvedMedia | null;
-  body?: string | null;
+  body?: PortableTextBlock[] | string | null;
   bg?: string | null;
 }) {
   return (
     <section
       data-nav-theme="dark"
-      className="px-6 md:px-12 lg:px-20 xl:px-28 py-14 md:py-20 lg:py-24"
+      className="px-6 md:px-10 lg:px-14 py-14 md:py-20 lg:py-24"
       style={{ backgroundColor: bg || "#13362A" }}
     >
       <div className="mx-auto w-full max-w-page">
@@ -42,34 +48,18 @@ export default function InvestorsHowItWorks({
             </StaggerItem>
           ) : null}
           {intro ? (
-            <StaggerItem
-              as="p"
-              className="max-w-2xl text-xs md:text-sm text-white/70 leading-relaxed"
-            >
-              {intro}
+            <StaggerItem className="max-w-2xl">
+              <PortableTextBody
+                value={intro}
+                paragraphClassName="font-display text-[16px] font-normal leading-[28px] tracking-normal text-white/70"
+              />
             </StaggerItem>
           ) : null}
         </Stagger>
 
         {roles?.length || media ? (
           <div className="relative mt-8 md:mt-10">
-            {roles?.length ? (
-              <Stagger className="flex flex-col">
-                {roles.map((role, i) => (
-                  <StaggerItem
-                    key={`${role.label ?? "role"}-${i}`}
-                    className="grid grid-cols-1 sm:grid-cols-[minmax(0,12rem)_1fr] gap-1 sm:gap-6 border-t border-white/15 py-4 first:border-t-0 md:py-5"
-                  >
-                    <span className="text-sm md:text-base font-medium text-white">
-                      {role.label}
-                    </span>
-                    <span className="text-xs md:text-sm text-white/60 leading-relaxed">
-                      {role.description}
-                    </span>
-                  </StaggerItem>
-                ))}
-              </Stagger>
-            ) : null}
+            {roles?.length ? <InvestorsRolesTable roles={roles} /> : null}
 
             {media ? (
               <Reveal
@@ -86,11 +76,11 @@ export default function InvestorsHowItWorks({
         ) : null}
 
         {body ? (
-          <Reveal
-            as="p"
-            className="mt-10 md:mt-12 max-w-3xl text-xs md:text-sm text-white/60 leading-relaxed"
-          >
-            {body}
+          <Reveal className="mt-10 md:mt-12 max-w-3xl">
+            <PortableTextBody
+              value={body}
+              paragraphClassName="font-display text-[16px] font-normal leading-[28px] tracking-normal text-white/60"
+            />
           </Reveal>
         ) : null}
       </div>

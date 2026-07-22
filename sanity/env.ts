@@ -11,6 +11,12 @@ export const projectId = assertValue(
   "Missing environment variable: NEXT_PUBLIC_SANITY_PROJECT_ID",
 );
 
+// Base path of the embedded Studio. Used to point stega edit-links (and the
+// Presentation tool's overlays) at the right place so clicking rendered
+// content in preview jumps to the matching field.
+export const studioUrl =
+  process.env.NEXT_PUBLIC_SANITY_STUDIO_URL || "/studio";
+
 // Server-only — only needed for draft mode / live preview reads. Never expose
 // this to the browser. Optional: pages still render the published perspective
 // without it.

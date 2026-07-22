@@ -3,20 +3,22 @@
 import { useCallback, useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 
+import type { PortableTextBlock } from "@/sanity/lib/types";
+import PortableTextBody from "./PortableTextBody";
 import { Stagger, StaggerItem } from "./motion";
 
 export type PracticeTabInput = {
   label?: string | null;
-  body?: string | null;
+  body?: PortableTextBlock[] | string | null;
   bullets?: string | null;
 };
 
 type Props = {
   heading?: string;
-  lead?: string;
+  lead?: PortableTextBlock[] | string | null;
   statement?: string;
   /** Optional small paragraph shown below the statement. */
-  trail?: string;
+  trail?: PortableTextBlock[] | string | null;
   tabs: PracticeTabInput[];
   /** Section canvas colour. Defaults to the pale blue. */
   bg?: string;
@@ -67,10 +69,6 @@ export default function PracticeTabsSection({
   const resume = useCallback(() => setPaused(false), []);
 
   const activeTab = tabs[active];
-  const paragraphs = (activeTab?.body ?? "")
-    .split(/\n{2,}/)
-    .map((p) => p.trim())
-    .filter(Boolean);
   const bullets = (activeTab?.bullets ?? "")
     .split(/\n+/)
     .map((b) => b.replace(/^[-•]\s*/, "").trim())
@@ -99,10 +97,13 @@ export default function PracticeTabsSection({
         <Stagger className="flex flex-col gap-12 lg:gap-16">
           {lead ? (
             <StaggerItem
-              as="p"
-              className="max-w-2xl whitespace-pre-line text-base md:text-lg text-(--ink)/65 leading-relaxed"
+              as="div"
+              className="max-w-2xl text-base md:text-lg text-(--ink)/65 leading-relaxed"
             >
-              {lead}
+              <PortableTextBody
+                value={lead}
+                paragraphClassName="whitespace-pre-line text-base md:text-lg text-(--ink)/65 leading-relaxed"
+              />
             </StaggerItem>
           ) : null}
 
@@ -117,10 +118,13 @@ export default function PracticeTabsSection({
 
           {trail ? (
             <StaggerItem
-              as="p"
-              className="max-w-2xl whitespace-pre-line text-base md:text-lg text-(--ink)/65 leading-relaxed"
+              as="div"
+              className="max-w-2xl text-base md:text-lg text-(--ink)/65 leading-relaxed"
             >
-              {trail}
+              <PortableTextBody
+                value={trail}
+                paragraphClassName="whitespace-pre-line text-base md:text-lg text-(--ink)/65 leading-relaxed"
+              />
             </StaggerItem>
           ) : null}
 
@@ -164,14 +168,12 @@ export default function PracticeTabsSection({
                 key={active}
                 className="mt-6 flex flex-col gap-5 rounded-2xl bg-white p-6 md:p-8 lg:p-10"
               >
-                {paragraphs.map((p, i) => (
-                  <p
-                    key={i}
-                    className="text-base md:text-lg text-(--ink)/85 leading-relaxed"
-                  >
-                    {p}
-                  </p>
-                ))}
+                {activeTab.body ? (
+                  <PortableTextBody
+                    value={activeTab.body}
+                    paragraphClassName="text-base md:text-lg text-(--ink)/85 leading-relaxed"
+                  />
+                ) : null}
                 {bullets.length > 0 ? (
                   <ul className="flex list-disc flex-col gap-2.5 pl-5 marker:text-(--ink)/40">
                     {bullets.map((b, i) => (

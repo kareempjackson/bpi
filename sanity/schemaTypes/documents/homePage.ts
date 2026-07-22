@@ -98,7 +98,7 @@ export const homePage = defineType({
     defineField({
       name: "heroBody",
       title: "Body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "hero",
     }),
     defineField({
@@ -139,7 +139,7 @@ export const homePage = defineType({
             defineField({
               name: "body",
               title: "Body",
-              type: "internationalizedArrayText",
+              type: "internationalizedArrayPortableText",
             }),
             defineField({
               name: "ctaLink",
@@ -212,7 +212,7 @@ export const homePage = defineType({
     defineField({
       name: "leaderQuote",
       title: "Quote",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "leader",
     }),
     defineField({
@@ -277,7 +277,7 @@ export const homePage = defineType({
     defineField({
       name: "architectureDescription",
       title: "Description",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "architecture",
     }),
     defineField({
@@ -306,7 +306,7 @@ export const homePage = defineType({
     defineField({
       name: "sectorsBody",
       title: "Body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "sectors",
     }),
     defineField({
@@ -324,7 +324,7 @@ export const homePage = defineType({
     defineField({
       name: "whyQuote",
       title: "Quote",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "why",
     }),
     defineField({
@@ -336,7 +336,7 @@ export const homePage = defineType({
     defineField({
       name: "whyBody",
       title: "Body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "why",
     }),
     defineField({
@@ -430,7 +430,7 @@ export const homePage = defineType({
     defineField({
       name: "careersBody",
       title: "Body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "careers",
     }),
     defineField({

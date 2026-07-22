@@ -1,10 +1,17 @@
 import { visionTool } from "@sanity/vision";
 import { defineConfig } from "sanity";
-import { defineLocations, presentationTool } from "sanity/presentation";
+import {
+  defineDocuments,
+  defineLocations,
+  presentationTool,
+} from "sanity/presentation";
 import { structureTool } from "sanity/structure";
 import { internationalizedArray } from "sanity-plugin-internationalized-array";
 
+import { ThLargeIcon } from "@sanity/icons";
+
 import { locales, LOCALE_LABELS } from "./app/lib/locale";
+import { DesignLibraryTool } from "./sanity/components/DesignLibraryTool";
 import { portableText } from "./sanity/schemaTypes/objects/portableText";
 import { apiVersion, dataset, projectId } from "./sanity/env";
 import { approvePortalUserAction } from "./sanity/lib/approvePortalUserAction";
@@ -20,6 +27,7 @@ import { structure } from "./sanity/structure";
 const FORCE_DELETABLE_TYPES = new Set<string>(["initiative"]);
 
 const SINGLETON_TYPES = new Set<string>([
+  "brandSettings",
   "siteSettings",
   "homePage",
   "aboutPage",
@@ -71,6 +79,42 @@ export default defineConfig({
         },
       },
       resolve: {
+        // URL → document(s) that render it. Populates the "Documents on this
+        // page" panel and lets editors open the right doc from any preview URL.
+        // `:lang` matches the locale segment (/en, /es, …).
+        mainDocuments: defineDocuments([
+          { route: "/:lang", filter: `_type == "homePage"` },
+          { route: "/:lang/about", filter: `_type == "aboutPage"` },
+          { route: "/:lang/impact", filter: `_type == "impactPage"` },
+          { route: "/:lang/contact", filter: `_type == "contactPage"` },
+          { route: "/:lang/careers", filter: `_type == "careersPage"` },
+          {
+            route: "/:lang/careers/:slug",
+            filter: `_type == "job" && slug.current == $slug`,
+          },
+          { route: "/:lang/initiatives", filter: `_type == "initiativesPage"` },
+          {
+            route: "/:lang/initiatives/:slug",
+            filter: `_type == "initiative" && slug.current == $slug`,
+          },
+          { route: "/:lang/priorities", filter: `_type == "prioritiesPage"` },
+          {
+            route: "/:lang/priorities/:slug",
+            filter: `_type == "priority" && slug.current == $slug`,
+          },
+          { route: "/:lang/sectors", filter: `_type == "sectorsPage"` },
+          {
+            route: "/:lang/sectors/:slug",
+            filter: `_type == "sector" && slug.current == $slug`,
+          },
+          { route: "/:lang/investors", filter: `_type == "investorsPage"` },
+          { route: "/:lang/partners", filter: `_type == "partnersPage"` },
+          { route: "/:lang/blog", filter: `_type == "blogPage"` },
+          {
+            route: "/:lang/blog/:slug",
+            filter: `_type == "post" && slug.current == $slug`,
+          },
+        ]),
         locations: {
           siteSettings: defineLocations({
             // Settings has no page of its own; preview lands on the
@@ -187,6 +231,17 @@ export default defineConfig({
     }),
     structureTool({ structure }),
     visionTool({ defaultApiVersion: apiVersion }),
+  ],
+  // "Design library" tab — a browsable gallery of every brand foundation and
+  // section block (reads sanity/lib/blockCatalog.ts + brandTokens.ts).
+  tools: (prev) => [
+    ...prev,
+    {
+      name: "design-library",
+      title: "Design library",
+      icon: ThLargeIcon,
+      component: DesignLibraryTool,
+    },
   ],
   schema: {
     types: schemaTypes,

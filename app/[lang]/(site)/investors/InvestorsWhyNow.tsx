@@ -1,8 +1,9 @@
 import CtaLink from "@/app/components/CtaLink";
 import MediaImage from "@/app/components/MediaImage";
+import PortableTextBody from "@/app/components/PortableTextBody";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import { localizedHref } from "@/app/lib/locale";
-import type { Cta, ResolvedMedia } from "@/sanity/lib/types";
+import type { Cta, PortableTextBlock, ResolvedMedia } from "@/sanity/lib/types";
 
 /**
  * "Why Now" — a colour band: heading left, body + two buttons right, closing on
@@ -19,7 +20,7 @@ export default function InvestorsWhyNow({
   lang,
 }: {
   heading?: string | null;
-  body?: string | null;
+  body?: PortableTextBlock[] | string | null;
   primaryCta?: Cta;
   secondaryCta?: Cta;
   media: ResolvedMedia | null;
@@ -29,7 +30,7 @@ export default function InvestorsWhyNow({
   return (
     <section
       data-nav-theme="light"
-      className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-24"
+      className="px-6 md:px-10 lg:px-14 py-16 md:py-20 lg:py-24"
       style={{ backgroundColor: bg || "#06FE83" }}
     >
       <div className="mx-auto w-full max-w-page">
@@ -45,11 +46,11 @@ export default function InvestorsWhyNow({
 
           <div className="flex flex-col gap-8">
             {body ? (
-              <StaggerItem
-                as="p"
-                className="text-sm md:text-base text-primary-500/85 leading-relaxed"
-              >
-                {body}
+              <StaggerItem>
+                <PortableTextBody
+                  value={body}
+                  paragraphClassName="align-middle font-sans text-[18px] font-normal leading-[1.76] tracking-[0.48px] text-black"
+                />
               </StaggerItem>
             ) : null}
             {primaryCta?.label || secondaryCta?.label ? (

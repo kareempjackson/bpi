@@ -212,7 +212,7 @@ export default function ViewTransitionProvider({
       zoomHrefRef.current = opts.href;
       setArmed(false);
       // Image nodes have nothing to seek, so they're ready at once; video nodes
-      // flip ready from the clone's seeked/playing events (or the safety timer).
+      // flip ready from the clone's presented-frame callback (or the safety timer).
       setMediaReady(!opts.videoSrc || !opts.videoTime);
       setOverlay(opts);
       setPhase("zooming");
@@ -305,7 +305,7 @@ export default function ViewTransitionProvider({
     }
     let raf1 = 0;
     let raf2 = 0;
-    let teardown = 0;
+    const timers: number[] = [];
     // Two frames so the committed destination has painted before we measure.
     raf1 = requestAnimationFrame(() => {
       raf2 = requestAnimationFrame(() => {
@@ -332,37 +332,87 @@ export default function ViewTransitionProvider({
             landing = true;
           }
         }
-        // Hand playback to the destination hero video the instant we commit to
-        // landing — while the opaque overlay still fully covers it for the whole
-        // fly-in. Seek it to the clone's current frame and play NOW; both videos
-        // then advance in real time from the same position, so when the overlay
-        // is removed the hero is already playing the matching frame. Its
-        // seek-blank happens entirely behind the cover, so nothing blinks.
-        if (landing) {
-          const heroVideo = hero?.querySelector<HTMLVideoElement>("video");
-          const clone = overlayVideoRef.current;
-          if (heroVideo && clone && Number.isFinite(clone.currentTime)) {
-            const dest = heroVideo.duration || 0;
-            heroVideo.currentTime =
-              dest > 0 ? clone.currentTime % dest : clone.currentTime;
-            const play = heroVideo.play();
-            if (play && typeof play.catch === "function") play.catch(() => {});
-          }
-        }
 
-        const dur = landing ? LAND_MS : SETTLE_MS + FADE_MS;
-        teardown = window.setTimeout(() => {
+        const finish = () => {
           setPhase("idle");
           setOverlay(null);
           setArmed(false);
           setLandRect(null);
-        }, dur + 60);
+        };
+
+        if (landing) {
+          const heroVideo = hero?.querySelector<HTMLVideoElement>("video");
+          const clone = overlayVideoRef.current;
+          // Start the hero video playing behind the (opaque) clone during the
+          // whole fly-in so it's warm and decoding by hand-off time.
+          if (heroVideo) {
+            const p = heroVideo.play();
+            if (p && typeof p.catch === "function") p.catch(() => {});
+          }
+
+          if (heroVideo && clone) {
+            // Frame-matched HARD CUT — the only seamless way to swap two copies
+            // of the same clip. A crossfade would double-expose the (slightly
+            // out-of-sync) frames and smear; a hard cut on identical frames is
+            // invisible. Sequence, after the fly-in lands:
+            //   1. Freeze the clone on its current frame N (pause).
+            //   2. Seek the hero to N.
+            //   3. Wait until the hero has actually PRESENTED N (rVFC).
+            //   4. Start the hero, remove the clone in the same tick.
+            // The clone (frozen on N) and the hero (now showing N) are pixel-
+            // identical at the cut, so nothing blinks and playback continues.
+            timers.push(
+              window.setTimeout(() => {
+                const dur = heroVideo.duration;
+                const n = Number.isFinite(clone.currentTime)
+                  ? dur
+                    ? clone.currentTime % dur
+                    : clone.currentTime
+                  : 0;
+                clone.pause();
+                try {
+                  heroVideo.currentTime = n;
+                } catch {
+                  /* seek not ready yet — the fallback timer still cuts */
+                }
+                const rvfc = (
+                  heroVideo as HTMLVideoElement & {
+                    requestVideoFrameCallback?: (cb: () => void) => number;
+                  }
+                ).requestVideoFrameCallback;
+                let cut = false;
+                const doCut = () => {
+                  if (cut) return;
+                  cut = true;
+                  const p = heroVideo.play();
+                  if (p && typeof p.catch === "function") p.catch(() => {});
+                  finish();
+                };
+                if (typeof rvfc === "function") {
+                  rvfc.call(heroVideo, doCut);
+                }
+                // Fallback if rVFC is unavailable or the seek stalls.
+                timers.push(window.setTimeout(doCut, 260));
+              }, LAND_MS),
+            );
+          } else {
+            // Image hero (or no clone): the clone's resting frame and the static
+            // hero are both still, so an instant cut once the fly-in lands is
+            // clean — no video to sync.
+            timers.push(window.setTimeout(finish, LAND_MS));
+          }
+        } else {
+          // No hero to land on: dissolve the whole overlay, then tear down.
+          timers.push(
+            window.setTimeout(finish, SETTLE_MS + FADE_MS + 60),
+          );
+        }
       });
     });
     return () => {
       cancelAnimationFrame(raf1);
       cancelAnimationFrame(raf2);
-      window.clearTimeout(teardown);
+      timers.forEach((t) => window.clearTimeout(t));
     };
   }, [phase]);
 
@@ -425,10 +475,10 @@ export default function ViewTransitionProvider({
           className="fixed inset-0 z-9999 overflow-hidden pointer-events-none"
           aria-hidden
           style={{
-            // When landing on the hero we keep the overlay opaque and let the
-            // media fly into place (then tear down — invisible, same asset).
-            // With no hero, dissolve the whole overlay (a hair of scale for
-            // depth) to reveal the destination.
+            // Landing: the media flies into the hero rect, then hands off to the
+            // live hero via a frame-matched hard cut (see the reveal effect) —
+            // invisible because the frames are identical, no fade to smear them.
+            // With no hero to land on, dissolve the whole overlay instead.
             opacity: fallbackFade ? 0 : 1,
             transform: fallbackFade ? "scale(1.04)" : "scale(1)",
             transformOrigin: "center",
@@ -487,13 +537,18 @@ export default function ViewTransitionProvider({
                 disablePictureInPicture
                 onLoadedMetadata={(e) => {
                   // Continue from the porthole's frame instead of restarting at
-                  // zero. Kept hidden (opacity 0) until the seek lands so the
-                  // seek's blank frame never shows — the live porthole behind
-                  // covers it until then.
+                  // zero. Kept hidden (opacity 0) until the seeked frame is
+                  // actually PRESENTED (rVFC) so the seek's blank frame never
+                  // shows — the live porthole behind covers it until then.
                   const t = overlay.videoTime;
-                  const v = e.currentTarget;
+                  const v = e.currentTarget as HTMLVideoElement & {
+                    requestVideoFrameCallback?: (cb: () => void) => number;
+                  };
                   if (t && Number.isFinite(t) && v.duration) {
                     v.currentTime = t % v.duration;
+                    if (typeof v.requestVideoFrameCallback === "function") {
+                      v.requestVideoFrameCallback(() => setMediaReady(true));
+                    }
                   } else {
                     setMediaReady(true);
                   }

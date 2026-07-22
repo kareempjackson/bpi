@@ -1,8 +1,9 @@
 import type { CSSProperties } from "react";
 
 import MediaImage from "@/app/components/MediaImage";
+import PortableTextBody from "@/app/components/PortableTextBody";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
-import type { ResolvedMedia } from "@/sanity/lib/types";
+import type { PortableTextBlock, ResolvedMedia } from "@/sanity/lib/types";
 
 /**
  * "Highlight" — a two-column block that leads with supporting context and lands
@@ -36,8 +37,8 @@ function headingLines(heading: string) {
 
 type Props = {
   heading?: string | null;
-  /** Supporting body paragraphs, already split. Regular weight, above. */
-  paragraphs: string[];
+  /** Supporting body prose (Portable Text, or legacy string). Regular weight. */
+  body?: PortableTextBlock[] | string | null;
   /** The single emphasized takeaway — rendered bold + italic below the body. */
   statement?: string | null;
   media: ResolvedMedia | null;
@@ -49,7 +50,7 @@ type Props = {
 
 export default function SectorHighlightSection({
   heading,
-  paragraphs,
+  body,
   statement,
   media,
   bg,
@@ -79,15 +80,14 @@ export default function SectorHighlightSection({
 
           {/* Right — body paragraph(s), emphasized statement, then image. */}
           <Stagger className="flex flex-col gap-8">
-            {paragraphs.map((p, i) => (
-              <StaggerItem
-                as="p"
-                key={i}
-                className="text-base md:text-lg text-(--ink)/75 leading-[1.75]"
-              >
-                {p}
+            {body ? (
+              <StaggerItem as="div">
+                <PortableTextBody
+                  value={body}
+                  paragraphClassName="text-base md:text-lg text-(--ink)/75 leading-[1.75]"
+                />
               </StaggerItem>
-            ))}
+            ) : null}
             {statement ? (
               <StaggerItem
                 as="p"

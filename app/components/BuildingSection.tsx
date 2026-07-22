@@ -1,7 +1,9 @@
 import Image from "next/image";
 
 import CtaLink from "./CtaLink";
+import PortableTextBody from "./PortableTextBody";
 import { Reveal, Stagger, StaggerItem } from "./motion";
+import type { PortableTextBlock } from "@/sanity/lib/types";
 
 type ImageTile = { src?: string; alt?: string };
 
@@ -16,7 +18,7 @@ type Props = {
   heading?: string;
   headlineLine1?: string;
   headlineLine2?: string;
-  body?: string;
+  body?: PortableTextBlock[] | string | null;
   primaryLabel?: string;
   primaryHref?: string;
   secondaryLabel?: string;
@@ -85,11 +87,11 @@ export default function BuildingSection({
               >
                 {title}
               </StaggerItem>
-              <StaggerItem
-                as="p"
-                className="text-base md:text-lg text-primary-500/80 leading-relaxed max-w-md"
-              >
-                {body}
+              <StaggerItem className="max-w-md">
+                <PortableTextBody
+                  value={body}
+                  paragraphClassName="text-base md:text-lg text-primary-500/80 leading-relaxed"
+                />
               </StaggerItem>
               <StaggerItem className="flex flex-wrap gap-3">
                 <CtaLink

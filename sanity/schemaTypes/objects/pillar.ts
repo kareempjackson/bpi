@@ -15,7 +15,7 @@ export const pillar = defineType({
     defineField({
       name: "description",
       title: "Description",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
     }),
     /**
      * `imageWithAlt` accepts either an image or a video (toggled by its

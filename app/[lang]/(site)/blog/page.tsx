@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
-import PageSections from "@/app/components/PageSections";
+import Zone from "@/app/components/sections/Zone";
+import type { RenderedBlock } from "@/app/components/sections/registry";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
 import { resolveMedia } from "@/sanity/lib/image";
 import {
@@ -133,7 +134,10 @@ export default async function BlogPage({
           />
         </div>
       </section>
-      <PageSections sections={page?.pageSections} />
+      <Zone
+        blocks={page?.pageSections as unknown as RenderedBlock[]}
+        lang={lang}
+      />
     </main>
   );
 }

@@ -19,7 +19,7 @@ export const blogPage = defineType({
     defineField({
       name: "intro",
       title: "Sidebar intro",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       description: "Short line under the heading.",
     }),
     defineField({

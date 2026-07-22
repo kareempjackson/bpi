@@ -15,7 +15,7 @@ export const priorityCard = defineType({
     defineField({
       name: "description",
       title: "Description",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
     }),
     defineField({
       name: "href",

@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 
 import { Stagger, StaggerItem } from "@/app/components/motion";
 import MotionSection from "@/app/components/MotionSection";
-import PageSections from "@/app/components/PageSections";
+import PortableTextBody from "@/app/components/PortableTextBody";
+import Zone from "@/app/components/sections/Zone";
+import type { RenderedBlock } from "@/app/components/sections/registry";
 import QuoteSpotlightSection from "@/app/components/QuoteSpotlightSection";
 import { client } from "@/sanity/lib/client";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
@@ -126,24 +128,16 @@ export default async function SectorDetailPage({ params }: RouteProps) {
 
   // Each section renders only when its toggle is on AND it has content.
   // `showOverview` defaults on (null → shown); the rest default off.
-  const overviewParagraphs = (sector.overviewBody ?? "")
-    .split(/\n{2,}/)
-    .map((p) => p.trim())
-    .filter(Boolean);
   const showOverview =
     sector.showOverview !== false &&
-    !!(sector.overviewHeading || overviewParagraphs.length > 0);
+    !!(sector.overviewHeading || sector.overviewBody);
 
   // "In practice" — heading + lead + supporting paragraphs, two CTAs, and a
   // full-width image. The image falls back to a Home/sector photo so the
   // section never renders bare before an editor uploads the real shot.
-  const practiceParagraphs = (sector.practiceBody ?? "")
-    .split(/\n{2,}/)
-    .map((p) => p.trim())
-    .filter(Boolean);
   const showPractice =
     !!sector.showPractice &&
-    !!(sector.practiceHeading || sector.practiceLead || practiceParagraphs.length > 0);
+    !!(sector.practiceHeading || sector.practiceLead || sector.practiceBody);
   // Bottom slot is a full-width image, the "What This Creates" block, or the
   // cards row. An explicit image always wins; otherwise fall back to a photo
   // only when neither a closing statement nor cards are taking that slot.
@@ -197,16 +191,12 @@ export default async function SectorDetailPage({ params }: RouteProps) {
   // "Highlight" — supporting paragraph(s) that land on one emphasized
   // statement, with a wide image beneath. The image falls back to a Home/sector
   // photo so the section never renders bare before an editor uploads the shot.
-  const highlightParagraphs = (sector.highlightBody ?? "")
-    .split(/\n{2,}/)
-    .map((p) => p.trim())
-    .filter(Boolean);
   const showHighlight =
     !!sector.showHighlight &&
     !!(
       sector.highlightHeading ||
       sector.highlightStatement ||
-      highlightParagraphs.length > 0
+      sector.highlightBody
     );
   const highlightMedia = resolveMedia(
     sector.highlightImage ??
@@ -292,11 +282,12 @@ export default async function SectorDetailPage({ params }: RouteProps) {
             ) : (
               <StaggerItem as="span" />
             )}
-            {overviewParagraphs.length > 0 ? (
-              <StaggerItem className="flex flex-col gap-6 text-lg md:text-xl text-primary-500/80 leading-relaxed">
-                {overviewParagraphs.map((p, i) => (
-                  <p key={i}>{p}</p>
-                ))}
+            {sector.overviewBody ? (
+              <StaggerItem>
+                <PortableTextBody
+                  value={sector.overviewBody}
+                  paragraphClassName="text-lg md:text-xl text-primary-500/80 leading-relaxed"
+                />
               </StaggerItem>
             ) : null}
           </Stagger>
@@ -308,7 +299,7 @@ export default async function SectorDetailPage({ params }: RouteProps) {
         <SectorPracticeSection
           heading={sector.practiceHeading}
           lead={sector.practiceLead}
-          paragraphs={practiceParagraphs}
+          body={sector.practiceBody}
           listHeading={sector.practiceListHeading}
           list={sector.practiceList ?? undefined}
           createsLabel={sector.practiceCreatesLabel}
@@ -328,7 +319,6 @@ export default async function SectorDetailPage({ params }: RouteProps) {
         <SectorPracticeSection
           heading={sector.operationalHeading}
           splitHeading={false}
-          paragraphs={[]}
           listHeading={sector.operationalListHeading}
           list={operationalList}
           primaryCta={sector.operationalPrimaryCta}
@@ -358,7 +348,7 @@ export default async function SectorDetailPage({ params }: RouteProps) {
       {showHighlight ? (
         <SectorHighlightSection
           heading={sector.highlightHeading}
-          paragraphs={highlightParagraphs}
+          body={sector.highlightBody}
           statement={sector.highlightStatement}
           media={highlightMedia}
           bg={sectionBg}
@@ -478,7 +468,11 @@ export default async function SectorDetailPage({ params }: RouteProps) {
       ) : null}
 
       {/* ── Modular page sections (editor-managed) ─────────────────── */}
-      <PageSections sections={sector.pageSections} contained />
+      <Zone
+        blocks={sector.pageSections as unknown as RenderedBlock[]}
+        lang={lang}
+        contained
+      />
     </main>
   );
 }

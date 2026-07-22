@@ -1,3 +1,4 @@
+import PortableTextBody from "@/app/components/PortableTextBody";
 import { requireUser } from "@/app/lib/portal/dal";
 import { toLocale } from "@/app/lib/locale";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
@@ -54,9 +55,11 @@ export default async function PortalResourcesPage({
                   </p>
                 </div>
                 {resource.description ? (
-                  <p className="mt-1 text-sm text-primary-500/60">
-                    {resource.description}
-                  </p>
+                  <PortableTextBody
+                    value={resource.description}
+                    className="mt-1"
+                    paragraphClassName="text-sm text-primary-500/60"
+                  />
                 ) : null}
               </div>
               <a

@@ -78,13 +78,13 @@ export const investorsPage = defineType({
       title: "Body",
       description:
         "Wrap a phrase in **double asterisks** to make it bold — the same convention the initiative headers use.",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "opportunity",
     }),
     defineField({
       name: "opportunityCardLead",
       title: "Card — lead line",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "opportunity",
     }),
     defineField({
@@ -113,7 +113,7 @@ export const investorsPage = defineType({
     defineField({
       name: "whyIntro",
       title: "Intro",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "why",
     }),
     defineField({
@@ -127,7 +127,7 @@ export const investorsPage = defineType({
     defineField({
       name: "whyClosing",
       title: "Closing paragraph",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "why",
     }),
     defineField({
@@ -148,7 +148,7 @@ export const investorsPage = defineType({
     defineField({
       name: "howIntro",
       title: "Intro",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "how",
     }),
     defineField({
@@ -170,7 +170,7 @@ export const investorsPage = defineType({
     defineField({
       name: "howBody",
       title: "Closing paragraph",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "how",
     }),
     defineField({
@@ -191,7 +191,7 @@ export const investorsPage = defineType({
     defineField({
       name: "sitesBody",
       title: "Body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "sites",
     }),
     defineField({
@@ -206,7 +206,13 @@ export const investorsPage = defineType({
     defineField({
       name: "sitesNote",
       title: "Note (italic)",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
+      group: "sites",
+    }),
+    defineField({
+      name: "sitesImage",
+      title: "Image (full-width, below)",
+      type: "imageWithAlt",
       group: "sites",
     }),
 
@@ -226,7 +232,7 @@ export const investorsPage = defineType({
     defineField({
       name: "incentivesLead",
       title: "Lead",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "incentives",
     }),
     defineField({
@@ -261,7 +267,7 @@ export const investorsPage = defineType({
     defineField({
       name: "bridgeBody",
       title: "Body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "bridge",
     }),
     defineField({
@@ -288,7 +294,7 @@ export const investorsPage = defineType({
     defineField({
       name: "marketLead",
       title: "Lead",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "market",
     }),
     defineField({
@@ -303,7 +309,7 @@ export const investorsPage = defineType({
     defineField({
       name: "marketClosing",
       title: "Closing line",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "market",
     }),
     defineField({
@@ -344,7 +350,7 @@ export const investorsPage = defineType({
     defineField({
       name: "whyNowBody",
       title: "Body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "whyNow",
     }),
     defineField({
@@ -425,7 +431,7 @@ export const investorsPage = defineType({
     defineField({
       name: "deeperBody",
       title: "Go deeper — body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "deeper",
     }),
     defineField({

@@ -24,6 +24,7 @@ const isDev = process.env.NODE_ENV === "development";
  */
 export const TAG = {
   homePage: "homePage",
+  brandSettings: "brandSettings",
   siteSettings: "siteSettings",
   post: "post",
   tag: "tag",
@@ -42,6 +43,8 @@ export const TAG = {
   sector: "sector",
   job: "job",
   event: "event",
+  engagement: "engagement",
+  eventsPage: "eventsPage",
   portalPage: "portalPage",
   portalResource: "portalResource",
 } as const;

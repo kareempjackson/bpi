@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 
 import CtaLink from "@/app/components/CtaLink";
 import MediaImage from "@/app/components/MediaImage";
+import PortableTextBody from "@/app/components/PortableTextBody";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
-import PageSections from "@/app/components/PageSections";
+import Zone from "@/app/components/sections/Zone";
+import type { RenderedBlock } from "@/app/components/sections/registry";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
 import { resolveMedia } from "@/sanity/lib/image";
 import {
@@ -102,11 +104,6 @@ export default async function CareersPage({
       ? headlineRest.slice(headlineRestLastSpace + 1)
       : headlineRest;
 
-  const applyParagraphs = (data.applyBody ?? APPLY_BODY)
-    .split(/\n{2,}/)
-    .map((p) => p.trim())
-    .filter(Boolean);
-
   const jobsForSection: JobsSectionJob[] = jobs.map((j) => ({
     slug: j.slug,
     title: j.title,
@@ -195,9 +192,10 @@ export default async function CareersPage({
                     {/* Hero body per design spec: Albert Sans (via
                         --font-display) Light 300, 20px / 152% line-height, no
                         tracking, white. Kept on one line. */}
-                    <p className="whitespace-nowrap font-display text-base md:text-lg lg:text-[20px] font-light leading-[1.52] tracking-normal text-white">
-                      {data.heroDescription}
-                    </p>
+                    <PortableTextBody
+                      value={data.heroDescription}
+                      paragraphClassName="whitespace-nowrap font-display text-base md:text-lg lg:text-[20px] font-light leading-[1.52] tracking-normal text-white"
+                    />
                     <CtaLink
                       href="/contact"
                       className="group inline-flex w-fit items-center gap-2 rounded-round bg-error-500 pl-6 pr-5 py-3 text-sm font-semibold text-primary-500 transition-all duration-300 ease-(--ease-premium) hover:bg-error-400 hover:shadow-lg hover:shadow-error-500/20"
@@ -234,8 +232,12 @@ export default async function CareersPage({
               <StaggerItem as="h2" className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-error-500 leading-tight tracking-[-0.01em]">
                 {data.whyHeading}
               </StaggerItem>
-              <StaggerItem as="p" className="text-base lg:text-lg text-white/55 leading-relaxed max-w-xl">
-                {data.whyIntro}
+              <StaggerItem>
+                <PortableTextBody
+                  value={data.whyIntro}
+                  className="max-w-xl"
+                  paragraphClassName="text-base lg:text-lg text-white/55 leading-relaxed"
+                />
               </StaggerItem>
             </Stagger>
 
@@ -299,10 +301,11 @@ export default async function CareersPage({
             >
               {data.applyHeading ?? APPLY_HEADING}
             </StaggerItem>
-            <StaggerItem className="flex flex-col gap-5 text-base md:text-lg text-primary-500/75 leading-relaxed">
-              {applyParagraphs.map((p, i) => (
-                <p key={i}>{p}</p>
-              ))}
+            <StaggerItem>
+              <PortableTextBody
+                value={data.applyBody ?? APPLY_BODY}
+                paragraphClassName="text-base md:text-lg text-primary-500/75 leading-relaxed"
+              />
             </StaggerItem>
           </Stagger>
         </section>
@@ -316,7 +319,10 @@ export default async function CareersPage({
           bg={data.jobsBg ?? "#CAF1FF"}
         />
       </div>
-      <PageSections sections={data.pageSections} />
+      <Zone
+        blocks={data.pageSections as unknown as RenderedBlock[]}
+        lang={lang}
+      />
     </main>
   );
 }

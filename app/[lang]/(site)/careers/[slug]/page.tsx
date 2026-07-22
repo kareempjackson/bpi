@@ -7,6 +7,7 @@ import {
   type PortableTextComponents,
 } from "@portabletext/react";
 
+import PortableTextBody from "@/app/components/PortableTextBody";
 import { client } from "@/sanity/lib/client";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
 import {
@@ -173,9 +174,11 @@ export default async function JobDetailPage({ params }: RouteProps) {
               <h2 className="text-sm lg:text-base font-bold text-primary-500 leading-snug">
                 Job Summary
               </h2>
-              <p className="mt-2.5 text-sm lg:text-base text-primary-500/65 leading-relaxed">
-                {job.longSummary}
-              </p>
+              <PortableTextBody
+                value={job.longSummary}
+                className="mt-2.5"
+                paragraphClassName="text-sm lg:text-base text-primary-500/65 leading-relaxed"
+              />
             </div>
 
             {/* Primary actions */}
@@ -187,7 +190,10 @@ export default async function JobDetailPage({ params }: RouteProps) {
             {/* Detail rows */}
             <div className="mt-10 lg:mt-12 divide-y divide-primary-500/15 border-t border-primary-500/15">
               <Row label="Job Description">
-                <p>{job.description}</p>
+                <PortableTextBody
+                  value={job.description}
+                  paragraphClassName="leading-relaxed"
+                />
               </Row>
               {(job.sections ?? []).map((section, idx) =>
                 section.content && section.content.length > 0 ? (
@@ -203,14 +209,19 @@ export default async function JobDetailPage({ params }: RouteProps) {
 
             {/* Equal-opportunity statement — dark green block */}
             <div className="mt-12 lg:mt-16 rounded-3xl bg-error-950 px-7 md:px-12 lg:px-16 py-10 md:py-12 lg:py-16">
-              <p className="text-sm lg:text-base text-white/70 leading-relaxed">
-                {careers?.equalOpportunityParagraph1 ??
-                  "Barbados Pharmaceuticals Inc. (BPI) is an equal opportunity employer committed to creating an inclusive and diverse workplace. We celebrate diversity and are dedicated to providing fair employment opportunities to all qualified applicants regardless of background, identity, or personal circumstances."}
-              </p>
+              <PortableTextBody
+                value={
+                  careers?.equalOpportunityParagraph1 ??
+                  "Barbados Pharmaceuticals Inc. (BPI) is an equal opportunity employer committed to creating an inclusive and diverse workplace. We celebrate diversity and are dedicated to providing fair employment opportunities to all qualified applicants regardless of background, identity, or personal circumstances."
+                }
+                paragraphClassName="text-sm lg:text-base text-white/70 leading-relaxed"
+              />
               {careers?.equalOpportunityParagraph2 ? (
-                <p className="mt-4 text-sm lg:text-base text-white/70 leading-relaxed">
-                  {careers.equalOpportunityParagraph2}
-                </p>
+                <PortableTextBody
+                  value={careers.equalOpportunityParagraph2}
+                  className="mt-4"
+                  paragraphClassName="text-sm lg:text-base text-white/70 leading-relaxed"
+                />
               ) : null}
 
               <div className="mt-8 lg:mt-10 pt-7 lg:pt-8 border-t border-white/15 flex flex-wrap items-center gap-3">

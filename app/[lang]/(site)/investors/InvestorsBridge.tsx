@@ -1,7 +1,8 @@
 import CtaLink from "@/app/components/CtaLink";
+import PortableTextBody from "@/app/components/PortableTextBody";
 import { Stagger, StaggerItem } from "@/app/components/motion";
 import { localizedHref } from "@/app/lib/locale";
-import type { Cta } from "@/sanity/lib/types";
+import type { Cta, PortableTextBlock } from "@/sanity/lib/types";
 
 /**
  * "A Bridge to European Capital" — a dark band with a split title lockup on the
@@ -20,7 +21,7 @@ export default function InvestorsBridge({
   eyebrow?: string | null;
   title?: string | null;
   titleTail?: string | null;
-  body?: string | null;
+  body?: PortableTextBlock[] | string | null;
   cta?: Cta;
   bg?: string | null;
   lang: string;
@@ -28,36 +29,38 @@ export default function InvestorsBridge({
   return (
     <section
       data-nav-theme="dark"
-      className="px-6 md:px-12 lg:px-20 xl:px-28 py-14 md:py-20 lg:py-24"
+      className="px-6 md:px-10 lg:px-14 py-20 md:py-28 lg:py-36"
       style={{ backgroundColor: bg || "#13362A" }}
     >
       <Stagger className="mx-auto grid w-full max-w-page grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
         {/* Left — eyebrow over the split title. */}
         <div className="flex flex-col gap-3 lg:pl-[12%]">
           {eyebrow ? (
-            <StaggerItem as="p" className="text-xs md:text-sm text-white/60">
+            <StaggerItem as="p" className="align-middle font-display text-[16px] font-normal leading-none tracking-[1px] text-white/60">
               {eyebrow}
             </StaggerItem>
           ) : null}
           {title || titleTail ? (
             <StaggerItem
               as="h2"
-              className="flex flex-col font-display text-xl md:text-2xl font-bold text-white leading-[1.35] tracking-[-0.01em]"
+              className="flex flex-col align-middle font-display text-[30px] font-semibold text-white leading-none tracking-[-2.01px]"
             >
               {title ? <span>{title}</span> : null}
-              {titleTail ? <span className="pl-[28%]">{titleTail}</span> : null}
+              {/* Second line hangs so "to" sits under the "e" of "Bridge". */}
+              {titleTail ? <span className="pl-[5.5rem]">{titleTail}</span> : null}
             </StaggerItem>
           ) : null}
         </div>
 
-        {/* Right — body + button. */}
-        <div className="flex flex-col gap-8">
+        {/* Right — body + button. Shifted left as a unit so the button lines
+            up with the body's left edge. */}
+        <div className="flex flex-col gap-8 lg:-ml-40">
           {body ? (
-            <StaggerItem
-              as="p"
-              className="text-xs md:text-sm text-white/75 leading-relaxed"
-            >
-              {body}
+            <StaggerItem className="max-w-3xl">
+              <PortableTextBody
+                value={body}
+                paragraphClassName="align-middle font-sans text-[18px] font-normal leading-[24px] tracking-[1px] text-white/100"
+              />
             </StaggerItem>
           ) : null}
           {cta?.label ? (

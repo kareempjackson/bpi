@@ -69,7 +69,7 @@ export const aboutPage = defineType({
     defineField({
       name: "visionDescription",
       title: "Description",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "vision",
     }),
     defineField({
@@ -140,7 +140,7 @@ export const aboutPage = defineType({
     defineField({
       name: "missionDescription",
       title: "Description",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "mission",
     }),
     defineField({
@@ -161,7 +161,7 @@ export const aboutPage = defineType({
     defineField({
       name: "statsDescription",
       title: "Description",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "stats",
     }),
     defineField({
@@ -214,7 +214,7 @@ export const aboutPage = defineType({
     defineField({
       name: "leadershipDescription",
       title: "Description",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "leadership",
     }),
     defineField({
@@ -240,7 +240,7 @@ export const aboutPage = defineType({
     defineField({
       name: "leadershipContactDescription",
       title: "Contact card description",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "leadership",
     }),
     defineField({

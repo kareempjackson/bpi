@@ -1,11 +1,13 @@
 import CtaLink from "./CtaLink";
+import PortableTextBody from "./PortableTextBody";
 import WhyShape from "./shapes/WhyShape";
 import { Stagger, StaggerItem } from "./motion";
+import type { PortableTextBlock } from "@/sanity/lib/types";
 
 type Props = {
-  quote?: string;
+  quote?: PortableTextBlock[] | string | null;
   attribution?: string;
-  body?: string;
+  body?: PortableTextBlock[] | string | null;
   ctaLabel?: string;
   ctaHref?: string;
   imageSrc?: string;
@@ -35,18 +37,22 @@ export default function WhyBpiSection({
         {/* Left — quote, body, CTA */}
         <StaggerItem className="flex flex-col gap-8 lg:gap-10">
           <div className="flex flex-col gap-4">
-            <p className="font-display text-2xl md:text-3xl lg:text-display-sm font-bold text-primary-500 leading-[1.15] tracking-[-0.02em]">
-              {quote}
-            </p>
+            <PortableTextBody
+              value={quote}
+              compact
+              paragraphClassName="font-display text-2xl md:text-3xl lg:text-display-sm font-bold text-primary-500 leading-[1.15] tracking-[-0.02em]"
+            />
             {attribution ? (
               <p className="text-xs md:text-sm font-semibold tracking-[0.04em] text-primary-500/80">
                 {attribution}
               </p>
             ) : null}
           </div>
-          <p className="text-base md:text-lg text-primary-500/85 leading-relaxed max-w-xl">
-            {body}
-          </p>
+          <PortableTextBody
+            value={body}
+            className="max-w-xl"
+            paragraphClassName="text-base md:text-lg text-primary-500/85 leading-relaxed"
+          />
           <div>
             <CtaLink
               href={ctaHref}

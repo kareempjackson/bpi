@@ -46,7 +46,7 @@ export const impactPage = defineType({
     defineField({
       name: "heroBody",
       title: "Body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "hero",
     }),
     defineField({
@@ -89,15 +89,14 @@ export const impactPage = defineType({
     defineField({
       name: "whyBody",
       title: "Body",
-      description:
-        "Paragraphs above the rule. Separate paragraphs with a blank line — each becomes its own block.",
-      type: "internationalizedArrayText",
+      description: "Paragraphs above the rule.",
+      type: "internationalizedArrayPortableText",
       group: "why",
     }),
     defineField({
       name: "whyQuote",
       title: "Pull-quote",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "why",
     }),
     defineField({
@@ -149,7 +148,7 @@ export const impactPage = defineType({
             defineField({
               name: "body",
               title: "Body",
-              type: "internationalizedArrayText",
+              type: "internationalizedArrayPortableText",
             }),
             defineField({
               name: "highlight",

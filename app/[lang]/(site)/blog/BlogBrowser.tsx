@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 
 import CtaLink from "@/app/components/CtaLink";
+import PortableTextBody from "@/app/components/PortableTextBody";
+import type { PortableTextBlock } from "@/sanity/lib/types";
 import BlogCard from "./BlogCard";
 import BlogDatePicker, { type DateRange, ymd } from "./BlogDatePicker";
 import {
@@ -19,7 +21,7 @@ const PAGE_SIZE = 6;
 
 type Props = {
   heading?: string;
-  intro?: string;
+  intro?: PortableTextBlock[] | string | null;
   featured?: BlogFeatured | null;
   posts: BlogPostCard[];
   tags: BlogTag[];
@@ -154,9 +156,11 @@ export default function BlogBrowser({
               </h2>
             ) : null}
             {intro ? (
-              <p className="mt-3 text-sm text-primary-500/65 leading-relaxed">
-                {intro}
-              </p>
+              <PortableTextBody
+                value={intro}
+                className="mt-3"
+                paragraphClassName="text-sm text-primary-500/65 leading-relaxed"
+              />
             ) : null}
 
             {/* Search + Date + Find Post — one tight row */}

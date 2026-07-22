@@ -33,7 +33,7 @@ export const prioritiesPage = defineType({
     defineField({
       name: "heroBody",
       title: "Intro paragraph",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "hero",
     }),
     defineField({
@@ -76,7 +76,7 @@ export const prioritiesPage = defineType({
     defineField({
       name: "statsIntro",
       title: "Intro paragraph",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "stats",
     }),
     defineField({
@@ -104,7 +104,7 @@ export const prioritiesPage = defineType({
     defineField({
       name: "prioritiesIntro",
       title: "Intro paragraph",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "priorities",
     }),
     defineField({

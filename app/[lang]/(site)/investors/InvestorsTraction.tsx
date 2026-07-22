@@ -17,7 +17,7 @@ export default function InvestorsTraction({
   return (
     <section
       data-nav-theme="light"
-      className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-28"
+      className="px-6 md:px-10 lg:px-14 py-16 md:py-24 lg:py-28"
     >
       <div className="mx-auto grid w-full max-w-page grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
         {/* Left — eyebrow + italic heading. */}
@@ -48,10 +48,10 @@ export default function InvestorsTraction({
                 key={`${item.label ?? "project"}-${i}`}
                 className="flex flex-col gap-1.5"
               >
-                <h3 className="text-sm md:text-base font-bold text-primary-500 leading-snug">
+                <h3 className="font-display text-[14px] font-semibold leading-[1.52] tracking-normal text-primary-500">
                   {item.label}
                 </h3>
-                <p className="text-xs md:text-sm text-primary-500/70 leading-relaxed">
+                <p className="font-display text-[14px] font-light leading-[1.52] tracking-normal text-primary-500/70">
                   {item.description}
                 </p>
               </StaggerItem>

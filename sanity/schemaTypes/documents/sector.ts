@@ -166,7 +166,7 @@ export const sector = defineType({
       title: "Body",
       description:
         "Separate paragraphs with a blank line — each becomes its own spaced block.",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "overview",
       hidden: ({ parent }) => parent?.showOverview === false,
     }),
@@ -191,7 +191,7 @@ export const sector = defineType({
       name: "practiceLead",
       title: "Lead paragraph",
       description: "Larger, emphasized paragraph shown first in the right column.",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "practice",
       hidden: ({ parent }) => !parent?.showPractice,
     }),
@@ -200,7 +200,7 @@ export const sector = defineType({
       title: "Body",
       description:
         "Supporting paragraphs. Separate paragraphs with a blank line — each becomes its own block.",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "practice",
       hidden: ({ parent }) => !parent?.showPractice,
     }),
@@ -525,7 +525,7 @@ export const sector = defineType({
       title: "Body",
       description:
         "Supporting paragraph(s), shown first at regular weight. Separate paragraphs with a blank line.",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "highlight",
       hidden: ({ parent }) => !parent?.showHighlight,
     }),
@@ -647,7 +647,7 @@ export const sector = defineType({
       name: "quoteLead",
       title: "Lead paragraph",
       description: "Sits above the rule, before the pull-quote.",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "quote",
       hidden: ({ parent }) => !parent?.showQuote,
     }),
@@ -662,7 +662,7 @@ export const sector = defineType({
     defineField({
       name: "quoteText",
       title: "Quote",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "quote",
       hidden: ({ parent }) => !parent?.showQuote,
     }),

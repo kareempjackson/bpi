@@ -42,13 +42,12 @@ const MENU_MEDIA_PROJECTION = `{
   "videoUrl": coalesce(externalVideoUrl, video.asset->url)
 }`;
 
-// Modular page blocks (Call to action / Careers) added to a page's
-// `pageSections` list. One projection serves both block types — fields a given
-// block doesn't have simply resolve to null.
-const PAGE_SECTIONS_PROJECTION = `pageSections[]{
-  _type,
-  _key,
+// The flat, localized field set for a single page-builder block. One shared set
+// serves every block type — fields a given block doesn't have simply resolve to
+// null. Add a block's projected fields here as it comes online.
+const BLOCK_FIELDS = `
   enabled,
+  // CTA / Careers
   "eyebrow": ${loc("eyebrow")},
   "heading": ${loc("heading")},
   "lead": ${loc("lead")},
@@ -56,8 +55,87 @@ const PAGE_SECTIONS_PROJECTION = `pageSections[]{
   primaryCta${CTA_PROJECTION},
   secondaryCta${CTA_PROJECTION},
   media${IMAGE_PROJECTION},
-  tone
+  tone,
+  // Header / Hero
+  "title": ${loc("title")},
+  "subtitle": ${loc("subtitle")},
+  layout,
+  pageColor,
+  headingColor,
+  // Shared — variant picker + block background
+  variant,
+  bg,
+  // Rich text — body resolves to the Portable Text block array via loc()
+  // (same key ctaSection uses for its plain-text body; each block reads its own).
+  // Stats
+  "intro": ${loc("intro")},
+  stats[]{ "value": ${loc("value")}, "description": ${loc("description")} },
+  // Card grid
+  columns,
+  cards[]{ "title": ${loc("title")}, "body": ${loc("body")}, bg, watermark },
+  // Statement split
+  "statement": ${loc("statement")},
+  // List — reuses the investorRole model (label + description)
+  items[]{ "label": ${loc("label")}, "description": ${loc("description")} },
+  // Team — reuses the leader model (name + role + portrait + bio)
+  members[]{
+    "name": ${loc("name")},
+    "role": ${loc("role")},
+    image${IMAGE_PROJECTION},
+    "bio": ${loc("bio")},
+    linkedin
+  },
+  // Contact rows — reuses the contactRow model (label + value + copyValue)
+  rows[]{
+    "label": ${loc("label")},
+    "value": ${loc("value")},
+    "copyValue": ${loc("copyValue")}
+  },
+  // Quote
+  "quote": ${loc("quote")},
+  "attributionName": ${loc("attributionName")},
+  "attributionTitle": ${loc("attributionTitle")},
+  portrait${IMAGE_PROJECTION},
+  // Media
+  "caption": ${loc("caption")},
+  // Timeline — ordered steps (reuses investorRole: label + description)
+  steps[]{ "label": ${loc("label")}, "description": ${loc("description")} },
+  // Tabs — tabItem: title + rich (Portable Text) body, coalesced per language
+  tabs[]{ "title": ${loc("title")}, "body": ${loc("body")} },
+  // Carousel — carouselItem: title + body + image
+  slides[]{ "title": ${loc("title")}, "body": ${loc("body")}, image${IMAGE_PROJECTION} }
+`;
+
+// Modular page-builder blocks added to a page's `pageSections` zone. The
+// renderer (app/components/sections/Zone.tsx) dispatches on `_type`. A
+// `sectionReference` is dereferenced to its target block so the resolved item
+// looks exactly like a normal inline block (its real `_type` + fields) — the
+// renderer treats the two identically. Dereferences one level only (shared
+// sections cannot themselves hold a reference).
+const PAGE_SECTIONS_PROJECTION = `pageSections[]{
+  _key,
+  _type == "sectionReference" => {
+    ...(reference->block[0]{
+      _type,
+      ${BLOCK_FIELDS}
+    })
+  },
+  _type != "sectionReference" => {
+    _type,
+    ${BLOCK_FIELDS}
+  }
 }`;
+
+// Brand design tokens. Plain (non-i18n) objects — colours, typography styles,
+// and layout tokens — read whole and injected as `:root` CSS variables by
+// <BrandTheme>. Field names come from sanity/lib/brandTokens.ts.
+export const BRAND_SETTINGS_QUERY = defineQuery(`
+  *[_type == "brandSettings"][0]{
+    colors,
+    typography,
+    layout
+  }
+`);
 
 export const SITE_SETTINGS_QUERY = defineQuery(`
   *[_type == "siteSettings"][0]{
@@ -106,7 +184,21 @@ export const SITE_SETTINGS_QUERY = defineQuery(`
       href,
       disabled
     },
-    "footerRights": ${loc("footerRights")}
+    "footerRights": ${loc("footerRights")},
+    announcement{
+      enabled,
+      "text": ${loc("text")},
+      link${CTA_PROJECTION},
+      tone
+    },
+    globalCta{
+      enabled,
+      "heading": ${loc("heading")},
+      "body": ${loc("body")},
+      primaryCta${CTA_PROJECTION},
+      secondaryCta${CTA_PROJECTION},
+      tone
+    }
   }
 `);
 
@@ -701,6 +793,7 @@ export const INVESTORS_PAGE_QUERY = defineQuery(`
     "sitesBody": ${loc("sitesBody")},
     sitesList,
     "sitesNote": ${loc("sitesNote")},
+    sitesImage${IMAGE_PROJECTION},
 
     incentivesImage${IMAGE_PROJECTION},
     "incentivesHeading": ${loc("incentivesHeading")},
@@ -1177,6 +1270,39 @@ export const EVENT_FOR_SYNC_QUERY = defineQuery(`
   }
 `);
 
+// ── Engagements ─────────────────────────────────────────────────────────────
+// External events BPI attends (no Eventbrite / tickets). Ordered latest first;
+// the /events page splits them into "Attending next" (future) and "Where we've
+// been" (past) by comparing `date` to today.
+export const ENGAGEMENTS_QUERY = defineQuery(`
+  *[_type == "engagement" && defined(date)]
+    | order(date desc){
+      _id,
+      "name": ${loc("name")},
+      "location": ${loc("location")},
+      date,
+      "purpose": ${loc("purpose")},
+      link
+    }
+`);
+
+// The /events page singleton — copy only; the cards come from `event` /
+// `engagement` (see EVENTS_QUERY / ENGAGEMENTS_QUERY).
+export const EVENTS_PAGE_QUERY = defineQuery(`
+  *[_type == "eventsPage"][0]{
+    "seoTitle": ${loc("seoTitle")},
+    "seoDescription": ${loc("seoDescription")},
+    "title": ${loc("title")},
+    "upcomingHeading": ${loc("upcomingHeading")},
+    "upcomingIntro": ${loc("upcomingIntro")},
+    "attendingHeading": ${loc("attendingHeading")},
+    "attendingIntro": ${loc("attendingIntro")},
+    "attendingEmptyState": ${loc("attendingEmptyState")},
+    "pastHeading": ${loc("pastHeading")},
+    "pastIntro": ${loc("pastIntro")}
+  }
+`);
+
 export const PARTNERS_PAGE_QUERY = defineQuery(`
   *[_type == "partnersPage"][0]{
     "seoTitle": ${loc("seoTitle")},
@@ -1399,6 +1525,8 @@ export const SEARCH_QUERY = defineQuery(`{
     "type": "post",
     "title": ${loc("title")},
     "description": ${loc("excerpt")},
+    "image": coverImage.asset->url,
+    "date": publishedAt,
     "href": coalesce(externalLink, "/blog/" + slug.current)
   },
   "initiatives": *[_type == "initiative" && defined(slug.current) && (
@@ -1410,6 +1538,8 @@ export const SEARCH_QUERY = defineQuery(`{
     "type": "initiative",
     "title": ${loc("title")},
     "description": coalesce(${loc("subtitle")}, ${loc("excerpt")}),
+    "image": coverImage.asset->url,
+    "date": publishedAt,
     "href": select(
       defined(externalLink) => externalLink,
       hasDetailPage != false => "/initiatives/" + slug.current,
@@ -1424,6 +1554,8 @@ export const SEARCH_QUERY = defineQuery(`{
     "type": "event",
     "title": ${loc("title")},
     "description": ${loc("summary")},
+    "image": image.asset->url,
+    "date": startAt,
     "href": "/events/" + slug.current
   },
   "jobs": *[_type == "job" && active != false && defined(slug.current) && (
@@ -1435,6 +1567,8 @@ export const SEARCH_QUERY = defineQuery(`{
     "type": "job",
     "title": ${loc("title")},
     "description": coalesce(${loc("summary")}, ${loc("location")}),
+    "image": null,
+    "date": publishedAt,
     "href": "/careers/" + slug.current
   }
 }`);

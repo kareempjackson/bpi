@@ -4,6 +4,7 @@ import ConvergenceGraphic from "@/app/components/ConvergenceGraphic";
 import CtaLink from "@/app/components/CtaLink";
 import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
 import MediaImage from "@/app/components/MediaImage";
+import PortableTextBody from "@/app/components/PortableTextBody";
 import SocialIcon from "@/app/components/SocialIcon";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import { localizedHref } from "@/app/lib/locale";
@@ -86,14 +87,6 @@ export async function generateMetadata({
   };
 }
 
-/** Split a text field into paragraphs on blank lines. */
-function paragraphs(text: string): string[] {
-  return text
-    .split(/\n{2,}/)
-    .map((p) => p.trim())
-    .filter(Boolean);
-}
-
 export default async function ImpactPage({
   params,
 }: {
@@ -131,7 +124,7 @@ export default async function ImpactPage({
   const whyEyebrow = data?.whyEyebrow ?? "What We Are Building";
   const whyHeadingLead = data?.whyHeadingLead ?? "Why This";
   const whyHeadingTrail = data?.whyHeadingTrail ?? "Matters";
-  const whyParagraphs = paragraphs(data?.whyBody ?? WHY_BODY);
+  const whyBody = data?.whyBody ?? WHY_BODY;
   const whyQuote = data?.whyQuote ?? WHY_QUOTE;
   const whyName = data?.whyAttributionName ?? WHY_ATTRIBUTION_NAME;
   const whyDate = data?.whyAttributionDate ?? WHY_ATTRIBUTION_DATE;
@@ -193,11 +186,12 @@ export default async function ImpactPage({
               <Stagger
                 className="flex flex-col gap-8 lg:col-span-4 lg:justify-end lg:pb-10"
               >
-                <StaggerItem
-                  as="p"
-                  className="text-base md:text-lg text-white/70 leading-relaxed max-w-lg"
-                >
-                  {heroBody}
+                <StaggerItem>
+                  <PortableTextBody
+                    value={heroBody}
+                    className="max-w-lg"
+                    paragraphClassName="text-base md:text-lg text-white/70 leading-relaxed"
+                  />
                 </StaggerItem>
                 <StaggerItem>
                   <CtaLink
@@ -254,17 +248,23 @@ export default async function ImpactPage({
 
           {/* Right — body, rule, quote, attribution. */}
           <StaggerItem className="flex flex-col">
-            <div className="flex flex-col gap-5 text-base md:text-lg text-primary-500/85 leading-relaxed">
-              {whyParagraphs.map((p, i) => (
-                <p key={i}>{p}</p>
-              ))}
-            </div>
+            <PortableTextBody
+              value={whyBody}
+              paragraphClassName="text-base md:text-lg text-primary-500/85 leading-relaxed"
+            />
 
             {whyQuote ? (
               <>
                 <hr className="my-8 md:my-10 border-t border-primary-500/15" />
                 <blockquote className="text-base md:text-lg italic text-primary-500/80 leading-relaxed">
-                  &ldquo;{whyQuote}&rdquo;
+                  &ldquo;
+                  <PortableTextBody
+                    value={whyQuote}
+                    compact
+                    className="inline"
+                    paragraphClassName="inline"
+                  />
+                  &rdquo;
                 </blockquote>
               </>
             ) : null}
@@ -343,9 +343,11 @@ export default async function ImpactPage({
                   </h3>
                 ) : null}
                 {block.body ? (
-                  <p className="mt-4 text-base md:text-lg text-primary-500/75 leading-relaxed">
-                    {block.body}
-                  </p>
+                  <PortableTextBody
+                    value={block.body}
+                    className="mt-4"
+                    paragraphClassName="text-base md:text-lg text-primary-500/75 leading-relaxed"
+                  />
                 ) : null}
               </StaggerItem>
             ))}

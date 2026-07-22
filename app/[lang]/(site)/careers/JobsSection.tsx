@@ -4,6 +4,9 @@ import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
 
+import PortableTextBody from "@/app/components/PortableTextBody";
+import type { PortableTextBlock } from "@/sanity/lib/types";
+
 export type JobsSectionJob = {
   slug: string;
   title: string;
@@ -16,7 +19,7 @@ export type JobsSectionJob = {
 type Props = {
   jobs?: JobsSectionJob[];
   heading?: string;
-  description?: string;
+  description?: PortableTextBlock[] | string | null;
   searchPlaceholder?: string;
   findButtonLabel?: string | null;
   bg?: string;
@@ -71,9 +74,10 @@ export default function JobsSection({
           <h2 className="font-display text-3xl lg:text-4xl font-bold text-primary-500 leading-tight tracking-[-0.01em]">
             {heading}
           </h2>
-          <p className="text-sm lg:text-base text-primary-500/65 leading-relaxed">
-            {description}
-          </p>
+          <PortableTextBody
+            value={description}
+            paragraphClassName="text-sm lg:text-base text-primary-500/65 leading-relaxed"
+          />
         </div>
 
         {/* Filter / search / button row */}

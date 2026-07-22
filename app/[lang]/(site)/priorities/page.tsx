@@ -7,7 +7,9 @@ import CtaLink from "@/app/components/CtaLink";
 import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
 import Logo from "@/app/components/Logo";
 import MediaImage from "@/app/components/MediaImage";
-import PageSections from "@/app/components/PageSections";
+import PortableTextBody from "@/app/components/PortableTextBody";
+import Zone from "@/app/components/sections/Zone";
+import type { RenderedBlock } from "@/app/components/sections/registry";
 import PrioritiesIndex from "@/app/components/PrioritiesIndex";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import { localizedHref, toLocale } from "@/app/lib/locale";
@@ -233,11 +235,11 @@ export default async function PrioritiesPage({
               bottom of the column. */}
           <div className="flex flex-col justify-between gap-12 lg:gap-8 lg:py-2 lg:min-h-0">
             <Stagger className="flex flex-col gap-7 max-w-md">
-              <StaggerItem
-                as="p"
-                className="text-base md:text-lg text-white/70 leading-relaxed"
-              >
-                {heroBody}
+              <StaggerItem>
+                <PortableTextBody
+                  value={heroBody}
+                  paragraphClassName="text-base md:text-lg text-white/70 leading-relaxed"
+                />
               </StaggerItem>
               <StaggerItem>
                 <CtaLink
@@ -294,11 +296,11 @@ export default async function PrioritiesPage({
       >
         <div className="mx-auto w-full max-w-page">
           <Stagger className="max-w-xl">
-            <StaggerItem
-              as="p"
-              className="text-base md:text-lg text-primary-500/80 leading-relaxed"
-            >
-              {statsIntro}
+            <StaggerItem>
+              <PortableTextBody
+                value={statsIntro}
+                paragraphClassName="text-base md:text-lg text-primary-500/80 leading-relaxed"
+              />
             </StaggerItem>
             <StaggerItem
               as="h2"
@@ -347,11 +349,11 @@ export default async function PrioritiesPage({
               >
                 {prioritiesHeading}
               </StaggerItem>
-              <StaggerItem
-                as="p"
-                className="mt-6 max-w-md text-base text-primary-500/55 leading-relaxed"
-              >
-                {prioritiesIntro}
+              <StaggerItem className="mt-6 max-w-md">
+                <PortableTextBody
+                  value={prioritiesIntro}
+                  paragraphClassName="text-base text-primary-500/55 leading-relaxed"
+                />
               </StaggerItem>
             </Stagger>
 
@@ -502,7 +504,10 @@ export default async function PrioritiesPage({
           Priorities document. Falls back to the Home document's Careers +
           Building CTA until the page defines its own. */}
       {pageData?.pageSections && pageData.pageSections.length > 0 ? (
-        <PageSections sections={pageData.pageSections} />
+        <Zone
+          blocks={pageData.pageSections as unknown as RenderedBlock[]}
+          lang={lang}
+        />
       ) : homeData ? (
         <>
           <CareersSection

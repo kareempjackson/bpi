@@ -46,7 +46,7 @@ export const careersSection = defineType({
     defineField({
       name: "body",
       title: "Body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
     }),
     defineField({
       name: "media",

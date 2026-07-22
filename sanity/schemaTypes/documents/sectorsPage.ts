@@ -1,4 +1,6 @@
-import { defineArrayMember, defineField, defineType } from "sanity";
+import { defineField, defineType } from "sanity";
+
+import { pageBuilderMembers, pageBuilderOptions } from "../pageBuilder";
 
 /**
  * The /sectors landing page (singleton). Controls the hero, the "The Six"
@@ -42,7 +44,7 @@ export const sectorsPage = defineType({
     defineField({
       name: "heroBody",
       title: "Intro paragraph",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "hero",
     }),
     defineField({
@@ -73,7 +75,7 @@ export const sectorsPage = defineType({
     defineField({
       name: "sixIntro",
       title: "Intro paragraph",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "six",
     }),
 
@@ -90,13 +92,11 @@ export const sectorsPage = defineType({
       name: "pageSections",
       title: "Page sections",
       description:
-        "Add and reorder modular sections (Call to Action, Careers) shown at the bottom of this page. When empty, the page falls back to the Home page's Careers + Call-to-action blocks.",
+        "Add and reorder design-language sections shown at the bottom of this page. Use the visual, category-grouped picker to insert a block; drag to reorder. When empty, the page falls back to the Home page's Careers + Call-to-action blocks.",
       type: "array",
       group: "sections",
-      of: [
-        defineArrayMember({ type: "ctaSection" }),
-        defineArrayMember({ type: "careersSection" }),
-      ],
+      of: pageBuilderMembers(),
+      options: pageBuilderOptions(),
     }),
   ],
   preview: {

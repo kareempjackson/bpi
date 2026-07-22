@@ -1,14 +1,15 @@
 import type { CSSProperties } from "react";
 
-import type { ResolvedMedia } from "@/sanity/lib/types";
+import type { PortableTextBlock, ResolvedMedia } from "@/sanity/lib/types";
 import CtaLink from "./CtaLink";
 import MediaImage from "./MediaImage";
+import PortableTextBody from "./PortableTextBody";
 import { Stagger, StaggerItem } from "./motion";
 
 type Props = {
   heading?: string;
-  /** Body paragraphs shown on the right, already split. */
-  paragraphs: string[];
+  /** Body prose shown on the right (Portable Text, or legacy string). */
+  body?: PortableTextBlock[] | string | null;
   media?: ResolvedMedia | null;
   ctaLabel?: string;
   ctaHref?: string;
@@ -25,7 +26,7 @@ type Props = {
  */
 export default function PracticeDetailSection({
   heading,
-  paragraphs,
+  body,
   media,
   ctaLabel,
   ctaHref,
@@ -62,17 +63,16 @@ export default function PracticeDetailSection({
           ) : null}
         </Stagger>
 
-        {/* Right — body paragraphs + CTA. */}
+        {/* Right — body prose + CTA. */}
         <Stagger className="flex max-w-xl flex-col gap-10 lg:pt-2">
-          {paragraphs.map((p, i) => (
-            <StaggerItem
-              as="p"
-              key={i}
-              className="text-base md:text-lg text-(--ink)/85 leading-relaxed"
-            >
-              {p}
+          {body ? (
+            <StaggerItem as="div">
+              <PortableTextBody
+                value={body}
+                paragraphClassName="text-base md:text-lg text-(--ink)/85 leading-relaxed"
+              />
             </StaggerItem>
-          ))}
+          ) : null}
           {ctaLabel ? (
             <StaggerItem>
               <CtaLink

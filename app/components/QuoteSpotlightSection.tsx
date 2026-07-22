@@ -1,8 +1,13 @@
-import type { ResolvedMedia, SocialLink } from "@/sanity/lib/types";
+import type {
+  PortableTextBlock,
+  ResolvedMedia,
+  SocialLink,
+} from "@/sanity/lib/types";
 
 import { localizedHref } from "@/app/lib/locale";
 import CtaLink from "./CtaLink";
 import MediaImage from "./MediaImage";
+import PortableTextBody from "./PortableTextBody";
 import SocialIcon from "./SocialIcon";
 import { Stagger, StaggerItem } from "./motion";
 
@@ -12,11 +17,11 @@ type Props = {
   eyebrow?: string;
   heading?: string;
   /** Lead paragraph shown above the rule. */
-  lead?: string;
+  lead?: PortableTextBlock[] | string | null;
   /** Optional button shown below the lead, above the rule. */
   primaryCta?: CtaValue;
   /** Pull-quote shown below the rule (rendered italic, in quotes). */
-  quote?: string;
+  quote?: PortableTextBlock[] | string | null;
   /** Attribution name + role. */
   name?: string;
   role?: string;
@@ -78,9 +83,10 @@ export default function QuoteSpotlightSection({
           {/* Right — lead, rule, quote, attribution. */}
           <StaggerItem className="flex flex-col">
             {lead ? (
-              <p className="whitespace-pre-line text-base md:text-lg text-white/90 leading-relaxed">
-                {lead}
-              </p>
+              <PortableTextBody
+                value={lead}
+                paragraphClassName="whitespace-pre-line text-base md:text-lg text-white/90 leading-relaxed"
+              />
             ) : null}
 
             {primaryCta?.label ? (
@@ -100,7 +106,14 @@ export default function QuoteSpotlightSection({
                   <hr className="my-8 md:my-10 border-t border-white/15" />
                 ) : null}
                 <blockquote className="text-base md:text-lg italic text-white/65 leading-relaxed">
-                  &ldquo;{quote}&rdquo;
+                  &ldquo;
+                  <PortableTextBody
+                    value={quote}
+                    compact
+                    className="inline"
+                    paragraphClassName="inline"
+                  />
+                  &rdquo;
                 </blockquote>
               </>
             ) : null}

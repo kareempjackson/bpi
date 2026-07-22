@@ -1,12 +1,14 @@
 import Image from "next/image";
 import LazyVideo from "./LazyVideo";
+import PortableTextBody from "./PortableTextBody";
 import { Reveal, Stagger, StaggerItem } from "./motion";
+import type { PortableTextBlock } from "@/sanity/lib/types";
 
 type SocialKind = "Website" | "LinkedIn" | "X" | "Instagram" | "YouTube";
 type SocialLink = { kind: SocialKind; href: string; label?: string };
 
 type Props = {
-  quote?: string;
+  quote?: PortableTextBlock[] | string | null;
   body?: string;
   name?: string;
   title?: string;
@@ -90,7 +92,14 @@ export default function LeaderSection({
         {/* Right: quote + attribution */}
         <StaggerItem className="lg:flex-1 flex flex-col">
           <blockquote className="font-display text-display-xs md:text-display-sm font-normal text-primary-500 leading-tight tracking-tight">
-            &quot;{quote}&quot;
+            &quot;
+            <PortableTextBody
+              value={quote}
+              compact
+              className="inline"
+              paragraphClassName="inline"
+            />
+            &quot;
           </blockquote>
 
           <div className="mt-8 md:mt-10 flex items-center gap-5 md:gap-6">

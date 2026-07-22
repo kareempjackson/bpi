@@ -200,7 +200,7 @@ export const initiative = defineType({
     defineField({
       name: "quoteSupporting",
       title: "Quote — supporting paragraph",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       description: "Small intro text shown top-left of the quote section.",
     }),
     defineField({
@@ -231,7 +231,7 @@ export const initiative = defineType({
     defineField({
       name: "whyMattersBody",
       title: "Why It Matters — body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
     }),
     defineField({
       name: "whyMattersImage",
@@ -248,7 +248,7 @@ export const initiative = defineType({
     defineField({
       name: "impactBody",
       title: "Projected Impact — body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
     }),
     defineField({
       name: "impactStats",
@@ -441,7 +441,7 @@ export const initiative = defineType({
     defineField({
       name: "ecosystemBody",
       title: "Ecosystem Approach — body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       hidden: ({ parent }) => !parent?.showWhyBarbados,
     }),
     defineField({
@@ -491,7 +491,7 @@ export const initiative = defineType({
       name: "currentStatusBody",
       title: "Current Status — supporting paragraph",
       description: "Smaller detail under the lead.",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       hidden: ({ parent }) => !parent?.showCurrentStatus,
     }),
     defineField({
@@ -644,7 +644,7 @@ export const initiative = defineType({
     defineField({
       name: "financingBody",
       title: "Financing Approach — body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       hidden: ({ parent }) => !parent?.showFinancing,
     }),
     defineField({
@@ -665,7 +665,7 @@ export const initiative = defineType({
       name: "financingQuote",
       title: "Financing Approach — quote",
       description: "Italic pull-quote shown under the button, above the attribution.",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       hidden: ({ parent }) => !parent?.showFinancing,
     }),
     defineField({
@@ -786,7 +786,7 @@ export const initiative = defineType({
             defineField({
               name: "body",
               title: "Body",
-              type: "internationalizedArrayText",
+              type: "internationalizedArrayPortableText",
             }),
           ],
           preview: {
@@ -818,7 +818,7 @@ export const initiative = defineType({
     defineField({
       name: "relevanceBody",
       title: "Strategic Relevance — body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       hidden: ({ parent }) => !parent?.showPhases,
     }),
     defineField({

@@ -46,7 +46,7 @@ export const partnersPage = defineType({
     defineField({
       name: "heroBody",
       title: "Body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "hero",
     }),
     defineField({

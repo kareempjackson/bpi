@@ -13,6 +13,8 @@ import {
 } from "motion/react";
 import Image from "next/image";
 import CtaLink from "./CtaLink";
+import PortableTextBody from "./PortableTextBody";
+import type { PortableTextBlock } from "@/sanity/lib/types";
 import LanguageToggle from "./LanguageToggle";
 import Logo from "./Logo";
 import type { MenuConfig } from "./Menu";
@@ -40,7 +42,7 @@ export type NavLink = {
  */
 export type HeroSlide = {
   headline: string;
-  body?: string;
+  body?: PortableTextBlock[] | string | null;
   ctaHref?: string;
   /** "video" (default) renders the autoplay loop; "image" renders a still. */
   backgroundKind?: "video" | "image";
@@ -72,7 +74,7 @@ export type HeroFeature = {
 
 export type HeroSectionProps = {
   headline?: string;
-  body?: string;
+  body?: PortableTextBlock[] | string | null;
   /** "video" (default) renders the autoplay loop; "image" renders a still. */
   backgroundKind?: "video" | "image";
   videoSrc?: string;
@@ -680,14 +682,17 @@ export default function HeroSection({
                 </h1>
                 <div className="mt-7 lg:mt-9 flex items-center justify-start gap-6 lg:gap-8">
                   {activeSlide.body ? (
-                    <p
-                      className="hero-anim text-lg lg:text-xl text-white/70 max-w-md leading-[1.6]"
+                    <div
+                      className="hero-anim max-w-md"
                       style={
                         { "--anim-delay": safeActive === 0 ? "0.78s" : "0.12s" } as CSSProperties
                       }
                     >
-                      {activeSlide.body}
-                    </p>
+                      <PortableTextBody
+                        value={activeSlide.body}
+                        paragraphClassName="text-lg lg:text-xl text-white/70 leading-[1.6]"
+                      />
+                    </div>
                   ) : (
                     <span />
                   )}

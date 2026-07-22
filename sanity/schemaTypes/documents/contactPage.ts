@@ -83,7 +83,7 @@ export const contactPage = defineType({
     defineField({
       name: "formDescription",
       title: "Form description",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "form",
     }),
     defineField({

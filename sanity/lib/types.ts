@@ -34,7 +34,7 @@ export type Cta = {
 
 export type Pillar = {
   eyebrow: string;
-  description: string;
+  description: PortableTextBlock[] | string | null;
   /** `imageWithAlt` — accepts image OR video (its own `kind` field
       discriminates; `videoUrl` is on the nested object when set). */
   image?: SanityImage | null;
@@ -44,7 +44,7 @@ export type Pillar = {
 
 export type MissionCard = {
   title: string;
-  description: string;
+  description: PortableTextBlock[] | string | null;
   href?: string | null;
   eyebrow?: string | null;
   image?: SanityImage | null;
@@ -89,7 +89,7 @@ export type HeroBackground = {
 
 export type HeroSlideData = {
   headline: string;
-  body?: string | null;
+  body?: PortableTextBlock[] | string | null;
   ctaHref?: string | null;
   background?: HeroBackground | null;
   thumbnail?: SanityImage | null;
@@ -132,6 +132,24 @@ export type MenuLink = {
   subItems?: MenuSubLink[] | null;
 };
 
+/** Site-wide announcement bar (top of every page). Gated on `enabled`. */
+export type AnnouncementBand = {
+  enabled?: boolean | null;
+  text?: string | null;
+  link?: Cta;
+  tone?: "dark" | "green" | "blue" | null;
+};
+
+/** Site-wide CTA band (above the footer on every page). Gated on `enabled`. */
+export type GlobalCtaBand = {
+  enabled?: boolean | null;
+  heading?: string | null;
+  body?: PortableTextBlock[] | string | null;
+  primaryCta?: Cta;
+  secondaryCta?: Cta;
+  tone?: "green" | "blue" | null;
+};
+
 export type SiteSettings = {
   navLinks: NavLink[];
   menuLinks?: MenuLink[] | null;
@@ -142,6 +160,8 @@ export type SiteSettings = {
   footerNavGroups?: { title: string; links: { label: string; href: string }[] }[];
   footerLegalLinks?: { label: string; href: string; disabled?: boolean }[];
   footerRights?: string;
+  announcement?: AnnouncementBand | null;
+  globalCta?: GlobalCtaBand | null;
 };
 
 export type SocialLink = {
@@ -152,7 +172,7 @@ export type SocialLink = {
 
 export type PriorityCard = {
   title: string;
-  description: string;
+  description: PortableTextBlock[] | string | null;
   href: string;
   image: SanityImage;
   color?: string | null;
@@ -175,7 +195,7 @@ export type SectorNode = {
     | "market-access";
   num: string;
   title: string;
-  description: string;
+  description: PortableTextBlock[] | string | null;
   media: SectorMedia;
   href?: string | null;
 };
@@ -220,15 +240,15 @@ export type InitiativeDetail = Initiative & {
   body?: PortableTextBlock[] | null;
   pageColor?: string | null;
   showQuote?: boolean | null;
-  quoteSupporting?: string | null;
+  quoteSupporting?: PortableTextBlock[] | string | null;
   quoteText?: string | null;
   quoteAttribution?: string | null;
   quoteImage?: SanityImage | null;
   whyMattersHeading?: string | null;
-  whyMattersBody?: string | null;
+  whyMattersBody?: PortableTextBlock[] | string | null;
   whyMattersImage?: SanityImage | null;
   impactHeading?: string | null;
-  impactBody?: string | null;
+  impactBody?: PortableTextBlock[] | string | null;
   impactStats?: { value?: string | null; label?: string | null }[] | null;
   showWhatThisIs?: boolean | null;
   /** Absent = "stacked" (the original layout). */
@@ -261,13 +281,13 @@ export type InitiativeDetail = Initiative & {
   whyBarbadosCta?: Cta;
   whyBarbadosImage?: SanityImage | null;
   ecosystemHeading?: string | null;
-  ecosystemBody?: string | null;
+  ecosystemBody?: PortableTextBlock[] | string | null;
   ecosystemCta?: Cta;
   showCurrentStatus?: boolean | null;
   currentStatusHeading?: string | null;
   currentStatusImage?: SanityImage | null;
   currentStatusLead?: string | null;
-  currentStatusBody?: string | null;
+  currentStatusBody?: PortableTextBlock[] | string | null;
   currentStatusPrimaryCta?: Cta;
   currentStatusSecondaryCta?: Cta;
   /** The closing italic note under Current Status — NOT the `nextSteps*`
@@ -284,11 +304,11 @@ export type InitiativeDetail = Initiative & {
    *  italic quote and an attribution (photo, name, role, socials) right. */
   showFinancing?: boolean | null;
   financingHeading?: string | null;
-  financingBody?: string | null;
+  financingBody?: PortableTextBlock[] | string | null;
   /** Absent = true; false renders the card with no button. */
   showFinancingCta?: boolean | null;
   financingCta?: Cta;
-  financingQuote?: string | null;
+  financingQuote?: PortableTextBlock[] | string | null;
   financingName?: string | null;
   financingRole?: string | null;
   financingImage?: SanityImage | null;
@@ -302,10 +322,12 @@ export type InitiativeDetail = Initiative & {
   roadmapImage?: SanityImage | null;
   showPhases?: boolean | null;
   phasesHeading?: string | null;
-  phases?: { title?: string | null; body?: string | null }[] | null;
+  phases?:
+    | { title?: string | null; body?: PortableTextBlock[] | string | null }[]
+    | null;
   phasesImage?: SanityImage | null;
   relevanceHeading?: string | null;
-  relevanceBody?: string | null;
+  relevanceBody?: PortableTextBlock[] | string | null;
   relevanceCta?: Cta;
 };
 
@@ -359,6 +381,34 @@ export type EventDetail = EventSummary & {
   locationType?: "online" | "venue" | null;
   venueName?: string | null;
   venueAddress?: string | null;
+};
+
+/** External event BPI attends (see ENGAGEMENTS_QUERY). Split into
+    "Attending next" / "Where we've been" on the /events page by `date`. */
+export type EngagementSummary = {
+  _id: string;
+  name: string;
+  location: string;
+  /** ISO date, "YYYY-MM-DD". */
+  date: string;
+  /** Rich text (WYSIWYG); legacy/fallback entries may be a plain string. */
+  purpose?: PortableTextBlock[] | string | null;
+  link?: string | null;
+};
+
+/** The /events page singleton — surrounding copy for the three sections
+    (see EVENTS_PAGE_QUERY). Cards themselves come from `event`/`engagement`. */
+export type EventsPage = {
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  title?: string | null;
+  upcomingHeading?: string | null;
+  upcomingIntro?: PortableTextBlock[] | string | null;
+  attendingHeading?: string | null;
+  attendingIntro?: PortableTextBlock[] | string | null;
+  attendingEmptyState?: PortableTextBlock[] | string | null;
+  pastHeading?: string | null;
+  pastIntro?: PortableTextBlock[] | string | null;
 };
 
 // ── Blog ──────────────────────────────────────────────────────────────────
@@ -418,7 +468,7 @@ export type PageSection = {
 export type BlogPage = {
   pageSections?: PageSection[] | null;
   heading?: string | null;
-  intro?: string | null;
+  intro?: PortableTextBlock[] | string | null;
   seoTitle?: string | null;
   seoDescription?: string | null;
   featuredPost?: BlogPost | null;
@@ -436,20 +486,20 @@ export type InitiativesPage = {
 
   heroImage?: SanityImage | null;
   heroHeadline?: string | null;
-  heroBody?: string | null;
+  heroBody?: PortableTextBlock[] | string | null;
   heroPrimaryCta?: Cta | null;
   heroSecondaryCta?: Cta | null;
 
   showWorkInMotion?: boolean | null;
   workInMotionHeading?: string | null;
-  workInMotionBody?: string | null;
+  workInMotionBody?: PortableTextBlock[] | string | null;
   workInMotionBg?: string | null;
   workInMotionPrimaryCta?: Cta | null;
   workInMotionSecondaryCta?: Cta | null;
   workInMotionImage?: SanityImage | null;
 
   featuredInitiative?: Initiative | null;
-  featuredStatBody?: string | null;
+  featuredStatBody?: PortableTextBlock[] | string | null;
   featuredSupportingInitiatives?: Initiative[] | null;
 
   showMotionStories?: boolean | null;
@@ -461,13 +511,13 @@ export type InitiativesPage = {
   showOtherWorks?: boolean | null;
   otherWorksEyebrow?: string | null;
   otherWorksHeading?: string | null;
-  otherWorksBody?: string | null;
+  otherWorksBody?: PortableTextBlock[] | string | null;
   otherWorksBlueTitle?: string | null;
-  otherWorksBlueBody?: string | null;
+  otherWorksBlueBody?: PortableTextBlock[] | string | null;
   otherWorksBlueCta?: Cta | null;
   otherWorksBlueBg?: string | null;
   otherWorksGreenTitle?: string | null;
-  otherWorksGreenBody?: string | null;
+  otherWorksGreenBody?: PortableTextBlock[] | string | null;
   otherWorksGreenBg?: string | null;
   otherWorksTopRightImages?: SanityImage[] | null;
   otherWorksBottomLeftImage?: SanityImage | null;
@@ -477,7 +527,7 @@ export type InitiativesPage = {
   otherWorksFeaturedHref?: string | null;
 
   buildingFutureHeading?: string | null;
-  buildingFutureBody?: string | null;
+  buildingFutureBody?: PortableTextBlock[] | string | null;
   buildingFutureStats?: FutureStat[] | null;
   buildingFutureStatBg?: string | null;
 };
@@ -488,13 +538,13 @@ export type HomePage = {
   seoDescription: string;
 
   heroHeadline: string;
-  heroBody: string;
+  heroBody: PortableTextBlock[] | string | null;
   heroCtaHref?: string | null;
   heroBackground: HeroBackground;
   heroSlides?: HeroSlideData[] | null;
   heroFeature?: HeroFeatureData | null;
 
-  leaderQuote: string;
+  leaderQuote: PortableTextBlock[] | string | null;
   leaderBody: string;
   leaderName: string;
   leaderTitle: string;
@@ -504,17 +554,17 @@ export type HomePage = {
   leaderSocials: SocialLink[];
 
   architectureHeading: string;
-  architectureDescription: string;
+  architectureDescription: PortableTextBlock[] | string | null;
   architectureItems: PriorityCard[];
   architectureFeature?: SanityImage | null;
 
   sectorsHeading: string;
-  sectorsBody: string;
+  sectorsBody: PortableTextBlock[] | string | null;
   sectorsNodes: SectorNode[];
 
-  whyQuote: string;
+  whyQuote: PortableTextBlock[] | string | null;
   whyAttribution: string;
-  whyBody: string;
+  whyBody: PortableTextBlock[] | string | null;
   whyCta: Cta;
   whyImage: SanityImage;
 
@@ -530,7 +580,7 @@ export type HomePage = {
   careersEyebrow?: string | null;
   careersHeading?: string | null;
   careersLead?: string | null;
-  careersBody?: string | null;
+  careersBody?: PortableTextBlock[] | string | null;
   careersImage?: SanityImage | null;
   careersPrimaryCta?: Cta | null;
   careersSecondaryCta?: Cta | null;
@@ -577,8 +627,8 @@ export type JobSection = {
 };
 
 export type Job = JobSummary & {
-  longSummary: string;
-  description: string;
+  longSummary: PortableTextBlock[] | string | null;
+  description: PortableTextBlock[] | string | null;
   sections?: JobSection[] | null;
   applyEmail?: string | null;
   applyUrl?: string | null;
@@ -591,33 +641,33 @@ export type CareersPage = {
 
   heroHeadlineLine1: string;
   heroHeadlineHighlight?: string | null;
-  heroDescription: string;
+  heroDescription: PortableTextBlock[] | string | null;
   heroImage: SanityImage;
 
   whyHeading: string;
-  whyIntro: string;
+  whyIntro: PortableTextBlock[] | string | null;
   whyImage: SanityImage;
   whySections: { heading: string; body: string }[];
   whyBulletsHeading: string;
   whyBullets: string[];
 
   applyHeading?: string | null;
-  applyBody?: string | null;
+  applyBody?: PortableTextBlock[] | string | null;
 
   jobsHeading: string;
-  jobsDescription: string;
+  jobsDescription: PortableTextBlock[] | string | null;
   jobsSearchPlaceholder?: string | null;
   jobsFindButtonLabel?: string | null;
   jobsBg?: string | null;
 
-  equalOpportunityParagraph1: string;
-  equalOpportunityParagraph2?: string | null;
+  equalOpportunityParagraph1: PortableTextBlock[] | string | null;
+  equalOpportunityParagraph2?: PortableTextBlock[] | string | null;
   equalOpportunityBg?: string | null;
 };
 
 export type InvestorCard = {
   title?: string | null;
-  body?: string | null;
+  body?: PortableTextBlock[] | string | null;
   bg?: string | null;
   watermark?: boolean | null;
 };
@@ -628,11 +678,24 @@ export type InvestorRole = {
 };
 
 export type InvestorNote = {
-  body?: string | null;
+  body?: PortableTextBlock[] | string | null;
+};
+
+/** One tab in a `tabsBlock` — a tab title and a rich body panel. */
+export type TabItem = {
+  title?: string | null;
+  body?: PortableTextBlock[] | null;
+};
+
+/** One card in a `carouselBlock` — image over a title and short body. */
+export type CarouselItem = {
+  title?: string | null;
+  body?: PortableTextBlock[] | string | null;
+  image?: SanityImage | null;
 };
 
 export type InvestorQuote = {
-  quote?: string | null;
+  quote?: PortableTextBlock[] | string | null;
   name?: string | null;
   title?: string | null;
   image?: SanityImage | null;
@@ -651,46 +714,47 @@ export type InvestorsPage = {
   opportunityEyebrow?: string | null;
   opportunityHeading?: string | null;
   /** May contain `**bold**` runs. */
-  opportunityBody?: string | null;
-  opportunityCardLead?: string | null;
+  opportunityBody?: PortableTextBlock[] | string | null;
+  opportunityCardLead?: PortableTextBlock[] | string | null;
   opportunityStats?: Stat[] | null;
   opportunityCardBg?: string | null;
 
   whyHeading?: string | null;
-  whyIntro?: string | null;
+  whyIntro?: PortableTextBlock[] | string | null;
   whyCards?: InvestorCard[] | null;
-  whyClosing?: string | null;
+  whyClosing?: PortableTextBlock[] | string | null;
   whyImage?: SanityImage | null;
 
   howHeading?: string | null;
-  howIntro?: string | null;
+  howIntro?: PortableTextBlock[] | string | null;
   howRoles?: InvestorRole[] | null;
   howImage?: SanityImage | null;
-  howBody?: string | null;
+  howBody?: PortableTextBlock[] | string | null;
   howBg?: string | null;
 
   sitesHeading?: string | null;
-  sitesBody?: string | null;
+  sitesBody?: PortableTextBlock[] | string | null;
   /** Plain strings — proper names, not translated. */
   sitesList?: string[] | null;
-  sitesNote?: string | null;
+  sitesNote?: PortableTextBlock[] | string | null;
+  sitesImage?: SanityImage | null;
 
   incentivesImage?: SanityImage | null;
   incentivesHeading?: string | null;
-  incentivesLead?: string | null;
+  incentivesLead?: PortableTextBlock[] | string | null;
   incentivesItems?: InvestorNote[] | null;
 
   bridgeEyebrow?: string | null;
   bridgeTitle?: string | null;
   bridgeTitleTail?: string | null;
-  bridgeBody?: string | null;
+  bridgeBody?: PortableTextBlock[] | string | null;
   bridgeCta?: Cta;
   bridgeBg?: string | null;
 
   marketHeading?: string | null;
-  marketLead?: string | null;
+  marketLead?: PortableTextBlock[] | string | null;
   marketStats?: Stat[] | null;
-  marketClosing?: string | null;
+  marketClosing?: PortableTextBlock[] | string | null;
   marketImage?: SanityImage | null;
 
   tractionEyebrow?: string | null;
@@ -698,7 +762,7 @@ export type InvestorsPage = {
   tractionItems?: InvestorRole[] | null;
 
   whyNowHeading?: string | null;
-  whyNowBody?: string | null;
+  whyNowBody?: PortableTextBlock[] | string | null;
   whyNowPrimaryCta?: Cta;
   whyNowSecondaryCta?: Cta;
   whyNowImage?: SanityImage | null;
@@ -713,7 +777,7 @@ export type InvestorsPage = {
   voicesQuotes?: InvestorQuote[] | null;
 
   deeperHeading?: string | null;
-  deeperBody?: string | null;
+  deeperBody?: PortableTextBlock[] | string | null;
   deeperImage?: SanityImage | null;
   timelineHeading?: string | null;
   timelineItems?: InvestorRole[] | null;
@@ -728,19 +792,19 @@ export type PrioritiesPage = {
   seoTitle?: string | null;
   seoDescription?: string | null;
 
-  heroBody?: string | null;
+  heroBody?: PortableTextBlock[] | string | null;
   heroHeadlineLine1?: string | null;
   heroHeadlineLine2?: string | null;
   heroCta?: Cta | null;
   heroImage?: SanityImage | null;
 
   showStats?: boolean | null;
-  statsIntro?: string | null;
+  statsIntro?: PortableTextBlock[] | string | null;
   statsHeading?: string | null;
   stats?: { value?: string | null; description?: string | null }[] | null;
 
   prioritiesHeading?: string | null;
-  prioritiesIntro?: string | null;
+  prioritiesIntro?: PortableTextBlock[] | string | null;
   priorities?: { label?: string | null }[] | null;
   prioritiesCta?: Cta | null;
   prioritiesImage?: SanityImage | null;
@@ -780,7 +844,7 @@ export type PriorityDetail = PrioritySummary & {
 
   showOverview?: boolean | null;
   overviewHeading?: string | null;
-  overviewBody?: string | null;
+  overviewBody?: PortableTextBlock[] | string | null;
 
   showPoints?: boolean | null;
   pointsHeading?: string | null;
@@ -793,8 +857,8 @@ export type PriorityDetail = PrioritySummary & {
   showQuote?: boolean | null;
   quoteEyebrow?: string | null;
   quoteHeading?: string | null;
-  quoteLead?: string | null;
-  quoteText?: string | null;
+  quoteLead?: PortableTextBlock[] | string | null;
+  quoteText?: PortableTextBlock[] | string | null;
   quoteAttribution?: string | null;
   quoteRole?: string | null;
   quotePortrait?: SanityImage | null;
@@ -804,21 +868,21 @@ export type PriorityDetail = PrioritySummary & {
   practiceStatementLead?: string | null;
   practiceStatementHighlight?: string | null;
   practiceStatementTrail?: string | null;
-  practiceBody?: string | null;
+  practiceBody?: PortableTextBlock[] | string | null;
   practicePrimaryCta?: Cta;
   practiceSecondaryCta?: Cta;
 
   showPracticeDetail?: boolean | null;
   practiceDetailHeading?: string | null;
-  practiceDetailBody?: string | null;
+  practiceDetailBody?: PortableTextBlock[] | string | null;
   practiceDetailImage?: SanityImage | null;
   practiceDetailCta?: Cta;
 
   showPracticeTabs?: boolean | null;
   practiceTabsHeading?: string | null;
-  practiceTabsLead?: string | null;
+  practiceTabsLead?: PortableTextBlock[] | string | null;
   practiceTabsStatement?: string | null;
-  practiceTabsTrail?: string | null;
+  practiceTabsTrail?: PortableTextBlock[] | string | null;
   practiceTabsItems?:
     | {
         label?: string | null;
@@ -844,12 +908,12 @@ export type SectorsPage = {
   seoDescription?: string | null;
 
   heroHeading?: string | null;
-  heroBody?: string | null;
+  heroBody?: PortableTextBlock[] | string | null;
   heroCta?: Cta | null;
   heroImage?: SanityImage | null;
 
   sixHeading?: string | null;
-  sixIntro?: string | null;
+  sixIntro?: PortableTextBlock[] | string | null;
 
   latestHeading?: string | null;
   pageSections?: PageSection[] | null;
@@ -885,7 +949,7 @@ export type SectorDetail = SectorSummary & {
 
   showOverview?: boolean | null;
   overviewHeading?: string | null;
-  overviewBody?: string | null;
+  overviewBody?: PortableTextBlock[] | string | null;
 
   showCapabilities?: boolean | null;
   capabilitiesHeading?: string | null;
@@ -898,17 +962,17 @@ export type SectorDetail = SectorSummary & {
   showQuote?: boolean | null;
   quoteEyebrow?: string | null;
   quoteHeading?: string | null;
-  quoteLead?: string | null;
+  quoteLead?: PortableTextBlock[] | string | null;
   quoteCta?: Cta;
-  quoteText?: string | null;
+  quoteText?: PortableTextBlock[] | string | null;
   quoteAttribution?: string | null;
   quoteRole?: string | null;
   quotePortrait?: SanityImage | null;
 
   showPractice?: boolean | null;
   practiceHeading?: string | null;
-  practiceLead?: string | null;
-  practiceBody?: string | null;
+  practiceLead?: PortableTextBlock[] | string | null;
+  practiceBody?: PortableTextBlock[] | string | null;
   practiceListHeading?: string | null;
   practiceList?: { term?: string | null; body?: string | null }[] | null;
   practiceCreatesLabel?: string | null;
@@ -943,7 +1007,7 @@ export type SectorDetail = SectorSummary & {
 
   showHighlight?: boolean | null;
   highlightHeading?: string | null;
-  highlightBody?: string | null;
+  highlightBody?: PortableTextBlock[] | string | null;
   highlightStatement?: string | null;
   highlightImage?: SanityImage | null;
 
@@ -967,7 +1031,7 @@ export type ContactPage = {
   contactRows: ContactRow[];
 
   formHeading: string;
-  formDescription: string;
+  formDescription: PortableTextBlock[] | string | null;
   formSubmitLabel: string;
   formBg?: string | null;
   formImage: SanityImage;
@@ -995,7 +1059,7 @@ export type PartnersPage = {
   seoDescription?: string | null;
 
   heroHeading?: string | null;
-  heroBody?: string | null;
+  heroBody?: PortableTextBlock[] | string | null;
   heroImage?: SanityImage | null;
   heroCta?: Cta;
 
@@ -1007,15 +1071,15 @@ export type ImpactPage = {
   seoDescription?: string | null;
 
   heroHeading?: string | null;
-  heroBody?: string | null;
+  heroBody?: PortableTextBlock[] | string | null;
   heroImage?: SanityImage | null;
   heroCta?: Cta;
 
   whyEyebrow?: string | null;
   whyHeadingLead?: string | null;
   whyHeadingTrail?: string | null;
-  whyBody?: string | null;
-  whyQuote?: string | null;
+  whyBody?: PortableTextBlock[] | string | null;
+  whyQuote?: PortableTextBlock[] | string | null;
   whyAttributionName?: string | null;
   whyAttributionDate?: string | null;
   whyPortrait?: SanityImage | null;
@@ -1025,7 +1089,7 @@ export type ImpactPage = {
   trajectoryBlocks?:
     | {
         heading?: string | null;
-        body?: string | null;
+        body?: PortableTextBlock[] | string | null;
         highlight?: boolean | null;
       }[]
     | null;
@@ -1042,7 +1106,7 @@ export type AboutPage = {
   heroCta: Cta;
 
   visionHeading: string;
-  visionDescription: string;
+  visionDescription: PortableTextBlock[] | string | null;
   visionPrimaryCta: Cta;
   visionSecondaryCta: Cta;
   visionBg?: string | null;
@@ -1054,11 +1118,11 @@ export type AboutPage = {
   differenceTagline?: string | null;
 
   missionHeading: string;
-  missionDescription: string;
+  missionDescription: PortableTextBlock[] | string | null;
   missionCards: MissionCard[];
 
   statsHeading: string;
-  statsDescription: string;
+  statsDescription: PortableTextBlock[] | string | null;
   stats: Stat[];
 
   bannerImage?: SanityImage | null;
@@ -1068,11 +1132,11 @@ export type AboutPage = {
   initiativesShowCount: number;
 
   leadershipHeading: string;
-  leadershipDescription: string;
+  leadershipDescription: PortableTextBlock[] | string | null;
   leadershipBg?: string | null;
   leaders: Leader[];
   leadershipContactHeading: string;
-  leadershipContactDescription: string;
+  leadershipContactDescription: PortableTextBlock[] | string | null;
   leadershipContactPrimaryCta: Cta;
   leadershipContactSecondaryCta: Cta;
 };
@@ -1103,7 +1167,7 @@ export type PortalFile = {
 export type PortalResource = {
   _id: string;
   title: string;
-  description?: string | null;
+  description?: PortableTextBlock[] | string | null;
   kind: "file" | "video" | "dataset";
   audiences: PortalRole[];
   file?: PortalFile | null;

@@ -1,8 +1,14 @@
 import CtaLink from "@/app/components/CtaLink";
 import MediaImage from "@/app/components/MediaImage";
+import PortableTextBody from "@/app/components/PortableTextBody";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import { localizedHref } from "@/app/lib/locale";
-import type { Cta, InvestorRole, ResolvedMedia } from "@/sanity/lib/types";
+import type {
+  Cta,
+  InvestorRole,
+  PortableTextBlock,
+  ResolvedMedia,
+} from "@/sanity/lib/types";
 
 /**
  * "Go Deeper" + "Timeline" — one section carrying two blocks that share the
@@ -20,7 +26,7 @@ export default function InvestorsGoDeeper({
   lang,
 }: {
   heading?: string | null;
-  body?: string | null;
+  body?: PortableTextBlock[] | string | null;
   media: ResolvedMedia | null;
   timelineHeading?: string | null;
   steps?: InvestorRole[] | null;
@@ -53,7 +59,7 @@ export default function InvestorsGoDeeper({
   return (
     <section
       data-nav-theme="light"
-      className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-28"
+      className="px-6 md:px-10 lg:px-14 py-16 md:py-24 lg:py-28"
     >
       <div className="mx-auto w-full max-w-page">
         {/* Go deeper — copy + buttons left, image right. */}
@@ -68,11 +74,11 @@ export default function InvestorsGoDeeper({
               </StaggerItem>
             ) : null}
             {body ? (
-              <StaggerItem
-                as="p"
-                className="max-w-md text-sm md:text-base text-primary-500/75 leading-relaxed"
-              >
-                {body}
+              <StaggerItem className="max-w-md">
+                <PortableTextBody
+                  value={body}
+                  paragraphClassName="font-display text-[18px] font-normal leading-[1.8] tracking-normal text-primary-500/75"
+                />
               </StaggerItem>
             ) : null}
             {buttons ? <StaggerItem>{buttons}</StaggerItem> : null}

@@ -1,6 +1,7 @@
 import MediaImage from "@/app/components/MediaImage";
+import PortableTextBody from "@/app/components/PortableTextBody";
 import { Stagger, StaggerItem } from "@/app/components/motion";
-import type { ResolvedMedia } from "@/sanity/lib/types";
+import type { PortableTextBlock, ResolvedMedia } from "@/sanity/lib/types";
 
 /**
  * "Voices from the Ground" — an eyebrow over a two-tone split heading (first
@@ -12,7 +13,7 @@ import type { ResolvedMedia } from "@/sanity/lib/types";
  * rest of the page follows), so this stays a plain presentational component.
  */
 export type VoiceQuote = {
-  quote?: string | null;
+  quote?: PortableTextBlock[] | string | null;
   name?: string | null;
   title?: string | null;
   bg?: string | null;
@@ -33,7 +34,7 @@ export default function InvestorsVoices({
   return (
     <section
       data-nav-theme="light"
-      className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-28"
+      className="px-6 md:px-10 lg:px-14 py-16 md:py-24 lg:py-28"
     >
       <div className="mx-auto w-full max-w-page">
         <Stagger className="flex flex-col gap-4">
@@ -49,7 +50,7 @@ export default function InvestorsVoices({
             >
               {heading ? <span className="text-error-600">{heading}</span> : null}
               {headingTail ? (
-                <span className="text-primary-500 pl-[18%]">{headingTail}</span>
+                <span className="text-primary-500 pl-[10%]">{headingTail}</span>
               ) : null}
             </StaggerItem>
           ) : null}
@@ -64,9 +65,11 @@ export default function InvestorsVoices({
                 className="flex flex-col justify-between gap-10 rounded-2xl p-6 md:p-7"
                 style={{ backgroundColor: q.bg || "#FFFFFF" }}
               >
-                <p className="font-display text-sm md:text-base italic text-primary-500 leading-relaxed">
-                  {q.quote}
-                </p>
+                <PortableTextBody
+                  value={q.quote}
+                  compact
+                  paragraphClassName="font-display text-[18px] font-light italic leading-none tracking-normal text-[#242424]"
+                />
                 <div className="flex items-center gap-3">
                   {q.portrait ? (
                     <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-primary-500/10">

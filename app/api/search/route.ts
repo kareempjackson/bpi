@@ -14,6 +14,8 @@ export type SearchResult = {
   type: "post" | "initiative" | "event" | "job";
   title: string | null;
   description: string | null;
+  image: string | null;
+  date: string | null;
   href: string;
 };
 

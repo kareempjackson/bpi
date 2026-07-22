@@ -88,14 +88,14 @@ export const job = defineType({
     defineField({
       name: "longSummary",
       title: "Long summary (detail page)",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "details",
       description: "Shown under \"Job Summary\" on the detail page.",
     }),
     defineField({
       name: "description",
       title: "Description (detail page)",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "details",
       description: "Opening paragraph in the \"Job Description\" row.",
     }),

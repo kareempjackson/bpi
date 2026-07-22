@@ -1,13 +1,15 @@
 import Image from "next/image";
 
 import CtaLink from "./CtaLink";
+import PortableTextBody from "./PortableTextBody";
 import { Reveal, Stagger, StaggerItem } from "./motion";
+import type { PortableTextBlock } from "@/sanity/lib/types";
 
 type Props = {
   eyebrow?: string;
   heading?: string;
   lead?: string;
-  body?: string;
+  body?: PortableTextBlock[] | string | null;
   imageSrc?: string;
   videoSrc?: string;
   imageAlt?: string;
@@ -104,11 +106,11 @@ export default function CareersSection({
           >
             {lead}
           </StaggerItem>
-          <StaggerItem
-            as="p"
-            className="text-base md:text-lg text-primary-500/70 leading-relaxed max-w-xl"
-          >
-            {body}
+          <StaggerItem className="max-w-xl">
+            <PortableTextBody
+              value={body}
+              paragraphClassName="text-base md:text-lg text-primary-500/70 leading-relaxed"
+            />
           </StaggerItem>
           <StaggerItem className="flex flex-wrap gap-3 pt-2">
             <CtaLink href={primaryHref} className={primaryBtnClass}>

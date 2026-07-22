@@ -11,6 +11,7 @@ import BuildingSection from "@/app/components/BuildingSection";
 import CareersSection from "@/app/components/CareersSection";
 import CtaLink from "@/app/components/CtaLink";
 import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
+import PortableTextBody from "@/app/components/PortableTextBody";
 import SocialIcon from "@/app/components/SocialIcon";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import { localizedHref } from "@/app/lib/locale";
@@ -725,9 +726,10 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
                   ) : null}
                   <div className="flex flex-col gap-8">
                     {initiative.ecosystemBody ? (
-                      <p className="text-base lg:text-lg text-white/85 leading-[1.6]">
-                        {initiative.ecosystemBody}
-                      </p>
+                      <PortableTextBody
+                        value={initiative.ecosystemBody}
+                        paragraphClassName="text-base lg:text-lg text-white/85 leading-[1.6]"
+                      />
                     ) : null}
                     <CtaLink
                       href={ecosystemCta.href}
@@ -786,10 +788,13 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
                     </StaggerItem>
                     {initiative.currentStatusBody ? (
                       <StaggerItem
-                        as="p"
+                        as="div"
                         className="text-sm lg:text-[15px] text-primary-500/75 leading-[1.7]"
                       >
-                        {initiative.currentStatusBody}
+                        <PortableTextBody
+                          value={initiative.currentStatusBody}
+                          paragraphClassName="text-sm lg:text-[15px] text-primary-500/75 leading-[1.7]"
+                        />
                       </StaggerItem>
                     ) : null}
                     <StaggerItem className="flex flex-wrap items-center gap-3 pt-2">
@@ -1163,10 +1168,13 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
               <Stagger className="flex flex-col gap-8">
                 {initiative.financingBody ? (
                   <StaggerItem
-                    as="p"
+                    as="div"
                     className="text-base lg:text-lg text-white/80 leading-relaxed"
                   >
-                    {initiative.financingBody}
+                    <PortableTextBody
+                      value={initiative.financingBody}
+                      paragraphClassName="text-base lg:text-lg text-white/80 leading-relaxed"
+                    />
                   </StaggerItem>
                 ) : null}
 
@@ -1185,7 +1193,14 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
                   <StaggerItem className="flex flex-col gap-8">
                     <div className="mt-2 w-full border-t border-white/15" />
                     <blockquote className="text-sm md:text-base italic text-white/70 leading-relaxed">
-                      &ldquo;{initiative.financingQuote}&rdquo;
+                      &ldquo;
+                      <PortableTextBody
+                        value={initiative.financingQuote}
+                        compact
+                        className="inline"
+                        paragraphClassName="inline"
+                      />
+                      &rdquo;
                     </blockquote>
 
                     {financingImg || initiative.financingName ? (
@@ -1340,9 +1355,10 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
                       </h3>
                     ) : null}
                     {ph.body ? (
-                      <p className="text-xs lg:text-sm text-primary-500/75 leading-relaxed">
-                        {ph.body}
-                      </p>
+                      <PortableTextBody
+                        value={ph.body}
+                        paragraphClassName="text-xs lg:text-sm text-primary-500/75 leading-relaxed"
+                      />
                     ) : null}
                   </StaggerItem>
                 ))}
@@ -1379,10 +1395,13 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
                 <div className="flex flex-col gap-6">
                   {initiative.relevanceBody ? (
                     <StaggerItem
-                      as="p"
+                      as="div"
                       className="text-sm lg:text-base text-white/75 leading-[1.75]"
                     >
-                      {initiative.relevanceBody}
+                      <PortableTextBody
+                        value={initiative.relevanceBody}
+                        paragraphClassName="text-sm lg:text-base text-white/75 leading-[1.75]"
+                      />
                     </StaggerItem>
                   ) : null}
                   <StaggerItem>
@@ -1453,9 +1472,11 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
             {/* Left — supporting note (top), attribution + quote (bottom). */}
             <StaggerItem className="flex flex-col justify-between gap-12 lg:gap-16">
               {initiative.quoteSupporting ? (
-                <p className="max-w-xs text-sm text-white/55 leading-relaxed">
-                  {initiative.quoteSupporting}
-                </p>
+                <PortableTextBody
+                  value={initiative.quoteSupporting}
+                  className="max-w-xs"
+                  paragraphClassName="text-sm text-white/55 leading-relaxed"
+                />
               ) : null}
               <div className="flex flex-col gap-5">
                 {initiative.quoteAttribution ? (
@@ -1504,9 +1525,11 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
                     {initiative.whyMattersHeading ?? "Why It Matters"}
                   </h2>
                   {initiative.whyMattersBody ? (
-                    <p className="text-sm md:text-base text-white/70 leading-relaxed max-w-3xl">
-                      {initiative.whyMattersBody}
-                    </p>
+                    <PortableTextBody
+                      value={initiative.whyMattersBody}
+                      className="max-w-3xl"
+                      paragraphClassName="text-sm md:text-base text-white/70 leading-relaxed"
+                    />
                   ) : null}
                 </StaggerItem>
                 {whyMattersImg ? (
@@ -1536,9 +1559,11 @@ export default async function InitiativeDetailPage({ params }: RouteProps) {
                       {initiative.impactHeading ?? "Further Projected Impact"}
                     </h2>
                     {initiative.impactBody ? (
-                      <p className="mt-3 text-sm md:text-base text-white/70 leading-relaxed">
-                        {initiative.impactBody}
-                      </p>
+                      <PortableTextBody
+                        value={initiative.impactBody}
+                        className="mt-3"
+                        paragraphClassName="text-sm md:text-base text-white/70 leading-relaxed"
+                      />
                     ) : null}
                   </div>
                   <CtaLink

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import "@/app/globals.css";
 import { albertSans, avenirNext } from "@/app/fonts";
+import BrandTheme from "@/app/components/BrandTheme";
 import BrowserCheck from "@/app/components/BrowserCheck";
 import { hasLocale, locales } from "@/app/lib/locale";
 
@@ -38,6 +39,8 @@ export default async function LangLayout({
       className={`${albertSans.variable} ${avenirNext.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/* Inject the editable brand tokens as :root CSS vars before content. */}
+        <BrandTheme />
         <BrowserCheck />
         {children}
       </body>

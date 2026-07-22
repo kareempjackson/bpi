@@ -4,11 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 import CtaLink from "@/app/components/CtaLink";
+import PortableTextBody from "@/app/components/PortableTextBody";
+import type { PortableTextBlock } from "@/sanity/lib/types";
 
 export type SectorSlide = {
   nodeId: string;
   title: string;
-  description?: string;
+  description?: PortableTextBlock[] | string | null;
   href?: string;
   imageSrc?: string;
   imageAlt?: string;
@@ -94,9 +96,11 @@ export default function SectorsCarousel({ slides }: { slides: SectorSlide[] }) {
                 />
               ) : null}
             </div>
-            <p className="mt-5 flex-1 text-sm leading-relaxed text-primary-500/80 md:text-base">
-              {s.description}
-            </p>
+            <PortableTextBody
+              value={s.description}
+              className="mt-5 flex-1"
+              paragraphClassName="text-sm leading-relaxed text-primary-500/80 md:text-base"
+            />
             {s.href ? (
               <CtaLink
                 href={s.href}

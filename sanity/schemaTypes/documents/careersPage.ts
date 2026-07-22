@@ -47,7 +47,7 @@ export const careersPage = defineType({
     defineField({
       name: "heroDescription",
       title: "Description",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "hero",
     }),
     defineField({
@@ -68,7 +68,7 @@ export const careersPage = defineType({
     defineField({
       name: "whyIntro",
       title: "Intro paragraph",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "why",
     }),
     defineField({
@@ -140,9 +140,8 @@ export const careersPage = defineType({
     defineField({
       name: "applyBody",
       title: "Body",
-      description:
-        "Explanation shown above the jobs list. Separate paragraphs with a blank line.",
-      type: "internationalizedArrayText",
+      description: "Explanation shown above the jobs list.",
+      type: "internationalizedArrayPortableText",
       group: "apply",
     }),
 
@@ -156,7 +155,7 @@ export const careersPage = defineType({
     defineField({
       name: "jobsDescription",
       title: "Description",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "jobs",
     }),
     defineField({
@@ -183,13 +182,13 @@ export const careersPage = defineType({
     defineField({
       name: "equalOpportunityParagraph1",
       title: "Paragraph 1",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "legal",
     }),
     defineField({
       name: "equalOpportunityParagraph2",
       title: "Paragraph 2",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
       group: "legal",
     }),
     defineField({

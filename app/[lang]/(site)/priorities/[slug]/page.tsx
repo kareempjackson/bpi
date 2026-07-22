@@ -6,7 +6,9 @@ import CtaLink from "@/app/components/CtaLink";
 import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
 import MediaImage from "@/app/components/MediaImage";
 import MotionSection from "@/app/components/MotionSection";
-import PageSections from "@/app/components/PageSections";
+import PortableTextBody from "@/app/components/PortableTextBody";
+import Zone from "@/app/components/sections/Zone";
+import type { RenderedBlock } from "@/app/components/sections/registry";
 import PracticeDetailSection from "@/app/components/PracticeDetailSection";
 import PracticeTabsSection from "@/app/components/PracticeTabsSection";
 import QuoteSpotlightSection from "@/app/components/QuoteSpotlightSection";
@@ -173,13 +175,9 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
 
   // "Practice detail" — heading + square image on the left, body paragraphs
   // (split on blank lines) + a CTA on the right, over a faint grid.
-  const practiceDetailParagraphs = (priority.practiceDetailBody ?? "")
-    .split(/\n{2,}/)
-    .map((p) => p.trim())
-    .filter(Boolean);
   const showPracticeDetail =
     !!priority.showPracticeDetail &&
-    !!(priority.practiceDetailHeading || practiceDetailParagraphs.length > 0);
+    !!(priority.practiceDetailHeading || priority.practiceDetailBody);
   const practiceDetailMedia = resolveMedia(
     priority.practiceDetailImage ??
       homeData?.whyImage ??
@@ -491,10 +489,13 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
             )}
             {priority.overviewBody ? (
               <StaggerItem
-                as="p"
-                className="whitespace-pre-line text-lg md:text-xl text-primary-500/80 leading-relaxed"
+                as="div"
+                className="text-lg md:text-xl text-primary-500/80 leading-relaxed"
               >
-                {priority.overviewBody}
+                <PortableTextBody
+                  value={priority.overviewBody}
+                  paragraphClassName="whitespace-pre-line text-lg md:text-xl text-primary-500/80 leading-relaxed"
+                />
               </StaggerItem>
             ) : null}
           </Stagger>
@@ -528,9 +529,10 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
                     </h3>
                   ) : null}
                   {pt.body ? (
-                    <p className="text-sm md:text-base text-primary-500/70 leading-relaxed">
-                      {pt.body}
-                    </p>
+                    <PortableTextBody
+                      value={pt.body}
+                      paragraphClassName="text-sm md:text-base text-primary-500/70 leading-relaxed"
+                    />
                   ) : null}
                 </StaggerItem>
               ))}
@@ -620,9 +622,10 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
                 {priority.practiceBody || practicePrimaryCta || practiceSecondaryCta ? (
                   <div className="flex max-w-5xl flex-col gap-10">
                     {priority.practiceBody ? (
-                      <p className="whitespace-pre-line text-lg font-medium text-(--ink)/80 leading-[1.85]">
-                        {priority.practiceBody}
-                      </p>
+                      <PortableTextBody
+                        value={priority.practiceBody}
+                        paragraphClassName="whitespace-pre-line text-lg font-medium text-(--ink)/80 leading-[1.85]"
+                      />
                     ) : null}
 
                     {practicePrimaryCta || practiceSecondaryCta ? (
@@ -674,7 +677,7 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
       {showPracticeDetail ? (
         <PracticeDetailSection
           heading={priority.practiceDetailHeading ?? undefined}
-          paragraphs={practiceDetailParagraphs}
+          body={priority.practiceDetailBody}
           media={practiceDetailMedia}
           ctaLabel={priority.practiceDetailCta?.label}
           ctaHref={priority.practiceDetailCta?.href}
@@ -727,7 +730,11 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
       ) : null}
 
       {/* ── Modular page sections (editor-managed) ─────────────────── */}
-      <PageSections sections={priority.pageSections} contained />
+      <Zone
+        blocks={priority.pageSections as unknown as RenderedBlock[]}
+        lang={lang}
+        contained
+      />
     </main>
   );
 }

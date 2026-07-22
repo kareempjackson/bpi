@@ -1,6 +1,7 @@
 import CountUp from "@/app/components/CountUp";
+import PortableTextBody from "@/app/components/PortableTextBody";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
-import type { Stat } from "@/sanity/lib/types";
+import type { PortableTextBlock, Stat } from "@/sanity/lib/types";
 
 /**
  * "The Opportunity" — an eyebrow pinned to the left margin, with the heading
@@ -8,22 +9,9 @@ import type { Stat } from "@/sanity/lib/types";
  * lead line with a divided row of counting stats.
  *
  * The body is two-tone: any phrase the editor wraps in **double asterisks**
- * renders bold — the same convention the initiative headers use.
+ * renders bold — the same convention the initiative headers use (now via
+ * PortableTextBody's `strong` mark once migrated to Portable Text).
  */
-function renderEmphasis(text: string) {
-  return text.split(/\*\*(.+?)\*\*/g).map((part, i) =>
-    i % 2 === 1 ? (
-      // Emphasis per design spec: Albert Sans SemiBold 600 (same 48px / 77px
-      // scale as the surrounding Light body).
-      <strong key={i} className="font-semibold">
-        {part}
-      </strong>
-    ) : (
-      <span key={i}>{part}</span>
-    ),
-  );
-}
-
 export default function InvestorsOpportunity({
   eyebrow,
   heading,
@@ -34,8 +22,8 @@ export default function InvestorsOpportunity({
 }: {
   eyebrow?: string | null;
   heading?: string | null;
-  body?: string | null;
-  cardLead?: string | null;
+  body?: PortableTextBlock[] | string | null;
+  cardLead?: PortableTextBlock[] | string | null;
   stats?: Stat[] | null;
   cardBg?: string | null;
 }) {
@@ -75,14 +63,14 @@ export default function InvestorsOpportunity({
               </StaggerItem>
             ) : null}
             {body ? (
-              <StaggerItem
-                as="p"
-                // Body per design spec: Albert Sans Light 300, 48px / 77px
-                // line-height (ratio 1.604), -1.23px tracking; **bold** phrases
-                // render SemiBold (see renderEmphasis).
-                className="align-middle font-display text-xl md:text-2xl lg:text-[40px] font-light text-primary-500 leading-[1.604] tracking-[-1.23px]"
-              >
-                {renderEmphasis(body)}
+              <StaggerItem>
+                {/* Body per design spec: Albert Sans Light 300, 48px / 77px
+                    line-height (ratio 1.604), -1.23px tracking; **bold**
+                    phrases render SemiBold via PortableTextBody's strong mark. */}
+                <PortableTextBody
+                  value={body}
+                  paragraphClassName="align-middle font-display text-xl md:text-2xl lg:text-[34px] font-light text-primary-500 leading-[1.604] tracking-[-1.23px]"
+                />
               </StaggerItem>
             ) : null}
           </Stagger>
@@ -94,9 +82,10 @@ export default function InvestorsOpportunity({
               style={{ backgroundColor: cardBg || "#06FE83" }}
             >
               {cardLead ? (
-                <p className="max-w-xl text-sm md:text-base text-primary-500/80 leading-relaxed">
-                  {cardLead}
-                </p>
+                <PortableTextBody
+                  value={cardLead}
+                  paragraphClassName="max-w-3xl align-middle font-display text-[20px] font-light leading-[1.52] tracking-normal text-black"
+                />
               ) : null}
 
               {hasStats ? (
@@ -121,9 +110,9 @@ export default function InvestorsOpportunity({
                     >
                       <CountUp
                         value={stat.value}
-                        className="font-display text-2xl md:text-3xl font-bold text-primary-500 leading-none tracking-[-0.02em]"
+                        className="font-display text-[36px] font-semibold leading-[1.52] tracking-normal text-primary-500"
                       />
-                      <span className="text-xs md:text-sm text-primary-500/70 leading-snug">
+                      <span className="font-display text-[14px] font-light leading-[1.52] tracking-normal text-primary-500/70">
                         {stat.description}
                       </span>
                     </StaggerItem>

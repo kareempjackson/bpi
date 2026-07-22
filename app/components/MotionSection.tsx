@@ -3,15 +3,16 @@
 import { useCallback, useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 
-import type { ResolvedMedia } from "@/sanity/lib/types";
+import type { PortableTextBlock, ResolvedMedia } from "@/sanity/lib/types";
 import ConvergenceGraphic from "./ConvergenceGraphic";
 import CtaLink from "./CtaLink";
 import MediaImage from "./MediaImage";
+import PortableTextBody from "./PortableTextBody";
 import { Reveal, Stagger, StaggerItem } from "./motion";
 
 export type MotionItem = {
   title: string;
-  body: string;
+  body: PortableTextBlock[] | string | null;
 };
 
 type Props = {
@@ -165,13 +166,14 @@ export default function MotionSection({
                         />
                       </span>
                     </div>
-                    <p
-                      className={`mt-2 text-sm leading-relaxed ${
+                    <PortableTextBody
+                      value={item.body}
+                      compact
+                      className="mt-2"
+                      paragraphClassName={`text-sm leading-relaxed ${
                         isActive ? "text-(--ink)/65" : "text-(--fg)/55"
                       }`}
-                    >
-                      {item.body}
-                    </p>
+                    />
                   </button>
                 </StaggerItem>
               );

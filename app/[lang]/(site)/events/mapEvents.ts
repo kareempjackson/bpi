@@ -5,7 +5,9 @@ import type { EventItem } from "./EventsBrowser";
 
 // Fallback poster gradients — used only when an event has no image yet. Cycled
 // across the grid so an un-illustrated listing still reads like the design.
-const ACCENTS = [
+// Exported so engagement cards (which never carry an image) reuse the same
+// palette and read as one grid with the event cards.
+export const ACCENTS = [
   "bg-linear-to-br from-amber-400 to-rose-500",
   "bg-linear-to-br from-emerald-400 to-teal-600",
   "bg-linear-to-br from-orange-400 to-amber-600",

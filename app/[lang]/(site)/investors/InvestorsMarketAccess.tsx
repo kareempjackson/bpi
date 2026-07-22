@@ -1,7 +1,12 @@
 import CountUp from "@/app/components/CountUp";
 import MediaImage from "@/app/components/MediaImage";
+import PortableTextBody from "@/app/components/PortableTextBody";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
-import type { ResolvedMedia, Stat } from "@/sanity/lib/types";
+import type {
+  PortableTextBlock,
+  ResolvedMedia,
+  Stat,
+} from "@/sanity/lib/types";
 
 /**
  * "Market Access" — heading pinned left, with the lead, a divided row of
@@ -16,14 +21,14 @@ export default function InvestorsMarketAccess({
   media,
 }: {
   heading?: string | null;
-  lead?: string | null;
+  lead?: PortableTextBlock[] | string | null;
   stats?: Stat[] | null;
-  closing?: string | null;
+  closing?: PortableTextBlock[] | string | null;
   media: ResolvedMedia | null;
 }) {
   return (
-    <section data-nav-theme="light" className="pb-16 md:pb-24 lg:pb-28">
-      <div className="px-6 md:px-12 lg:px-20 xl:px-28">
+    <section data-nav-theme="light" className="pt-20 md:pt-28 lg:pt-32 pb-16 md:pb-24 lg:pb-28">
+      <div className="px-6 md:px-10 lg:px-14">
         <div className="mx-auto grid w-full max-w-page grid-cols-1 lg:grid-cols-[0.3fr_0.7fr] gap-6 lg:gap-10">
           {heading ? (
             <Reveal
@@ -36,11 +41,11 @@ export default function InvestorsMarketAccess({
 
           <div className="flex flex-col gap-10 md:gap-12">
             {lead ? (
-              <Reveal
-                as="p"
-                className="max-w-2xl font-display text-xl md:text-2xl lg:text-3xl text-primary-500/40 leading-[1.35] tracking-[-0.01em]"
-              >
-                {lead}
+              <Reveal className="max-w-3xl">
+                <PortableTextBody
+                  value={lead}
+                  paragraphClassName="font-display text-[36px] font-light leading-[1.52] tracking-normal text-[#6D6D6D]"
+                />
               </Reveal>
             ) : null}
 
@@ -57,9 +62,9 @@ export default function InvestorsMarketAccess({
                   >
                     <CountUp
                       value={stat.value}
-                      className="font-display text-lg md:text-xl font-bold text-primary-500 leading-snug tracking-[-0.01em]"
+                      className="font-display text-[24px] font-semibold leading-[1.52] tracking-normal text-black"
                     />
-                    <span className="text-xs text-primary-500/70 leading-snug">
+                    <span className="font-display text-[16px] font-normal leading-[1.52] tracking-normal text-primary-500/70">
                       {stat.description}
                     </span>
                   </StaggerItem>
@@ -67,22 +72,28 @@ export default function InvestorsMarketAccess({
               </Stagger>
             ) : null}
 
-            {closing ? (
-              <Reveal
-                as="p"
-                className="max-w-2xl font-display text-xl md:text-2xl lg:text-3xl text-primary-500/40 leading-[1.35] tracking-[-0.01em]"
-              >
-                {closing}
-              </Reveal>
-            ) : null}
           </div>
+
+          {/* Closing spans the full grid width but its text is indented to line
+              up under the lead (right column) and capped so only "New York"
+              wraps to the second line. */}
+          {closing ? (
+            <div className="lg:col-span-2 lg:pl-[32%]">
+              <Reveal className="max-w-[54rem]">
+                <PortableTextBody
+                  value={closing}
+                  paragraphClassName="font-display text-[32px] font-light leading-[1.52] tracking-normal text-[#6D6D6D]"
+                />
+              </Reveal>
+            </div>
+          ) : null}
         </div>
       </div>
 
       {media ? (
         <Reveal
           preset="scale"
-          className="relative mt-14 md:mt-20 w-full aspect-4/3 sm:aspect-video lg:aspect-21/9 bg-primary-500/5"
+          className="relative mt-14 md:mt-20 w-full aspect-video sm:aspect-21/9 lg:aspect-3/1 bg-primary-500/5"
         >
           <MediaImage media={media} sizes="100vw" />
         </Reveal>

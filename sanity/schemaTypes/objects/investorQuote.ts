@@ -14,7 +14,7 @@ export const investorQuote = defineType({
     defineField({
       name: "quote",
       title: "Quote",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
     }),
     defineField({
       name: "name",

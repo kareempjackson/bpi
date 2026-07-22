@@ -6,7 +6,9 @@ import CareersSection from "@/app/components/CareersSection";
 import CtaLink from "@/app/components/CtaLink";
 import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
 import MediaImage from "@/app/components/MediaImage";
-import PageSections from "@/app/components/PageSections";
+import PortableTextBody from "@/app/components/PortableTextBody";
+import Zone from "@/app/components/sections/Zone";
+import type { RenderedBlock } from "@/app/components/sections/registry";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import { localizedHref } from "@/app/lib/locale";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
@@ -236,8 +238,11 @@ export default async function SectorsPage({
           >
             {/* Header body type per design spec: Albert Sans (via
                 --font-display) Light 300, 20px / 100% line-height, no tracking. */}
-            <StaggerItem as="p" className="font-display text-[20px] font-light leading-none tracking-normal text-white">
-              {heroBody}
+            <StaggerItem>
+              <PortableTextBody
+                value={heroBody}
+                paragraphClassName="font-display text-[20px] font-light leading-none tracking-normal text-white"
+              />
             </StaggerItem>
             <StaggerItem>
               <CtaLink
@@ -262,8 +267,12 @@ export default async function SectorsPage({
               <StaggerItem as="h2" className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-primary-500 leading-tight tracking-[-0.02em]">
                 {sixHeading}
               </StaggerItem>
-              <StaggerItem as="p" className="mt-5 text-lg md:text-xl text-primary-500/80 leading-relaxed">
-                {sixIntro}
+              <StaggerItem>
+                <PortableTextBody
+                  value={sixIntro}
+                  className="mt-5"
+                  paragraphClassName="text-lg md:text-xl text-primary-500/80 leading-relaxed"
+                />
               </StaggerItem>
             </Stagger>
 
@@ -292,7 +301,10 @@ export default async function SectorsPage({
           none are set, fall back to the Home page's Careers + footer-CTA copy so
           the page never ends abruptly. */}
       {page?.pageSections && page.pageSections.length > 0 ? (
-        <PageSections sections={page.pageSections} />
+        <Zone
+          blocks={page.pageSections as unknown as RenderedBlock[]}
+          lang={lang}
+        />
       ) : (
         <>
           <CareersSection

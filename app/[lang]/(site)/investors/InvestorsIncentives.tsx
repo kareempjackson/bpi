@@ -1,6 +1,11 @@
 import MediaImage from "@/app/components/MediaImage";
+import PortableTextBody from "@/app/components/PortableTextBody";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
-import type { InvestorNote, ResolvedMedia } from "@/sanity/lib/types";
+import type {
+  InvestorNote,
+  PortableTextBlock,
+  ResolvedMedia,
+} from "@/sanity/lib/types";
 
 /**
  * "Investment Incentives" — a wide image, then the heading over a grey lead,
@@ -14,13 +19,13 @@ export default function InvestorsIncentives({
 }: {
   media: ResolvedMedia | null;
   heading?: string | null;
-  lead?: string | null;
+  lead?: PortableTextBlock[] | string | null;
   items?: InvestorNote[] | null;
 }) {
   return (
     <section
       data-nav-theme="light"
-      className="px-6 md:px-12 lg:px-20 xl:px-28 pb-16 md:pb-24 lg:pb-28"
+      className="px-6 md:px-10 lg:px-14 pb-16 md:pb-24 lg:pb-28"
     >
       <div className="mx-auto w-full max-w-page">
         {media ? (
@@ -42,24 +47,24 @@ export default function InvestorsIncentives({
             </StaggerItem>
           ) : null}
           {lead ? (
-            <StaggerItem
-              as="p"
-              className="max-w-xl font-display text-xl md:text-2xl lg:text-3xl text-primary-500/40 leading-[1.35] tracking-[-0.01em]"
-            >
-              {lead}
+            <StaggerItem className="max-w-xl">
+              <PortableTextBody
+                value={lead}
+                paragraphClassName="font-display text-xl md:text-2xl lg:text-3xl text-primary-500/40 leading-[1.35] tracking-[-0.01em]"
+              />
             </StaggerItem>
           ) : null}
         </Stagger>
 
         {items?.length ? (
-          <Stagger className="mt-12 md:mt-16 grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-10 md:gap-y-14 lg:pl-[4%]">
+          <Stagger className="mt-12 md:mt-16 grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-10 md:gap-y-14">
             {items.map((item, i) => (
-              <StaggerItem
-                key={`${item.body?.slice(0, 24) ?? "note"}-${i}`}
-                as="p"
-                className="text-xs md:text-sm text-primary-500/70 leading-relaxed"
-              >
-                {item.body}
+              <StaggerItem key={`note-${i}`} as="div">
+                <PortableTextBody
+                  value={item.body}
+                  compact
+                  paragraphClassName="font-display text-[18px] font-light leading-[1.5] tracking-normal text-primary-500/70"
+                />
               </StaggerItem>
             ))}
           </Stagger>

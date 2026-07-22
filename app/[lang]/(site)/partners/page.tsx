@@ -6,6 +6,7 @@ import CareersSection from "@/app/components/CareersSection";
 import CtaLink from "@/app/components/CtaLink";
 import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
 import MediaImage from "@/app/components/MediaImage";
+import PortableTextBody from "@/app/components/PortableTextBody";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import { localizedHref } from "@/app/lib/locale";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
@@ -173,11 +174,12 @@ export default async function PartnersPage({
 
               {/* Right — body + CTA, anchored toward the bottom. */}
               <Stagger className="flex flex-col gap-8 lg:col-span-4 lg:justify-end lg:pb-10">
-                <StaggerItem
-                  as="p"
-                  className="max-w-md text-base md:text-lg text-white/75 leading-relaxed"
-                >
-                  {heroBody}
+                <StaggerItem>
+                  <PortableTextBody
+                    value={heroBody}
+                    className="max-w-md"
+                    paragraphClassName="text-base md:text-lg text-white/75 leading-relaxed"
+                  />
                 </StaggerItem>
                 <StaggerItem>
                   <CtaLink

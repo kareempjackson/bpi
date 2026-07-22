@@ -17,7 +17,7 @@ export const investorNote = defineType({
     defineField({
       name: "body",
       title: "Body",
-      type: "internationalizedArrayText",
+      type: "internationalizedArrayPortableText",
     }),
   ],
   preview: {

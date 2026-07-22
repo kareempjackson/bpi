@@ -9,7 +9,9 @@ import CtaLink from "@/app/components/CtaLink";
 import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
 import Logo from "@/app/components/Logo";
 import MediaImage from "@/app/components/MediaImage";
-import PageSections from "@/app/components/PageSections";
+import PortableTextBody from "@/app/components/PortableTextBody";
+import Zone from "@/app/components/sections/Zone";
+import type { RenderedBlock } from "@/app/components/sections/registry";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import { localizedHref } from "@/app/lib/locale";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
@@ -166,7 +168,10 @@ export default async function InitiativesPage({
         lang={lang}
       />
       <BuildingFutureSection page={page} />
-      <PageSections sections={page?.pageSections} />
+      <Zone
+        blocks={page?.pageSections as unknown as RenderedBlock[]}
+        lang={lang}
+      />
 
       {/* Careers + footer-CTA close the page, reusing the Home document's copy
           so it stays in sync with the rest of the site. */}
@@ -310,13 +315,13 @@ function HeroHeader({
           className="shrink-0 mt-7 md:mt-9 lg:mt-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between"
         >
           {body ? (
-            <StaggerItem
-              as="p"
-              // Hero body per design spec: Albert Sans (via --font-display)
-              // Light 300, 24px / 152% line-height, no tracking, white.
-              className="max-w-3xl align-middle font-display text-base md:text-lg lg:text-[20px] font-light leading-[1.52] tracking-normal text-white"
-            >
-              {body}
+            <StaggerItem className="max-w-3xl">
+              {/* Hero body per design spec: Albert Sans (via --font-display)
+                  Light 300, 24px / 152% line-height, no tracking, white. */}
+              <PortableTextBody
+                value={body}
+                paragraphClassName="align-middle font-display text-base md:text-lg lg:text-[20px] font-light leading-[1.52] tracking-normal text-white"
+              />
             </StaggerItem>
           ) : null}
           <StaggerItem className="flex flex-wrap items-center gap-2.5 shrink-0">
@@ -410,9 +415,10 @@ function WorkInMotion({
         {/* Right — body + CTAs, dropped toward the lower half. */}
         <StaggerItem className="flex flex-col gap-8 lg:gap-10 lg:pt-16 xl:pt-24">
           {body ? (
-            <p className="text-lg md:text-xl text-primary-500/90 leading-relaxed">
-              {body}
-            </p>
+            <PortableTextBody
+              value={body}
+              paragraphClassName="text-lg md:text-xl text-primary-500/90 leading-relaxed"
+            />
           ) : null}
           <div className="flex flex-wrap items-center gap-3">
             {primary ? (
@@ -531,7 +537,11 @@ function FeaturedSpotlight({
                 <div className="flex flex-col gap-7 lg:gap-9">
                   {page?.featuredStatBody ? (
                     <RuleNote className="lg:max-w-sm">
-                      {page.featuredStatBody}
+                      <PortableTextBody
+                        value={page.featuredStatBody}
+                        compact
+                        paragraphClassName="text-sm text-primary-500/65 leading-relaxed"
+                      />
                     </RuleNote>
                   ) : null}
                   <div
@@ -630,7 +640,7 @@ function RuleNote({
         aria-hidden
         className="mt-2.5 h-px w-10 shrink-0 bg-primary-500/30"
       />
-      <p className="text-sm text-primary-500/65 leading-relaxed">{children}</p>
+      <div className="text-sm text-primary-500/65 leading-relaxed">{children}</div>
     </div>
   );
 }
@@ -1224,11 +1234,11 @@ function BuildingFutureSection({
             {heading}
           </StaggerItem>
           {body ? (
-            <StaggerItem
-              as="p"
-              className="text-sm md:text-base text-primary-500/75 leading-relaxed max-w-2xl"
-            >
-              {body}
+            <StaggerItem className="max-w-2xl">
+              <PortableTextBody
+                value={body}
+                paragraphClassName="text-sm md:text-base text-primary-500/75 leading-relaxed"
+              />
             </StaggerItem>
           ) : null}
         </Stagger>

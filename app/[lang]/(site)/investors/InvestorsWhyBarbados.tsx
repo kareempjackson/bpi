@@ -1,7 +1,12 @@
 import Logo from "@/app/components/Logo";
 import MediaImage from "@/app/components/MediaImage";
+import PortableTextBody from "@/app/components/PortableTextBody";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
-import type { InvestorCard, ResolvedMedia } from "@/sanity/lib/types";
+import type {
+  InvestorCard,
+  PortableTextBlock,
+  ResolvedMedia,
+} from "@/sanity/lib/types";
 
 /**
  * "Why Barbados, Why Now" — heading left, intro right, a row of colour cards
@@ -16,19 +21,19 @@ export default function InvestorsWhyBarbados({
   media,
 }: {
   heading?: string | null;
-  intro?: string | null;
+  intro?: PortableTextBlock[] | string | null;
   cards?: InvestorCard[] | null;
-  closing?: string | null;
+  closing?: PortableTextBlock[] | string | null;
   media: ResolvedMedia | null;
 }) {
   return (
     <section
       data-nav-theme="light"
-      className="px-6 md:px-12 lg:px-20 xl:px-28 pt-24 md:pt-32 lg:pt-40 pb-16 md:pb-24 lg:pb-28"
+      className="px-6 md:px-10 lg:px-14 pt-24 md:pt-32 lg:pt-40 pb-16 md:pb-24 lg:pb-28"
     >
       <div className="mx-auto w-full max-w-page">
         {heading || intro ? (
-          <Stagger className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-10 items-start">
+          <Stagger className="grid grid-cols-1 lg:grid-cols-[0.35fr_0.65fr] gap-4 lg:gap-10 items-start">
             {heading ? (
               <StaggerItem
                 as="h2"
@@ -38,11 +43,11 @@ export default function InvestorsWhyBarbados({
               </StaggerItem>
             ) : null}
             {intro ? (
-              <StaggerItem
-                as="p"
-                className="max-w-md text-sm md:text-base text-primary-500/75 leading-relaxed"
-              >
-                {intro}
+              <StaggerItem className="max-w-[52rem] lg:justify-self-end">
+                <PortableTextBody
+                  value={intro}
+                  paragraphClassName="align-middle font-display text-[24px] font-normal leading-[37px] tracking-normal text-primary-500/75"
+                />
               </StaggerItem>
             ) : null}
           </Stagger>
@@ -68,22 +73,24 @@ export default function InvestorsWhyBarbados({
                 <h3 className="relative text-sm md:text-base font-bold text-primary-500 leading-snug">
                   {card.title}
                 </h3>
-                <p className="relative text-xs md:text-sm text-primary-500/75 leading-relaxed">
-                  {card.body}
-                </p>
+                <PortableTextBody
+                  value={card.body}
+                  compact
+                  paragraphClassName="relative text-xs md:text-sm text-primary-500/75 leading-relaxed"
+                />
               </StaggerItem>
             ))}
           </Stagger>
         ) : null}
 
         {closing ? (
-          <Reveal
-            as="p"
-            // Closing statement per design spec: Albert Sans Light 300, 36px /
-            // 52px line-height (ratio 1.444), no tracking, middle-aligned.
-            className="mt-12 md:mt-16 lg:max-w-[75%] align-middle font-display text-2xl md:text-3xl lg:text-[36px] font-light text-primary-500 leading-[1.444] tracking-normal"
-          >
-            {closing}
+          <Reveal className="mt-12 md:mt-16 lg:max-w-[75%]">
+            {/* Closing statement per design spec: Albert Sans Light 300, 36px /
+                52px line-height (ratio 1.444), no tracking, middle-aligned. */}
+            <PortableTextBody
+              value={closing}
+              paragraphClassName="align-middle font-display text-2xl md:text-3xl lg:text-[36px] font-light text-primary-500 leading-[1.444] tracking-normal"
+            />
           </Reveal>
         ) : null}
 

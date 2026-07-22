@@ -4,11 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import LazyVideo from "./LazyVideo";
 import CtaLink from "./CtaLink";
+import PortableTextBody from "./PortableTextBody";
+import type { PortableTextBlock } from "@/sanity/lib/types";
 import { Reveal, Stagger, StaggerItem } from "./motion";
 
 type Item = {
   title: string;
-  description: string;
+  description: PortableTextBlock[] | string | null;
   href: string;
   imageSrc: string;
   videoSrc?: string;
@@ -27,7 +29,7 @@ type FeatureMedia = {
 
 type Props = {
   heading?: string;
-  description?: string;
+  description?: PortableTextBlock[] | string | null;
   items?: Item[];
   feature?: FeatureMedia;
 };
@@ -135,9 +137,11 @@ export default function ArchitectureOfCareSection({
               {heading}
             </h2>
             {description ? (
-              <p className="mt-4 md:mt-5 text-sm md:text-base text-primary-500/70 leading-relaxed max-w-md">
-                {description}
-              </p>
+              <PortableTextBody
+                value={description}
+                className="mt-4 md:mt-5 max-w-md"
+                paragraphClassName="text-sm md:text-base text-primary-500/70 leading-relaxed"
+              />
             ) : null}
           </StaggerItem>
 
@@ -239,9 +243,10 @@ function PriorityRow({
           <div className="min-h-0 overflow-hidden">
             <div className="pt-4 md:pt-5">
               {item.description ? (
-                <p className="text-sm md:text-base text-primary-500/90 leading-relaxed max-w-lg">
-                  {item.description}
-                </p>
+                <PortableTextBody
+                  value={item.description}
+                  paragraphClassName="text-sm md:text-base text-primary-500/90 leading-relaxed max-w-lg"
+                />
               ) : null}
 
               {hasMedia ? (

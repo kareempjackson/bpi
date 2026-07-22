@@ -1,4 +1,5 @@
 import Logo from "@/app/components/Logo";
+import PortableTextBody from "@/app/components/PortableTextBody";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import type { InvestorCard } from "@/sanity/lib/types";
 
@@ -17,7 +18,7 @@ export default function InvestorsClimate({
   return (
     <section
       data-nav-theme="light"
-      className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-28"
+      className="px-6 md:px-10 lg:px-14 py-16 md:py-24 lg:py-28"
     >
       <div className="mx-auto w-full max-w-page">
         {heading ? (
@@ -46,12 +47,14 @@ export default function InvestorsClimate({
                     className="pointer-events-none absolute -right-10 -top-6 text-primary-500/8"
                   />
                 ) : null}
-                <h3 className="relative text-base md:text-lg font-medium text-primary-500 leading-snug">
+                <h3 className="relative font-display text-[24px] font-semibold leading-[1.5] tracking-normal text-primary-500">
                   {card.title}
                 </h3>
-                <p className="relative text-xs md:text-sm text-primary-500/70 leading-relaxed">
-                  {card.body}
-                </p>
+                <PortableTextBody
+                  value={card.body}
+                  compact
+                  paragraphClassName="relative font-display text-[16px] font-light leading-[1.5] tracking-normal text-primary-500/70"
+                />
               </StaggerItem>
             ))}
           </Stagger>

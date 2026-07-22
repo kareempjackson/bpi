@@ -11,14 +11,16 @@ import {
 } from "motion/react";
 import { useRouter } from "next/navigation";
 import CtaLink from "./CtaLink";
+import PortableTextBody from "./PortableTextBody";
 import { useViewTransitionNav } from "./ViewTransitionProvider";
 import LogoShape, { LOGO_SHAPE_PATH_D } from "./shapes/LogoShape";
+import type { PortableTextBlock } from "@/sanity/lib/types";
 
 type Node = {
   id: string;
   num: string;
   title: string;
-  description: string;
+  description: PortableTextBlock[] | string | null;
   /** SVG circle position + radius — matches LogoShape's 1190 × 702 viewBox. */
   cx: number;
   cy: number;
@@ -39,7 +41,7 @@ type Node = {
 
 type Props = {
   heading?: string;
-  body?: string;
+  body?: PortableTextBlock[] | string | null;
   ctaLabel?: string;
   ctaHref?: string;
   nodes?: Node[];
@@ -529,12 +531,12 @@ export default function SectorsSection({
             >
               {heading}
             </h2>
-            <p
-              className="mt-3 text-sm md:text-base leading-relaxed max-w-xl"
-              style={{ color: txt70, transition: colorEase }}
-            >
-              {body}
-            </p>
+            <PortableTextBody
+              className="mt-3 max-w-xl"
+              paragraphClassName="text-sm md:text-base leading-relaxed"
+              paragraphStyle={{ color: txt70, transition: colorEase }}
+              value={body}
+            />
             {ctaLabel ? (
               <CtaLink
                 href={ctaHref}
@@ -591,12 +593,12 @@ export default function SectorsSection({
               >
                 {heading}
               </h2>
-              <p
-                className="mt-3 text-sm md:text-base leading-relaxed max-w-xl"
-                style={{ color: txt70, transition: colorEase }}
-              >
-                {body}
-              </p>
+              <PortableTextBody
+                className="mt-3 max-w-xl"
+                paragraphClassName="text-sm md:text-base leading-relaxed"
+                paragraphStyle={{ color: txt70, transition: colorEase }}
+                value={body}
+              />
               {ctaLabel ? (
                 <CtaLink
                   href={ctaHref}
@@ -1049,12 +1051,13 @@ export default function SectorsSection({
                   >
                     {parseInt(n.num, 10)}. {n.title}
                   </h3>
-                  <p
-                    className="mt-2 text-xs lg:text-sm leading-[1.4]"
-                    style={{ color: txt75, transition: colorEase }}
-                  >
-                    {n.description}
-                  </p>
+                  <PortableTextBody
+                    value={n.description}
+                    compact
+                    className="mt-2"
+                    paragraphClassName="text-xs lg:text-sm leading-[1.4]"
+                    paragraphStyle={{ color: txt75, transition: colorEase }}
+                  />
                 </div>
               </div>
               );
@@ -1143,12 +1146,13 @@ export default function SectorsSection({
               >
                 {parseInt(n.num, 10)}. {n.title}
               </h3>
-              <p
-                className="mt-2 text-base leading-normal"
-                style={{ color: txt75, transition: colorEase }}
-              >
-                {n.description}
-              </p>
+              <PortableTextBody
+                value={n.description}
+                compact
+                className="mt-2"
+                paragraphClassName="text-base leading-normal"
+                paragraphStyle={{ color: txt75, transition: colorEase }}
+              />
             </div>
           </div>
         ))}

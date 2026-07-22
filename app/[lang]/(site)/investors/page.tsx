@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import BlogSection, { type BlogSectionPost } from "@/app/components/BlogSection";
 import BuildingSection from "@/app/components/BuildingSection";
 import CareersSection from "@/app/components/CareersSection";
-import PageSections from "@/app/components/PageSections";
+import Zone from "@/app/components/sections/Zone";
+import type { RenderedBlock } from "@/app/components/sections/registry";
 import { localizedHref, toLocale } from "@/app/lib/locale";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
 import { resolveMedia } from "@/sanity/lib/image";
@@ -152,7 +153,10 @@ export default async function InvestorsPage({
         intro={data?.whyIntro}
         cards={data?.whyCards}
         closing={data?.whyClosing}
-        media={resolveMedia(data?.whyImage, { width: 2000 })}
+        media={resolveMedia(
+          data?.whyImage ?? home?.buildingImage ?? home?.whyImage,
+          { width: 2000 },
+        )}
       />
 
       {/* ── How BPI works ──────────────────────────────────────────── */}
@@ -171,6 +175,10 @@ export default async function InvestorsPage({
         body={data?.sitesBody}
         sites={data?.sitesList}
         note={data?.sitesNote}
+        media={resolveMedia(
+          data?.sitesImage ?? home?.buildingImage ?? home?.whyImage,
+          { width: 2000 },
+        )}
       />
 
       {/* ── Investment incentives ──────────────────────────────────── */}
@@ -198,7 +206,10 @@ export default async function InvestorsPage({
         lead={data?.marketLead}
         stats={data?.marketStats}
         closing={data?.marketClosing}
-        media={resolveMedia(data?.marketImage, { width: 2000 })}
+        media={resolveMedia(
+          data?.marketImage ?? home?.buildingImage ?? home?.whyImage,
+          { width: 2000 },
+        )}
       />
 
       {/* ── Traction ───────────────────────────────────────────────── */}
@@ -214,7 +225,10 @@ export default async function InvestorsPage({
         body={data?.whyNowBody}
         primaryCta={data?.whyNowPrimaryCta}
         secondaryCta={data?.whyNowSecondaryCta}
-        media={resolveMedia(data?.whyNowImage, { width: 2000 })}
+        media={resolveMedia(
+          data?.whyNowImage ?? home?.buildingImage ?? home?.whyImage,
+          { width: 2000 },
+        )}
         bg={data?.whyNowBg}
         lang={lang}
       />
@@ -237,7 +251,10 @@ export default async function InvestorsPage({
       <InvestorsGoDeeper
         heading={data?.deeperHeading}
         body={data?.deeperBody}
-        media={resolveMedia(data?.deeperImage, { width: 1400 })}
+        media={resolveMedia(
+          data?.deeperImage ?? home?.buildingImage ?? home?.whyImage,
+          { width: 1400 },
+        )}
         timelineHeading={data?.timelineHeading}
         steps={data?.timelineItems}
         primaryCta={data?.deeperPrimaryCta}
@@ -255,7 +272,10 @@ export default async function InvestorsPage({
       {/* ── Modular tail — editor-managed blocks, else the Home page's
              Careers + closing-CTA copy so the page never ends abruptly. ── */}
       {data?.pageSections && data.pageSections.length > 0 ? (
-        <PageSections sections={data.pageSections} />
+        <Zone
+          blocks={data.pageSections as unknown as RenderedBlock[]}
+          lang={lang}
+        />
       ) : (
         <>
           <CareersSection

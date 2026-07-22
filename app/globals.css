@@ -1,12 +1,17 @@
 @import "tailwindcss";
 
 @theme {
-  /* ─── Brand base ─────────────────────────────────────────────── */
-  --color-base-blue: #000036;
-  --color-base-green: #06fe83;
-  --color-base-teal: #0870ad;
-  --color-base-white: #ffffff;
-  --color-base-black: #000000;
+  /* ─── Brand base ─────────────────────────────────────────────────
+     The `--brand-*` fallbacks below are the values the site ships with.
+     <BrandTheme> (app/components/BrandTheme.tsx) injects a `:root` block
+     that overrides the `--brand-*` variables from the Sanity `brandSettings`
+     singleton, so the palette is editable at runtime with no rebuild. When
+     nothing is injected, these fallbacks keep the current look exactly. */
+  --color-base-blue: var(--brand-ink, #000036);
+  --color-base-green: var(--brand-accent-green, #06fe83);
+  --color-base-teal: var(--brand-accent-teal, #0870ad);
+  --color-base-white: var(--brand-white, #ffffff);
+  --color-base-black: var(--brand-black, #000000);
 
   /* ─── Primary (Blue) ─────────────────────────────────────────── */
   --color-primary-25: #b3b3c3;
@@ -15,7 +20,7 @@
   --color-primary-200: #4d4d72;
   --color-primary-300: #33335e;
   --color-primary-400: #1a1a4a;
-  --color-primary-500: #000036;
+  --color-primary-500: var(--brand-ink, #000036);
   --color-primary-600: #000031;
   --color-primary-700: #000026;
   --color-primary-800: #000010;
@@ -25,27 +30,27 @@
   /* ─── Error (Green per BPI brand) ────────────────────────────── */
   /* error-25 is the page's baseline light green — used as the background
      across every section/route via `bg-error-25`. */
-  --color-error-25: #eafbf1;
+  --color-error-25: var(--brand-surface-light, #eafbf1);
   --color-error-50: #9bffcd;
   --color-error-100: #83ffc1;
   --color-error-200: #51fea8;
   --color-error-300: #38fe9c;
   --color-error-400: #1ffe8f;
-  --color-error-500: #06fe83;
+  --color-error-500: var(--brand-accent-green, #06fe83);
   --color-error-600: #05cb69;
   --color-error-700: #04b25c;
   --color-error-800: #037f42;
   --color-error-900: #01331a;
-  --color-error-950: #01190d;
+  --color-error-950: var(--brand-band-dark, #01190d);
 
   /* ─── Warning (Teal per BPI brand) ───────────────────────────── */
-  --color-warning-25: #CAF1FF;
+  --color-warning-25: var(--brand-surface-blue, #CAF1FF);
   --color-warning-50: #b5d4e6;
   --color-warning-100: #84b8d6;
   --color-warning-200: #529bc6;
   --color-warning-300: #398dbd;
   --color-warning-400: #217eb5;
-  --color-warning-500: #0870ad;
+  --color-warning-500: var(--brand-accent-teal, #0870ad);
   --color-warning-600: #07659c;
   --color-warning-700: #064e79;
   --color-warning-800: #054368;
@@ -115,17 +120,17 @@
   --text-xs--line-height: 1.125rem;
 
   /* ─── Radius ─────────────────────────────────────────────────── */
-  --radius-sm: 12px;
-  --radius-lg: 24px;
-  --radius-round: 60px;
+  --radius-sm: var(--brand-radius-sm, 12px);
+  --radius-lg: var(--brand-radius-lg, 24px);
+  --radius-round: var(--brand-radius-round, 60px);
 
   /* ─── Layout tokens (per grid spec) ──────────────────────────── */
-  --spacing-gutter: 24px;
-  --spacing-gutter-sm: 12px;
-  --spacing-margin: 120px;
-  --spacing-column: 84px;
+  --spacing-gutter: var(--brand-gutter, 24px);
+  --spacing-gutter-sm: var(--brand-gutter-sm, 12px);
+  --spacing-margin: var(--brand-margin, 120px);
+  --spacing-column: var(--brand-column, 84px);
 
-  --container-page: 130rem;
+  --container-page: var(--brand-container, 130rem);
 }
 
 :root {
@@ -171,6 +176,112 @@ body {
    17.4+. Falls back to standard wrap in older browsers. */
 .balance-text {
   text-wrap: balance;
+}
+
+/* ─── Brand typography styles ──────────────────────────────────────
+   Semantic classes for the named brand text styles. Each pulls its
+   font/size/leading/tracking/weight/transform from the `--brand-<style>-*`
+   CSS variables that <BrandTheme> injects from the Sanity `brandSettings`
+   singleton; the fallbacks below are the values the site ships with, so
+   these render identically before any edit. Apply a `.type-*` class instead
+   of hardcoding size/tracking/weight utilities so a single Studio edit
+   restyles every use. */
+.type-display {
+  font-family: var(--brand-display-font, var(--font-display));
+  font-size: var(--brand-display-size, 3.75rem);
+  line-height: var(--brand-display-leading, 1.02);
+  letter-spacing: var(--brand-display-tracking, -0.03em);
+  font-weight: var(--brand-display-weight, 600);
+  text-transform: var(--brand-display-transform, none);
+}
+.type-h1 {
+  font-family: var(--brand-h1-font, var(--font-display));
+  font-size: var(--brand-h1-size, 2.25rem);
+  line-height: var(--brand-h1-leading, 1.05);
+  letter-spacing: var(--brand-h1-tracking, -0.02em);
+  font-weight: var(--brand-h1-weight, 700);
+  text-transform: var(--brand-h1-transform, none);
+}
+.type-h2 {
+  font-family: var(--brand-h2-font, var(--font-display));
+  font-size: var(--brand-h2-size, 1.875rem);
+  line-height: var(--brand-h2-leading, 1.15);
+  letter-spacing: var(--brand-h2-tracking, -0.02em);
+  font-weight: var(--brand-h2-weight, 600);
+  text-transform: var(--brand-h2-transform, none);
+}
+.type-h3 {
+  font-family: var(--brand-h3-font, var(--font-display));
+  font-size: var(--brand-h3-size, 1.5rem);
+  line-height: var(--brand-h3-leading, 1.3);
+  letter-spacing: var(--brand-h3-tracking, -0.015em);
+  font-weight: var(--brand-h3-weight, 600);
+  text-transform: var(--brand-h3-transform, none);
+}
+.type-card-heading {
+  font-family: var(--brand-card-heading-font, var(--font-display));
+  font-size: var(--brand-card-heading-size, 1.125rem);
+  line-height: var(--brand-card-heading-leading, 1.2);
+  letter-spacing: var(--brand-card-heading-tracking, -0.01em);
+  font-weight: var(--brand-card-heading-weight, 700);
+  text-transform: var(--brand-card-heading-transform, none);
+}
+.type-eyebrow {
+  font-family: var(--brand-eyebrow-font, var(--font-sans));
+  font-size: var(--brand-eyebrow-size, 0.8125rem);
+  line-height: var(--brand-eyebrow-leading, 1.4);
+  letter-spacing: var(--brand-eyebrow-tracking, 0.18em);
+  font-weight: var(--brand-eyebrow-weight, 600);
+  text-transform: var(--brand-eyebrow-transform, uppercase);
+}
+.type-lead {
+  font-family: var(--brand-lead-font, var(--font-sans));
+  font-size: var(--brand-lead-size, 1.25rem);
+  line-height: var(--brand-lead-leading, 1.6);
+  letter-spacing: var(--brand-lead-tracking, 0em);
+  font-weight: var(--brand-lead-weight, 400);
+  text-transform: var(--brand-lead-transform, none);
+}
+.type-body {
+  font-family: var(--brand-body-font, var(--font-sans));
+  font-size: var(--brand-body-size, 1.125rem);
+  line-height: var(--brand-body-leading, 1.75);
+  letter-spacing: var(--brand-body-tracking, 0em);
+  font-weight: var(--brand-body-weight, 400);
+  text-transform: var(--brand-body-transform, none);
+}
+.type-body-sm {
+  font-family: var(--brand-body-sm-font, var(--font-sans));
+  font-size: var(--brand-body-sm-size, 1rem);
+  line-height: var(--brand-body-sm-leading, 1.6);
+  letter-spacing: var(--brand-body-sm-tracking, 0em);
+  font-weight: var(--brand-body-sm-weight, 400);
+  text-transform: var(--brand-body-sm-transform, none);
+}
+.type-quote {
+  font-family: var(--brand-quote-font, var(--font-display));
+  font-size: var(--brand-quote-size, 1.5rem);
+  line-height: var(--brand-quote-leading, 1.35);
+  letter-spacing: var(--brand-quote-tracking, -0.01em);
+  font-weight: var(--brand-quote-weight, 400);
+  text-transform: var(--brand-quote-transform, none);
+  font-style: italic;
+}
+.type-caption {
+  font-family: var(--brand-caption-font, var(--font-sans));
+  font-size: var(--brand-caption-size, 0.875rem);
+  line-height: var(--brand-caption-leading, 1.5);
+  letter-spacing: var(--brand-caption-tracking, 0em);
+  font-weight: var(--brand-caption-weight, 400);
+  text-transform: var(--brand-caption-transform, none);
+}
+.type-label {
+  font-family: var(--brand-label-font, var(--font-sans));
+  font-size: var(--brand-label-size, 0.875rem);
+  line-height: var(--brand-label-leading, 1.2);
+  letter-spacing: var(--brand-label-tracking, 0em);
+  font-weight: var(--brand-label-weight, 600);
+  text-transform: var(--brand-label-transform, none);
 }
 
 /* ─── Hide page-level header chrome while the menu overlay is open ─
