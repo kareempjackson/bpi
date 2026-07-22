@@ -3,10 +3,11 @@ import type { Metadata } from "next";
 import Image from "next/image";
 
 import ArrowRight from "@/app/components/ArrowRight";
+import BuildingSection from "@/app/components/BuildingSection";
 import Button from "@/app/components/Button";
+import CareersSection from "@/app/components/CareersSection";
 import CtaLink from "@/app/components/CtaLink";
 import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
-import Logo from "@/app/components/Logo";
 import LazyVideo from "@/app/components/LazyVideo";
 import MediaImage from "@/app/components/MediaImage";
 import PortableTextBody from "@/app/components/PortableTextBody";
@@ -17,22 +18,24 @@ import LeaderShape from "@/app/components/shapes/LeaderShape";
 import AboutBannerVideo from "./AboutBannerVideo";
 import MissionShape from "@/app/components/shapes/MissionShape";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
-import { resolveImage, resolveMedia } from "@/sanity/lib/image";
+import { resolveMedia } from "@/sanity/lib/image";
+import { localizedHref } from "@/app/lib/locale";
 import {
   ABOUT_PAGE_QUERY,
-  LATEST_INITIATIVES_QUERY,
+  HOME_PAGE_QUERY,
+  MISSION_SECTOR_CARDS_QUERY,
 } from "@/sanity/lib/queries";
 import type {
   AboutPage,
   Cta,
-  Initiative as InitiativeDoc,
+  HomePage,
   Leader as LeaderData,
-  MissionCard as MissionCardData,
   Pillar as PillarData,
+  ResolvedMedia,
+  SanityImage,
   Stat as StatData,
 } from "@/sanity/lib/types";
 import CountUp from "@/app/components/CountUp";
-import InitiativesPanel, { type Initiative } from "./InitiativesPanel";
 import LeaderLabel from "./LeaderLabel";
 import MissionCarousel from "./MissionCarousel";
 
@@ -57,17 +60,74 @@ async function getAboutPage(lang: string): Promise<AboutPage | null> {
   });
 }
 
-async function getLatestInitiatives(
-  lang: string,
-  limit: number,
-): Promise<InitiativeDoc[]> {
-  if (limit <= 0) return [];
-  const data = await loadQuery<InitiativeDoc[] | null>(LATEST_INITIATIVES_QUERY, {
-    params: { lang, limit },
-    tags: [TAG.initiative],
-  });
+// Sector card as needed by the mission carousel — carries both media slots so
+// we can show whichever is authored (the card image if set, else the sector's
+// hero video, which every sector has).
+type MissionSectorCard = {
+  _id: string;
+  title: string;
+  slug: string;
+  subtitle?: string | null;
+  order?: number | null;
+  cardImage?: SanityImage | null;
+  heroImage?: SanityImage | null;
+};
+
+async function getSectors(lang: string): Promise<MissionSectorCard[]> {
+  const data = await loadQuery<MissionSectorCard[] | null>(
+    MISSION_SECTOR_CARDS_QUERY,
+    {
+      params: { lang },
+      tags: [TAG.sector],
+    },
+  );
   return data ?? [];
 }
+
+// The Careers + footer CTA copy lives on the Home page document (shared across
+// the site). Reuse it here so the About page closes the same way as /sectors.
+async function getHomePage(lang: string): Promise<HomePage | null> {
+  return loadQuery<HomePage | null>(HOME_PAGE_QUERY, {
+    params: { lang },
+    tags: [TAG.homePage],
+  });
+}
+
+// Poster/still for a resolved media object (image src, or a video's poster).
+function mediaImageSrc(m: ResolvedMedia | null): string | undefined {
+  if (!m) return undefined;
+  return m.kind === "image" ? m.src : m.poster;
+}
+
+// Video src for a resolved media object (undefined for images).
+function mediaVideoSrc(m: ResolvedMedia | null): string | undefined {
+  return m?.kind === "video" ? m.src : undefined;
+}
+
+// A single mission carousel card, normalized from a Sector document. The
+// carousel under "Our Mission" is driven by the same Sector documents that
+// power the home-page nodes and the /sectors listing — name, blurb, media,
+// and a link straight to the sector's own detail page.
+type MissionCardView = {
+  title: string;
+  description?: string;
+  imageSrc?: string;
+  videoSrc?: string;
+  imageAlt: string;
+  href: string;
+  bg: string;
+};
+
+// Soft background tints cycled across the cards so neighbours read as
+// distinct, mirroring the alternating blue/green of the approved design.
+const MISSION_CARD_BG = [
+  "#CAF1FF",
+  "#C9F2D8",
+  "#FDE7CE",
+  "#E4E0FF",
+  "#FFE0EC",
+  "#D8EEF0",
+];
 
 export async function generateMetadata({
   params,
@@ -90,16 +150,15 @@ export default async function AboutPage({
   params: Promise<{ lang: string }>;
 }) {
   const { lang } = await params;
-  const data = await getAboutPage(lang);
+  const [data, sectors, home] = await Promise.all([
+    getAboutPage(lang),
+    getSectors(lang),
+    getHomePage(lang),
+  ]);
 
   if (!data) {
     return <EmptyState />;
   }
-
-  const initiatives = await getLatestInitiatives(
-    lang,
-    data.initiativesShowCount ?? 4,
-  );
 
   const heroMedia = resolveMedia(data.heroImage, { width: 1600 });
   const { lead: heroLead, rest: heroRest } = splitHeadline(
@@ -107,28 +166,29 @@ export default async function AboutPage({
   );
   const bannerMedia = resolveMedia(data.bannerImage, { width: 2000 });
 
-  const initiativesForPanel: Initiative[] = initiatives.flatMap(
-    (item): Initiative[] => {
-      const img = resolveImage(item.coverImage, { width: 600 });
-      if (!img) return [];
-      // Link rules mirror the rest of the site: externalLink wins; otherwise
-      // an internal detail page unless the editor turned it off.
-      const href = item.externalLink
-        ? item.externalLink
-        : item.hasDetailPage === false
-          ? undefined
-          : `/initiatives/${item.slug}`;
-      const out: Initiative = {
-        title: item.title,
-        description: item.excerpt,
-        imageSrc: img.src,
-        imageAlt: img.alt,
-      };
-      if (item.subtitle) out.subtitle = item.subtitle;
-      if (href) out.href = href;
-      return [out];
-    },
-  );
+  // Careers + footer CTA media, resolved from the Home page document.
+  const careersMedia = resolveMedia(home?.careersImage, { width: 1200 });
+  const buildingMedia = resolveMedia(home?.buildingImage, { width: 1600 });
+
+  // Mission carousel cards come straight from the Sector documents so they
+  // stay in lockstep with the home-page nodes and the /sectors pages.
+  const missionCards: MissionCardView[] = sectors.map((sector, idx) => {
+    // Prefer the card image slot; fall back to the sector's hero media (a
+    // video on every sector) so each card always shows its sector's media.
+    const media =
+      resolveMedia(sector.cardImage, { width: 800 }) ??
+      resolveMedia(sector.heroImage, { width: 800 });
+    return {
+      title: sector.title,
+      description: sector.subtitle ?? undefined,
+      imageSrc:
+        media?.kind === "image" ? media.src : media?.poster ?? undefined,
+      videoSrc: media?.kind === "video" ? media.src : undefined,
+      imageAlt: media?.alt || sector.title,
+      href: localizedHref(lang, `/sectors/${sector.slug}`),
+      bg: MISSION_CARD_BG[idx % MISSION_CARD_BG.length],
+    };
+  });
 
   return (
     <main className="bg-error-25">
@@ -148,7 +208,7 @@ export default async function AboutPage({
               className="flex flex-col gap-6 max-w-md"
             >
               {data.heroSubheading ? (
-                <StaggerItem as="p" className="text-base md:text-lg text-white/75 leading-relaxed">
+                <StaggerItem as="p" className="font-display font-light text-[18px] leading-[140%] tracking-normal text-white max-w-md">
                   {data.heroSubheading}
                 </StaggerItem>
               ) : null}
@@ -207,14 +267,14 @@ export default async function AboutPage({
           <Stagger
             className="flex flex-col md:flex-row md:items-start md:justify-between gap-5 md:gap-8 mb-10 md:mb-12 lg:mb-14"
           >
-            <StaggerItem className="max-w-lg">
-              <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-primary-500 leading-tight tracking-[-0.01em]">
+            <StaggerItem className="max-w-2xl">
+              <h2 className="font-display font-medium text-[30px] leading-[110%] tracking-normal text-black">
                 {data.visionHeading}
               </h2>
               <PortableTextBody
                 value={data.visionDescription}
                 className="mt-3"
-                paragraphClassName="text-sm lg:text-base text-primary-500/70 leading-relaxed"
+                paragraphClassName="font-display font-normal text-[18px] leading-[150%] tracking-normal text-black"
               />
             </StaggerItem>
             <StaggerItem className="flex flex-wrap items-center gap-2 md:gap-3 shrink-0 md:ml-auto">
@@ -237,34 +297,8 @@ export default async function AboutPage({
 
       <DifferenceWeMakeSection data={data} />
 
-      <section className="px-6 md:px-10 lg:px-14 pt-12 md:pt-12 lg:pt-16 pb-12 md:pb-12 lg:pb-16">
-        <div className="mx-auto max-w-page">
-          <Stagger className="max-w-2xl mb-8 lg:mb-8">
-            <StaggerItem as="h2" className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
-              {data.missionHeading}
-            </StaggerItem>
-            <StaggerItem className="mt-3">
-              <PortableTextBody
-                value={data.missionDescription}
-                paragraphClassName="text-sm lg:text-base text-primary-500/75 leading-relaxed"
-              />
-            </StaggerItem>
-          </Stagger>
-
-          <Reveal preset="fade">
-            <MissionCarousel>
-              {data.missionCards?.map((card, idx) => (
-                <MissionCardItem
-                  key={(card.href ?? card.title) + idx}
-                  card={card}
-                />
-              ))}
-            </MissionCarousel>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* Full-width video/media banner — sits directly above the numbers. */}
+      {/* Full-width video/media banner — sits directly under the
+          "What We Are Building" section. */}
       {bannerMedia ? (
         <section className="px-6 md:px-10 lg:px-14 pt-8 lg:pt-10 pb-8 lg:pb-10">
           <div className="mx-auto max-w-page">
@@ -275,14 +309,41 @@ export default async function AboutPage({
 
       <section className="px-6 md:px-10 lg:px-14 pt-12 md:pt-12 lg:pt-16 pb-12 md:pb-12 lg:pb-16">
         <div className="mx-auto max-w-page">
+          <Stagger className="max-w-3xl mb-12 lg:mb-16">
+            <StaggerItem as="h2" className="font-display font-semibold text-[30px] leading-10 tracking-[0.37px] text-black">
+              {data.missionHeading}
+            </StaggerItem>
+            <StaggerItem className="mt-3">
+              <PortableTextBody
+                value={data.missionDescription}
+                paragraphClassName="font-display font-normal text-[18px] leading-[150%] tracking-[0.37px] text-black"
+              />
+            </StaggerItem>
+          </Stagger>
+
+          <Reveal preset="fade">
+            <MissionCarousel>
+              {missionCards.map((card, idx) => (
+                <MissionCardItem
+                  key={card.href + idx}
+                  card={card}
+                />
+              ))}
+            </MissionCarousel>
+          </Reveal>
+        </div>
+      </section>
+
+      <section className="px-6 md:px-10 lg:px-14 pt-12 md:pt-12 lg:pt-16 pb-12 md:pb-12 lg:pb-16">
+        <div className="mx-auto max-w-page">
           <Stagger className="max-w-3xl mb-8 lg:mb-8">
-            <StaggerItem as="h2" className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
+            <StaggerItem as="h2" className="font-display font-semibold text-[30px] leading-10 tracking-[0.37px] text-black">
               {data.statsHeading}
             </StaggerItem>
             <StaggerItem className="mt-3">
               <PortableTextBody
                 value={data.statsDescription}
-                paragraphClassName="text-sm lg:text-base text-primary-500/75 leading-relaxed"
+                paragraphClassName="font-display font-normal text-[18px] leading-[150%] tracking-[0.37px] text-black"
               />
             </StaggerItem>
           </Stagger>
@@ -299,45 +360,29 @@ export default async function AboutPage({
         </div>
       </section>
 
-      <section className="pt-12 md:pt-10 lg:pt-14 pb-14 md:pb-14 lg:pb-20">
-        {/* Full-bleed dark-green band; the content inside is constrained and
-            padded to line up with the team section's max-w-page column. */}
-        <div className="bg-[#13362A] py-12 md:py-16 lg:py-24">
-          <div className="px-6 md:px-10 lg:px-14">
-            <Stagger className="mx-auto max-w-page">
-              <StaggerItem className="mb-8 lg:mb-8">
-                <p className="text-[10px] lg:text-xs font-bold tracking-[0.14em] text-white/60 uppercase">
-                  {data.initiativesEyebrow}
-                </p>
-                <h2 className="mt-2 font-display text-display-xs lg:text-display-sm font-semibold text-white leading-[1.1] tracking-tight">
-                  {data.initiativesHeading}
-                </h2>
-              </StaggerItem>
-
-              <StaggerItem>
-                <InitiativesPanel initiatives={initiativesForPanel} />
-              </StaggerItem>
-            </Stagger>
-          </div>
-        </div>
-      </section>
-
       <section className="px-6 md:px-10 lg:px-14 pt-12 md:pt-10 lg:pt-14 pb-14 md:pb-14 lg:pb-20">
         <Stagger className="mx-auto max-w-page">
-          <StaggerItem className="max-w-md mb-8 lg:mb-10">
-            <h2 className="font-display text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.1] tracking-tight">
+          <StaggerItem className="max-w-lg mb-8 lg:mb-10">
+            <h2 className="font-display font-semibold text-[30px] leading-10 tracking-[0.37px] text-black">
               {data.leadershipHeading}
             </h2>
             <PortableTextBody
               value={data.leadershipDescription}
               className="mt-3"
-              paragraphClassName="text-sm lg:text-base text-primary-500/75 leading-relaxed"
+              paragraphClassName="font-display font-normal text-[18px] leading-[150%] tracking-[0.37px] text-black"
             />
           </StaggerItem>
 
           <StaggerItem>
+            {/* Each leader card carries a built-in ~2.7%-of-cell horizontal
+                inset (the LeaderShape path spans x=10→362 of 372, and the odd
+                rounded cards match it). Pull the whole grid outward by that
+                inset so the outer portraits sit flush with the page gutters —
+                lining the row up with the nav logo (left) and menu (right).
+                The fraction differs by column count: ~1.3% at 2 cols, ~0.65%
+                at 4 cols. */}
             <Stagger
-              className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-3 lg:gap-4"
+              className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-3 lg:gap-4 mx-[-1.3%] md:mx-[-0.65%]"
             >
               {data.leaders?.map((leader, idx) => (
                 <StaggerItem key={leader.name + leader.role + idx}>
@@ -355,6 +400,50 @@ export default async function AboutPage({
       <Zone
         blocks={data.pageSections as unknown as RenderedBlock[]}
         lang={lang}
+      />
+
+      {/* Careers + closing CTA — shared copy from the Home page document, the
+          same pairing that closes the /sectors page. */}
+      <CareersSection
+        tone="mint"
+        eyebrow={home?.careersEyebrow ?? undefined}
+        heading={home?.careersHeading ?? undefined}
+        lead={home?.careersLead ?? undefined}
+        body={home?.careersBody ?? undefined}
+        imageSrc={mediaImageSrc(careersMedia) ?? mediaImageSrc(buildingMedia)}
+        videoSrc={mediaVideoSrc(careersMedia)}
+        imageAlt={careersMedia?.alt ?? buildingMedia?.alt}
+        primaryLabel={home?.careersPrimaryCta?.label ?? undefined}
+        primaryHref={
+          home?.careersPrimaryCta?.href
+            ? localizedHref(lang, home.careersPrimaryCta.href)
+            : undefined
+        }
+        secondaryLabel={home?.careersSecondaryCta?.label ?? undefined}
+        secondaryHref={
+          home?.careersSecondaryCta?.href
+            ? localizedHref(lang, home.careersSecondaryCta.href)
+            : undefined
+        }
+      />
+      <BuildingSection
+        imageSrc={mediaImageSrc(buildingMedia)}
+        videoSrc={mediaVideoSrc(buildingMedia)}
+        imageAlt={buildingMedia?.alt}
+        headlineLine1={home?.buildingHeadlineLine1}
+        headlineLine2={home?.buildingHeadlineLine2}
+        primaryLabel={home?.buildingPrimaryCta?.label ?? undefined}
+        primaryHref={
+          home?.buildingPrimaryCta?.href
+            ? localizedHref(lang, home.buildingPrimaryCta.href)
+            : undefined
+        }
+        secondaryLabel={home?.buildingSecondaryCta?.label ?? undefined}
+        secondaryHref={
+          home?.buildingSecondaryCta?.href
+            ? localizedHref(lang, home.buildingSecondaryCta.href)
+            : undefined
+        }
       />
     </main>
   );
@@ -390,19 +479,6 @@ function staircaseFromFlat(heading: string): string[] {
   ];
 }
 
-// Split the trailing sentence off a paragraph: `lead` is everything up to and
-// including the final sentence-ending period, `trailing` is the last sentence.
-// Falls back to the whole text as `lead` when there's no internal break.
-function splitTrailingSentence(text: string): { lead: string; trailing: string } {
-  const trimmed = text.trim();
-  const idx = trimmed.lastIndexOf(". ");
-  if (idx === -1) return { lead: trimmed, trailing: "" };
-  return {
-    lead: trimmed.slice(0, idx + 1).trim(),
-    trailing: trimmed.slice(idx + 2).trim(),
-  };
-}
-
 // "The need for change" — an image-free editorial two-column section that
 // opens the About narrative, sitting directly above the Vision block. A short
 // label sits on the left; on the right, an intro paragraph leads into a large
@@ -420,13 +496,13 @@ function NeedForChangeSection() {
   return (
     <section
       data-nav-theme="light"
-      className="bg-error-25 px-6 md:px-10 lg:px-14 pt-28 md:pt-36 lg:pt-44 pb-4 md:pb-6 lg:pb-8"
+      className="bg-error-25 px-6 md:px-10 lg:px-14 pt-14 md:pt-20 lg:pt-24 pb-4 md:pb-6 lg:pb-8"
     >
       <div className="mx-auto max-w-page grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-20 items-start">
         <Stagger className="max-w-sm">
           <StaggerItem
             as="h2"
-            className="font-display text-xl md:text-2xl font-bold text-primary-500 leading-tight tracking-[-0.01em]"
+            className="font-display font-semibold text-[30px] leading-[48px] tracking-[0.48px] align-middle text-black"
           >
             {heading}
           </StaggerItem>
@@ -435,19 +511,19 @@ function NeedForChangeSection() {
         <Stagger className="flex flex-col gap-8 md:gap-10 lg:gap-12">
           <StaggerItem
             as="p"
-            className="text-sm lg:text-base text-primary-500/70 leading-relaxed"
+            className="font-sans font-normal text-[18px] leading-[176%] tracking-[0.48px] align-middle text-black"
           >
             {intro}
           </StaggerItem>
           <StaggerItem
             as="p"
-            className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-primary-500 leading-[1.15] tracking-[-0.01em]"
+            className="font-sans font-bold text-[36px] leading-[176%] tracking-[0.48px] align-middle text-black"
           >
             {statement}
           </StaggerItem>
           <StaggerItem
             as="p"
-            className="text-sm lg:text-base text-primary-500/70 leading-relaxed"
+            className="font-sans font-normal text-[18px] leading-[176%] tracking-[0.48px] align-middle text-black"
           >
             {closing}
           </StaggerItem>
@@ -464,12 +540,6 @@ function NeedForChangeSection() {
 function DifferenceWeMakeSection({ data }: { data: AboutPage }) {
   const eyebrow = data.differenceEyebrow ?? "What We Are Building";
   const heading = data.differenceHeading ?? "The Difference\nWe Make";
-  const rawBody = data.differenceBody ?? "";
-  const rawTagline = data.differenceTagline ?? "";
-
-  // Hide the section entirely if there's no content to render yet — keeps
-  // the page graceful when the document hasn't been populated.
-  if (!rawBody && !rawTagline) return null;
 
   // The heading is laid out as a staircase: the first line hugs the left
   // edge, every line after it is pushed to the right. Authors set the break
@@ -480,23 +550,17 @@ function DifferenceWeMakeSection({ data }: { data: AboutPage }) {
     ? heading.split("\n")
     : staircaseFromFlat(heading);
 
-  // Body / tagline. When no explicit tagline is authored, peel the final
-  // sentence off the body so it renders as the smaller line below the
-  // divider — matching the design without requiring a content edit.
-  let body = rawBody;
-  let tagline = rawTagline;
-  if (!tagline && body) {
-    const split = splitTrailingSentence(body);
-    body = split.lead;
-    tagline = split.trailing;
-  }
+  // Above-the-line statement and the content below the divider are both fixed
+  // to the approved copy.
+  const body =
+    "BPI is a market creator. Our role is a sector accelerator and investment facilitator, catalyzing investment, partnerships, manufacturing, and policy alignment, serving as a gateway to global demand and creating new market entry points. Through a catalytic project incubator model, we're pushing from investment to impact.";
 
   return (
     <section className="my-12 md:my-16 lg:my-24 px-6 md:px-10 lg:px-14 pt-12 md:pt-12 lg:pt-16 pb-12 md:pb-12 lg:pb-16">
       <div className="mx-auto max-w-page grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-20 items-start">
         <Stagger className="max-w-sm">
           {eyebrow ? (
-            <StaggerItem as="p" className="text-[10px] lg:text-xs font-bold tracking-[0.14em] text-primary-500/70 uppercase">
+            <StaggerItem as="p" className="font-display font-normal text-[16px] leading-[100%] tracking-[1px] align-middle text-black">
               {eyebrow}
             </StaggerItem>
           ) : null}
@@ -514,15 +578,19 @@ function DifferenceWeMakeSection({ data }: { data: AboutPage }) {
 
         <Stagger>
           {body ? (
-            <StaggerItem as="p" className="text-sm md:text-base lg:text-lg text-primary-500/85 leading-relaxed whitespace-pre-line">
+            <StaggerItem as="p" className="font-display font-normal text-[20px] leading-[23.59px] tracking-[-0.75px] align-middle text-black whitespace-pre-line">
               {body}
             </StaggerItem>
           ) : null}
-          {tagline ? (
-            <StaggerItem as="p" className="mt-6 lg:mt-8 pt-5 lg:pt-6 border-t border-primary-500/15 text-sm lg:text-base text-primary-500/70 leading-relaxed whitespace-pre-line">
-              {tagline}
-            </StaggerItem>
-          ) : null}
+          <StaggerItem className="mt-6 lg:mt-8 pt-5 lg:pt-6 border-t border-primary-500/15">
+            <h3 className="font-display font-bold text-[20px] leading-[1.2] tracking-[-0.5px] text-black">
+              The Difference We Make
+            </h3>
+            <p className="mt-3 font-display font-normal text-[18px] leading-[1.4] tracking-[-0.5px] text-black">
+              97% of Caribbean medicines are imported today. BPI exists to
+              change that, one shipment, one facility, one policy at a time.
+            </p>
+          </StaggerItem>
         </Stagger>
       </div>
     </section>
@@ -645,61 +713,43 @@ function LeadershipContactCard({
   );
 }
 
-function MissionCardItem({ card }: { card: MissionCardData }) {
-  const media = resolveMedia(card.image, { width: 800 });
-  const img = media
-    ? { src: media.kind === "image" ? media.src : media.poster ?? "", alt: media.alt }
-    : null;
-  const videoSrc = media?.kind === "video" ? media.src : undefined;
+function MissionCardItem({ card }: { card: MissionCardView }) {
   return (
     <div
-      className="rounded-lg px-5 py-4 md:px-6 md:py-5 lg:px-8 lg:py-6 flex items-stretch gap-5 md:gap-8 lg:gap-12 w-[80vw] md:w-[62vw] lg:w-[54vw] xl:w-[48vw] shrink-0 min-h-64 md:min-h-80 lg:min-h-96"
-      style={{ backgroundColor: card.bg ?? "#CAF1FF" }}
+      className="rounded-lg px-5 py-4 md:px-6 md:py-5 lg:px-8 lg:py-6 flex items-stretch gap-5 md:gap-8 lg:gap-12 w-[86vw] md:w-[74vw] lg:w-[68vw] xl:w-[62vw] shrink-0 min-h-80 md:min-h-112 lg:min-h-128"
+      style={{ backgroundColor: card.bg }}
     >
-      <div className="flex flex-col justify-between gap-4 md:gap-5 flex-1 min-w-0">
-        <div className="flex flex-col gap-4 md:gap-6">
-          <div className="flex items-center gap-2 text-primary-500">
-            <Logo
-              iconOnly
-              size={28}
-              className="text-primary-500 w-5 md:w-6 lg:w-7 h-auto shrink-0"
-            />
-            {card.eyebrow ? (
-              <span className="text-sm md:text-base lg:text-lg font-semibold text-primary-500 leading-none">
-                {card.eyebrow}
-              </span>
-            ) : null}
-          </div>
-          <h3 className="font-display text-xl md:text-display-xs lg:text-display-sm font-semibold text-primary-500 leading-[1.15] tracking-tight">
+      <div className="flex flex-col justify-center items-start text-left gap-5 md:gap-6 flex-1 min-w-0 pl-4 md:pl-10 lg:pl-16">
+        <div className="flex flex-col items-start gap-5 md:gap-7">
+          <h3 className="font-display font-medium text-[36px] leading-9.5 tracking-[0.37px] text-black">
             {card.title}
           </h3>
-          <PortableTextBody
-            value={card.description}
-            paragraphClassName="text-sm md:text-base lg:text-lg text-primary-500/75 leading-relaxed max-w-md"
-          />
+          {card.description ? (
+            <p className="font-display font-normal text-[18px] leading-7 tracking-[0.37px] text-black max-w-md whitespace-pre-line">
+              {card.description}
+            </p>
+          ) : null}
         </div>
-        {card.href ? (
-          <CtaLink
-            href={card.href}
-            className="inline-flex items-center gap-2 text-sm md:text-base font-semibold text-primary-500 hover:opacity-70 transition-opacity"
-          >
-            Learn more
-            <ArrowRight />
-          </CtaLink>
-        ) : null}
+        <CtaLink
+          href={card.href}
+          className="inline-flex items-center gap-2 font-display font-normal text-[16px] leading-5 tracking-[0.55px] text-black hover:opacity-70 transition-opacity"
+        >
+          Learn more
+          <ArrowRight />
+        </CtaLink>
       </div>
 
-      {img ? (
+      {card.imageSrc || card.videoSrc ? (
         <Reveal
           preset="scale"
           className="shrink-0 self-stretch flex items-center"
         >
           <MissionShape
-            size={420}
-            imageSrc={img.src}
-            videoSrc={videoSrc}
-            imageAlt={img.alt}
-            className="w-auto h-auto max-h-64 md:max-h-80 lg:max-h-96"
+            size={520}
+            imageSrc={card.imageSrc}
+            videoSrc={card.videoSrc}
+            imageAlt={card.imageAlt}
+            className="w-auto h-auto max-h-80 md:max-h-112 lg:max-h-128"
           />
         </Reveal>
       ) : null}
@@ -714,7 +764,7 @@ function StatCard({ stat }: { stat: StatData }) {
         value={stat.value}
         className="font-display text-display-xs md:text-display-sm lg:text-display-md font-semibold text-primary-500 leading-none tracking-tight"
       />
-      <p className="text-xs md:text-sm text-primary-500/75 leading-relaxed">
+      <p className="font-display font-normal text-[16px] leading-[142%] tracking-normal text-black">
         {stat.description}
       </p>
     </div>
@@ -764,12 +814,12 @@ function PillarCard({ pillar }: { pillar: PillarData }) {
       >
         {mediaBlock}
         <div className="mt-auto pt-10 md:pt-12 lg:pt-14 flex flex-col gap-3">
-          <h3 className="font-display text-lg lg:text-xl font-bold tracking-[0.02em] text-white uppercase leading-snug">
+          <h3 className="font-display font-semibold text-[24px] leading-[150%] tracking-normal uppercase text-white">
             {pillar.eyebrow}
           </h3>
           <PortableTextBody
             value={pillar.description}
-            paragraphClassName="whitespace-pre-line text-sm lg:text-base text-white/70 leading-relaxed"
+            paragraphClassName="whitespace-pre-line font-display font-normal text-[18px] leading-[142%] tracking-normal text-white/70"
           />
         </div>
       </div>
@@ -783,12 +833,12 @@ function PillarCard({ pillar }: { pillar: PillarData }) {
       style={pillar.bg && pillar.bg !== "#ffffff" ? { backgroundColor: pillar.bg } : undefined}
     >
       <div className="flex flex-col gap-3 px-1 pt-2">
-        <h3 className="font-display text-lg lg:text-xl font-bold tracking-[0.02em] text-primary-500 uppercase leading-snug">
+        <h3 className="font-display font-semibold text-[24px] leading-[150%] tracking-normal uppercase text-[#001E4A]">
           {pillar.eyebrow}
         </h3>
         <PortableTextBody
           value={pillar.description}
-          paragraphClassName="text-sm lg:text-base text-primary-500/70 leading-relaxed"
+          paragraphClassName="font-display font-normal text-[18px] leading-[142%] tracking-normal text-black"
         />
       </div>
       {hasMedia ? (

@@ -25,6 +25,11 @@ export default function MissionCarousel({ children }: Props) {
   const [thumbWidth, setThumbWidth] = useState(0.33);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(true);
+  // Trailing space after the last card so it can scroll fully to the left snap
+  // point — landing flush-left, lined up with the progress bar below. Computed
+  // from the live measurements because the cards are sized in vw while the
+  // scroller is px-capped, so no fixed value is correct across viewports.
+  const [trailingPad, setTrailingPad] = useState(0);
 
   const items = Children.toArray(children);
 
@@ -126,6 +131,15 @@ export default function MissionCarousel({ children }: Props) {
       setCanPrev(el.scrollLeft > 1);
       setCanNext(el.scrollLeft < max - 1);
 
+      // Trailing pad = viewport minus one card (and the left inset) so the last
+      // card can reach the left snap position. Guarded to avoid a render loop
+      // since update() also runs on every scroll frame.
+      const padLeftPx = parseFloat(getComputedStyle(el).paddingLeft) || 0;
+      const firstCardW =
+        cardRefs.current[0]?.getBoundingClientRect().width ?? 0;
+      const trailing = Math.max(0, el.clientWidth - firstCardW - padLeftPx);
+      setTrailingPad((prev) => (Math.abs(prev - trailing) > 0.5 ? trailing : prev));
+
       if (reducedMotion) return;
 
       const MIN_SCALE = 0.78;
@@ -218,7 +232,10 @@ export default function MissionCarousel({ children }: Props) {
         aria-label="Mission cards scroller. Use arrow keys to navigate."
         className="no-scrollbar overflow-x-auto -mx-6 md:-mx-10 lg:-mx-14 px-6 md:px-10 lg:px-14 scroll-pl-6 md:scroll-pl-10 lg:scroll-pl-14 pb-1 snap-x snap-mandatory focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 focus-visible:ring-offset-4 focus-visible:ring-offset-error-25 rounded-lg"
       >
-        <div className="flex gap-2 lg:gap-3 min-w-max items-center pr-[22vw]">
+        <div
+          className="flex gap-2 lg:gap-3 min-w-max items-center"
+          style={{ paddingRight: trailingPad }}
+        >
           {items.map((child, i) => (
             <div
               key={i}
@@ -244,7 +261,7 @@ export default function MissionCarousel({ children }: Props) {
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={Math.round(progress * 100)}
-          className="group/track relative h-1.5 flex-1 max-w-md bg-primary-500/10 rounded-full cursor-pointer touch-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 focus-visible:ring-offset-4 focus-visible:ring-offset-error-25"
+          className="group/track relative h-1.5 flex-1 md:flex-none md:w-[74vw] lg:w-[68vw] xl:w-[62vw] bg-primary-500/10 rounded-full cursor-pointer touch-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 focus-visible:ring-offset-4 focus-visible:ring-offset-error-25"
         >
           <div
             className="absolute top-0 h-full bg-error-500 rounded-full transition-[left] duration-150 group-hover/track:bg-error-400"

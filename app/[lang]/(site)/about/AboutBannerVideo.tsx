@@ -10,19 +10,19 @@ import {
 } from "react";
 
 import MediaImage from "@/app/components/MediaImage";
-import { Parallax, Reveal } from "@/app/components/motion";
+import { Reveal } from "@/app/components/motion";
 import type { ResolvedMedia } from "@/sanity/lib/types";
 
 /**
  * Full-width about-page banner with a magnetic play/pause control.
  *
- * On a fine pointer, a translucent circular control trails the cursor across
- * the video (a "play reel" affordance) — a rAF lerp eases it toward the pointer
- * so it lags smoothly rather than snapping. The whole frame is the click
- * target, so a click always toggles even while the circle is mid-trail. Coarse
- * pointers (no hover) get a static centered button instead, so touch users can
- * still pause. The media itself sits in an oversized `Parallax` clipped by the
- * frame, drifting as the page scrolls.
+ * On a fine pointer, a sleek circular button trails the cursor across the
+ * video — a rAF lerp eases it toward the pointer so it lags smoothly rather
+ * than snapping. The button holds just the play/pause icon. The whole frame is
+ * the click target, so a click always toggles even while the circle is
+ * mid-trail. Coarse pointers (no hover) get a static centered button instead,
+ * so touch users can still pause. The media itself sits in an oversized
+ * `Parallax` clipped by the frame, drifting as the page scrolls.
  */
 export default function AboutBannerVideo({ media }: { media: ResolvedMedia }) {
   const reduce = useReducedMotion();
@@ -141,7 +141,7 @@ export default function AboutBannerVideo({ media }: { media: ResolvedMedia }) {
       viewBox="0 0 24 24"
       fill="currentColor"
       aria-hidden="true"
-      className="size-8"
+      className="size-9"
     >
       <rect x="7" y="5" width="3.2" height="14" rx="1.4" />
       <rect x="13.8" y="5" width="3.2" height="14" rx="1.4" />
@@ -151,36 +151,39 @@ export default function AboutBannerVideo({ media }: { media: ResolvedMedia }) {
       viewBox="0 0 24 24"
       fill="currentColor"
       aria-hidden="true"
-      className="size-8 translate-x-0.5"
+      className="size-9 translate-x-0.5"
     >
       <path d="M8 5.5v13a1 1 0 0 0 1.54.84l10-6.5a1 1 0 0 0 0-1.68l-10-6.5A1 1 0 0 0 8 5.5Z" />
     </svg>
   );
 
-  // `scaleClass` lets the fine-pointer branch scale the circle in as it appears,
-  // for a softer entrance than a bare opacity fade.
+  // A sleek circular button holding just the play/pause icon. `scaleClass` lets
+  // the fine-pointer branch scale it in as it appears, for a softer entrance.
   const circle = (scaleClass = "") => (
     <div
-      className={`grid size-36 place-items-center gap-2 rounded-full border border-white/15 bg-primary-500/25 text-white shadow-[0_20px_60px_-16px_rgba(0,0,54,0.55)] ring-1 ring-inset ring-white/10 backdrop-blur-lg transition-transform duration-500 ease-[var(--ease-premium)] ${scaleClass}`}
+      className={`grid size-28 place-items-center rounded-full border border-white/20 bg-primary-500/30 text-white shadow-[0_16px_48px_-12px_rgba(0,0,54,0.55)] ring-1 ring-inset ring-white/10 backdrop-blur-md transition-transform duration-500 ease-[var(--ease-premium)] ${scaleClass}`}
     >
       {icon}
-      <span className="text-[11px] font-medium uppercase tracking-[0.22em]">
-        {playing ? "Pause" : "Play"}
-      </span>
     </div>
   );
 
   return (
     <Reveal
-      preset="scale"
-      className="relative aspect-4/3 md:aspect-video rounded-lg overflow-hidden"
+      preset="fade"
+      className="relative aspect-2/1 rounded-lg overflow-hidden"
     >
-      <Parallax
-        speed={0.06}
-        className="absolute inset-x-0 top-[-12%] bottom-[-12%]"
-      >
-        <MediaImage media={media} sizes="100vw" eager />
-      </Parallax>
+      {/* Static, exact-fit wrapper — no parallax overscale, so the video (and
+          its burned-in captions) render at their natural scale, un-zoomed. The
+          frame is a touch shorter than the 16:9 source; anchoring the cover
+          crop to the bottom trims only the top, keeping the low caption whole. */}
+      <div className="absolute inset-0">
+        <MediaImage
+          media={media}
+          sizes="100vw"
+          eager
+          objectPositionStyle="center bottom"
+        />
+      </div>
 
       {isVideo ? (
         finePointer ? (

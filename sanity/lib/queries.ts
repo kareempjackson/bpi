@@ -1042,6 +1042,23 @@ export const ALL_SECTORS_QUERY = defineQuery(`
     | order(coalesce(order, 9999) asc, ${loc("title")} asc)${SECTOR_CARD_PROJECTION}
 `);
 
+// Sector cards for the About page "Our Mission" carousel. Same ordering as the
+// listing, but also carries `heroImage` so the card can show the sector's own
+// media when the (optional) card image slot is empty — the hero video is the
+// media authored on every sector and its /sectors/[slug] page.
+export const MISSION_SECTOR_CARDS_QUERY = defineQuery(`
+  *[_type == "sector" && defined(slug.current)]
+    | order(coalesce(order, 9999) asc, ${loc("title")} asc){
+    _id,
+    "title": ${loc("title")},
+    "slug": slug.current,
+    "subtitle": ${loc("subtitle")},
+    order,
+    cardImage${IMAGE_PROJECTION},
+    heroImage${IMAGE_PROJECTION}
+  }
+`);
+
 export const ALL_SECTOR_SLUGS_QUERY = defineQuery(`
   *[_type == "sector" && defined(slug.current)]{
     "slug": slug.current
