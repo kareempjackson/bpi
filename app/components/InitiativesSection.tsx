@@ -5,6 +5,7 @@ import ArrowCircle from "./ArrowCircle";
 import CtaLink from "./CtaLink";
 import InitiativesShape from "./shapes/InitiativesShape";
 import { Stagger, StaggerItem } from "./motion";
+import { plainText } from "@/app/lib/plainText";
 
 type Initiative = {
   title: string;
@@ -245,7 +246,7 @@ function InitiativeRow({
       </div>
 
       <p className="hidden lg:block w-[32%] shrink-0 text-sm text-primary-500/70 leading-[1.45]">
-        {initiative.description}
+        {plainText(initiative.description)}
       </p>
 
       <ArrowCircle

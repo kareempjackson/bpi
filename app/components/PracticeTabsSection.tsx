@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 
 import type { PortableTextBlock } from "@/sanity/lib/types";
+import { plainText } from "@/app/lib/plainText";
 import PortableTextBody from "./PortableTextBody";
 import { Stagger, StaggerItem } from "./motion";
 
@@ -112,7 +113,7 @@ export default function PracticeTabsSection({
               as="p"
               className="whitespace-pre-line text-2xl md:text-3xl lg:text-[2.5rem] font-medium text-(--ink) leading-[1.32] tracking-[-0.01em]"
             >
-              {statement}
+              {plainText(statement)}
             </StaggerItem>
           ) : null}
 

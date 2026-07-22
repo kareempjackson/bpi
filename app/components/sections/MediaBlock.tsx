@@ -1,6 +1,8 @@
 import MediaImage from "@/app/components/MediaImage";
 import { Reveal } from "@/app/components/motion";
+import { plainText } from "@/app/lib/plainText";
 import { resolveMedia } from "@/sanity/lib/image";
+import type { PortableTextBlock } from "@/sanity/lib/types";
 
 import type { SectionComponentProps } from "./registry";
 
@@ -11,7 +13,9 @@ import type { SectionComponentProps } from "./registry";
  * image or video from the resolved media kind.
  */
 export default function MediaBlock({ block }: SectionComponentProps) {
-  const caption = (block.caption as string) ?? undefined;
+  const caption =
+    plainText(block.caption as PortableTextBlock[] | string | null) ||
+    undefined;
   const media = resolveMedia(
     block.media as Parameters<typeof resolveMedia>[0],
     { width: 2400 },

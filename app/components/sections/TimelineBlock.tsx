@@ -1,4 +1,5 @@
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
+import { plainText } from "@/app/lib/plainText";
 import type { InvestorRole } from "@/sanity/lib/types";
 
 import type { SectionComponentProps } from "./registry";
@@ -11,7 +12,13 @@ import type { SectionComponentProps } from "./registry";
  */
 export default function TimelineBlock({ block }: SectionComponentProps) {
   const heading = (block.heading as string) ?? undefined;
-  const steps = (block.steps as InvestorRole[] | null) ?? [];
+  // Coerce step label/description to plain text — build-safe if a field is
+  // switched to WYSIWYG (Portable Text) in Sanity.
+  const steps = ((block.steps as InvestorRole[] | null) ?? []).map((s) => ({
+    ...s,
+    label: plainText(s.label),
+    description: plainText(s.description),
+  }));
 
   if (!steps.length && !heading) return null;
 

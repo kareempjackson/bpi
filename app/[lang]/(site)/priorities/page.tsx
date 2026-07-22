@@ -292,7 +292,7 @@ export default async function PrioritiesPage({
       {showStats ? (
       <section
         data-nav-theme="light"
-        className="bg-error-500 px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-20 lg:py-24"
+        className="bg-error-500 px-6 md:px-10 lg:px-14 py-16 md:py-20 lg:py-24"
       >
         <div className="mx-auto w-full max-w-page">
           <Stagger className="max-w-xl">
@@ -337,7 +337,7 @@ export default async function PrioritiesPage({
       {/* ── Strategic priorities ───────────────────────────────────── */}
       <section
         data-nav-theme="light"
-        className="bg-error-25 px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-28"
+        className="bg-error-25 px-6 md:px-10 lg:px-14 py-16 md:py-24 lg:py-28"
       >
         <div className="mx-auto w-full max-w-page">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
@@ -397,7 +397,7 @@ export default async function PrioritiesPage({
       {newsFeature ? (
         <section
           data-nav-theme="light"
-          className="bg-error-25 px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-28"
+          className="bg-error-25 px-6 md:px-10 lg:px-14 py-16 md:py-24 lg:py-28"
         >
           <div className="mx-auto w-full max-w-page">
             {/* Header */}

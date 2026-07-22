@@ -1,6 +1,7 @@
 import CountUp from "@/app/components/CountUp";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
-import type { Stat } from "@/sanity/lib/types";
+import { plainText } from "@/app/lib/plainText";
+import type { PortableTextBlock, Stat } from "@/sanity/lib/types";
 
 import type { SectionComponentProps } from "./registry";
 
@@ -13,8 +14,13 @@ import type { SectionComponentProps } from "./registry";
  */
 export default function StatsBlock({ block }: SectionComponentProps) {
   const heading = (block.heading as string) ?? undefined;
-  const lead = (block.lead as string) ?? undefined;
-  const stats = (block.stats as Stat[] | null) ?? [];
+  const lead =
+    plainText(block.lead as PortableTextBlock[] | string | null) || undefined;
+  // Coerce stat descriptions to plain text — build-safe if switched to WYSIWYG.
+  const stats = ((block.stats as Stat[] | null) ?? []).map((s) => ({
+    ...s,
+    description: plainText(s.description),
+  }));
   const variant = block.variant === "bareColumns" ? "bareColumns" : "filledCards";
 
   if (!stats.length && !heading) return null;

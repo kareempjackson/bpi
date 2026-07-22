@@ -40,11 +40,11 @@ export default function ArchitectureOfCareSection({
   items = [],
   feature,
 }: Props) {
-  // Closed by default. A row opens only on a *deliberate* hover — the
-  // pointer must come to rest over it. Scroll-induced mouseenter events
-  // (the page moving under a stationary cursor) are ignored so the
+  // First row open by default. After that a row opens only on a *deliberate*
+  // hover — the pointer must come to rest over it. Scroll-induced mouseenter
+  // events (the page moving under a stationary cursor) are ignored so the
   // dropdowns don't flicker open while the user is scrolling past.
-  const [active, setActive] = useState<number | null>(null);
+  const [active, setActive] = useState<number | null>(0);
 
   const scrollingRef = useRef(false);
   const candidateRef = useRef<number | null>(null);

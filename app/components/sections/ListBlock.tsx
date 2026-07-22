@@ -1,5 +1,6 @@
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
-import type { InvestorRole } from "@/sanity/lib/types";
+import { plainText } from "@/app/lib/plainText";
+import type { InvestorRole, PortableTextBlock } from "@/sanity/lib/types";
 
 import type { SectionComponentProps } from "./registry";
 
@@ -15,8 +16,15 @@ type ListVariant = "ruledRows" | "stackedList" | "numberedList";
  */
 export default function ListBlock({ block }: SectionComponentProps) {
   const heading = (block.heading as string) ?? undefined;
-  const intro = (block.intro as string) ?? undefined;
-  const items = (block.items as InvestorRole[] | null) ?? [];
+  const intro =
+    plainText(block.intro as PortableTextBlock[] | string | null) || undefined;
+  // Coerce row label/description to plain text so a field switched to WYSIWYG
+  // in Sanity can't render a Portable Text object as a raw child (build crash).
+  const items = ((block.items as InvestorRole[] | null) ?? []).map((it) => ({
+    ...it,
+    label: plainText(it.label),
+    description: plainText(it.description),
+  }));
   const variant = (
     ["ruledRows", "stackedList", "numberedList"].includes(
       block.variant as string,

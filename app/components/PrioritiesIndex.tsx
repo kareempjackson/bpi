@@ -25,7 +25,9 @@ export default function PrioritiesIndex({
 }: {
   items: PriorityIndexItem[];
 }) {
-  const [active, setActive] = useState<number | null>(null);
+  // The first priority is open by default and is the resting state the index
+  // returns to when the pointer leaves.
+  const [active, setActive] = useState<number | null>(0);
   const reduce = useReducedMotion();
 
   // Softer spring opens the height; the copy settles a hair later so the
@@ -36,7 +38,7 @@ export default function PrioritiesIndex({
     : { ...SPRING.content, delay: 0.02 };
 
   return (
-    <ul className="flex flex-col" onMouseLeave={() => setActive(null)}>
+    <ul className="flex flex-col" onMouseLeave={() => setActive(0)}>
       {items.map((item, i) => {
         const num = String(i + 1).padStart(2, "0");
         const open = i === active && !!item.subtitle;

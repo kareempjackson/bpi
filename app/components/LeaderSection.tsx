@@ -2,6 +2,7 @@ import Image from "next/image";
 import LazyVideo from "./LazyVideo";
 import PortableTextBody from "./PortableTextBody";
 import { Reveal, Stagger, StaggerItem } from "./motion";
+import { plainText } from "@/app/lib/plainText";
 import type { PortableTextBlock } from "@/sanity/lib/types";
 
 type SocialKind = "Website" | "LinkedIn" | "X" | "Instagram" | "YouTube";
@@ -55,7 +56,7 @@ export default function LeaderSection({
       {/* Top: bold lead-in headline */}
       <Reveal className="mx-auto max-w-page mb-10 md:mb-16 lg:mb-20">
         <h2 className="lg:w-[88%] font-display text-display-xs md:text-display-sm lg:text-display-md font-bold text-primary-500 leading-[1.15] tracking-tight">
-          {body}
+          {plainText(body)}
         </h2>
       </Reveal>
 

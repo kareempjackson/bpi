@@ -1,7 +1,8 @@
 import Logo from "@/app/components/Logo";
 import PortableTextBody from "@/app/components/PortableTextBody";
 import { Stagger, StaggerItem } from "@/app/components/motion";
-import type { InvestorCard } from "@/sanity/lib/types";
+import { plainText } from "@/app/lib/plainText";
+import type { InvestorCard, PortableTextBlock } from "@/sanity/lib/types";
 
 import type { SectionComponentProps } from "./registry";
 
@@ -18,7 +19,8 @@ const COLS: Record<number, string> = {
  */
 export default function CardGridBlock({ block }: SectionComponentProps) {
   const heading = (block.heading as string) ?? undefined;
-  const intro = (block.intro as string) ?? undefined;
+  const intro =
+    plainText(block.intro as PortableTextBlock[] | string | null) || undefined;
   const cards = (block.cards as InvestorCard[] | null) ?? [];
   const columns = block.columns === 2 || block.columns === 4 ? block.columns : 3;
 

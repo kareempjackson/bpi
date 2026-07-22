@@ -3,6 +3,7 @@ import Image from "next/image";
 import CtaLink from "./CtaLink";
 import PortableTextBody from "./PortableTextBody";
 import { Reveal, Stagger, StaggerItem } from "./motion";
+import { plainText } from "@/app/lib/plainText";
 import type { PortableTextBlock } from "@/sanity/lib/types";
 
 type Props = {
@@ -104,7 +105,7 @@ export default function CareersSection({
             as="h3"
             className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-primary-500 leading-[1.15] tracking-[-0.01em]"
           >
-            {lead}
+            {plainText(lead)}
           </StaggerItem>
           <StaggerItem className="max-w-xl">
             <PortableTextBody

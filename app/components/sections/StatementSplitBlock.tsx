@@ -1,6 +1,7 @@
 import CtaLink from "@/app/components/CtaLink";
 import PortableTextBody from "@/app/components/PortableTextBody";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
+import { plainText } from "@/app/lib/plainText";
 import type { Cta, PortableTextBlock } from "@/sanity/lib/types";
 
 import type { SectionComponentProps } from "./registry";
@@ -14,7 +15,9 @@ export default function StatementSplitBlock({ block }: SectionComponentProps) {
   const eyebrow = (block.eyebrow as string) ?? undefined;
   const heading = (block.heading as string) ?? undefined;
   const body = (block.body as PortableTextBlock[] | null) ?? null;
-  const statement = (block.statement as string) ?? undefined;
+  const statement =
+    plainText(block.statement as PortableTextBlock[] | string | null) ||
+    undefined;
   const cta = (block.primaryCta as Cta) ?? null;
 
   if (!heading && !body?.length && !statement) return null;
