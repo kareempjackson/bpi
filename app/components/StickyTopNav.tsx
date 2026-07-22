@@ -567,7 +567,7 @@ export default function StickyTopNav({
                 })}
               </nav>
 
-              <SearchLauncher className="inline-flex" />
+              <SearchLauncher className="inline-flex" menuConfig={menuConfig} />
 
               <LanguageToggle className="inline-block" />
             </div>

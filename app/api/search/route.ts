@@ -15,6 +15,7 @@ export type SearchResult = {
   title: string | null;
   description: string | null;
   image: string | null;
+  video: string | null;
   date: string | null;
   href: string;
 };

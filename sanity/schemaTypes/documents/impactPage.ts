@@ -19,6 +19,7 @@ export const impactPage = defineType({
     { name: "why", title: "Why This Matters" },
     { name: "facility", title: "Facility image" },
     { name: "trajectory", title: "Trajectory" },
+    { name: "voices", title: "Voices from the Ground" },
   ],
   fields: [
     // ───────────────────────────────────────────────────────────────── SEO ──
@@ -118,6 +119,13 @@ export const impactPage = defineType({
       type: "imageWithAlt",
       group: "why",
     }),
+    defineField({
+      name: "whyImage",
+      title: "Section image",
+      description: "Sits under the heading in the left column.",
+      type: "imageWithAlt",
+      group: "why",
+    }),
 
     // ─────────────────────────────────────────────────────── Facility image ──
     defineField({
@@ -125,6 +133,44 @@ export const impactPage = defineType({
       title: "Full-bleed facility image",
       type: "imageWithAlt",
       group: "facility",
+    }),
+
+    // ─────────────────────────────────────────────── Voices from the Ground ──
+    defineField({
+      name: "voicesEyebrow",
+      title: "Eyebrow",
+      description: "e.g. “Barbados Pharmaceuticals Inc.”.",
+      type: "internationalizedArrayString",
+      group: "voices",
+    }),
+    defineField({
+      name: "voicesHeading",
+      title: "Heading — first line",
+      description: "e.g. “Voices from”.",
+      type: "internationalizedArrayString",
+      group: "voices",
+    }),
+    defineField({
+      name: "voicesHeadingTail",
+      title: "Heading — second line (indented)",
+      description: "e.g. “the Ground”.",
+      type: "internationalizedArrayString",
+      group: "voices",
+    }),
+    defineField({
+      name: "voicesQuotes",
+      title: "Quotes",
+      description: "Pull-quote cards. Each sits on its own colour block.",
+      type: "array",
+      group: "voices",
+      of: [defineArrayMember({ type: "investorQuote" })],
+    }),
+    defineField({
+      name: "voicesCta",
+      title: "Button",
+      description: "e.g. “Partner With BPI”.",
+      type: "cta",
+      group: "voices",
     }),
 
     // ────────────────────────────────────────────────────────── Trajectory ──
@@ -155,6 +201,13 @@ export const impactPage = defineType({
               title: "Highlight (present-day turning point)",
               type: "boolean",
               initialValue: false,
+            }),
+            defineField({
+              name: "media",
+              title: "Media (image or video)",
+              description:
+                "Shown on the right when this beat is selected. Accepts an image or a video.",
+              type: "imageWithAlt",
             }),
           ],
           preview: {

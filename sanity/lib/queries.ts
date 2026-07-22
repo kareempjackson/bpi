@@ -1348,14 +1348,28 @@ export const IMPACT_PAGE_QUERY = defineQuery(`
     "whyAttributionName": ${loc("whyAttributionName")},
     "whyAttributionDate": ${loc("whyAttributionDate")},
     whyPortrait${IMAGE_PROJECTION},
+    whyImage${IMAGE_PROJECTION},
 
     facilityImage${IMAGE_PROJECTION},
 
     trajectoryBlocks[]{
       "heading": ${loc("heading")},
       "body": ${loc("body")},
-      highlight
-    }
+      highlight,
+      media${IMAGE_PROJECTION}
+    },
+
+    "voicesEyebrow": ${loc("voicesEyebrow")},
+    "voicesHeading": ${loc("voicesHeading")},
+    "voicesHeadingTail": ${loc("voicesHeadingTail")},
+    voicesQuotes[]{
+      "quote": ${loc("quote")},
+      "name": ${loc("name")},
+      "title": ${loc("title")},
+      image${IMAGE_PROJECTION},
+      bg
+    },
+    voicesCta${CTA_PROJECTION}
   }
 `);
 
@@ -1525,7 +1539,8 @@ export const SEARCH_QUERY = defineQuery(`{
     "type": "post",
     "title": ${loc("title")},
     "description": ${loc("excerpt")},
-    "image": coverImage.asset->url,
+    "image": coverImage.asset.asset->url,
+    "video": coalesce(coverImage.externalVideoUrl, coverImage.video.asset->url),
     "date": publishedAt,
     "href": coalesce(externalLink, "/blog/" + slug.current)
   },
@@ -1538,7 +1553,8 @@ export const SEARCH_QUERY = defineQuery(`{
     "type": "initiative",
     "title": ${loc("title")},
     "description": coalesce(${loc("subtitle")}, ${loc("excerpt")}),
-    "image": coverImage.asset->url,
+    "image": coverImage.asset.asset->url,
+    "video": coalesce(coverImage.externalVideoUrl, coverImage.video.asset->url),
     "date": publishedAt,
     "href": select(
       defined(externalLink) => externalLink,
@@ -1554,7 +1570,8 @@ export const SEARCH_QUERY = defineQuery(`{
     "type": "event",
     "title": ${loc("title")},
     "description": ${loc("summary")},
-    "image": image.asset->url,
+    "image": image.asset.asset->url,
+    "video": coalesce(image.externalVideoUrl, image.video.asset->url),
     "date": startAt,
     "href": "/events/" + slug.current
   },
@@ -1568,6 +1585,7 @@ export const SEARCH_QUERY = defineQuery(`{
     "title": ${loc("title")},
     "description": coalesce(${loc("summary")}, ${loc("location")}),
     "image": null,
+    "video": null,
     "date": publishedAt,
     "href": "/careers/" + slug.current
   }

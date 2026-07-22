@@ -1,17 +1,32 @@
 import type { Metadata } from "next";
 
-import ConvergenceGraphic from "@/app/components/ConvergenceGraphic";
+import BlogSection, { type BlogSectionPost } from "@/app/components/BlogSection";
+import BuildingSection from "@/app/components/BuildingSection";
+import CareersSection from "@/app/components/CareersSection";
 import CtaLink from "@/app/components/CtaLink";
 import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
+import ImpactVoices, { type ImpactVoice } from "@/app/components/ImpactVoices";
 import MediaImage from "@/app/components/MediaImage";
 import PortableTextBody from "@/app/components/PortableTextBody";
 import SocialIcon from "@/app/components/SocialIcon";
+import TrajectoryShowcase from "@/app/components/TrajectoryShowcase";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import { localizedHref } from "@/app/lib/locale";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
 import { resolveMedia } from "@/sanity/lib/image";
-import { HOME_PAGE_QUERY, IMPACT_PAGE_QUERY } from "@/sanity/lib/queries";
-import type { HomePage, ImpactPage, SocialLink } from "@/sanity/lib/types";
+import {
+  HOME_PAGE_QUERY,
+  IMPACT_PAGE_QUERY,
+  LATEST_POSTS_QUERY,
+} from "@/sanity/lib/queries";
+import type {
+  BlogPost,
+  HomePage,
+  ImpactPage,
+  ResolvedMedia,
+  SanityImage,
+  SocialLink,
+} from "@/sanity/lib/types";
 
 export const revalidate = 3600;
 
@@ -58,6 +73,15 @@ const DEFAULT_SOCIALS: SocialLink[] = [
   { kind: "Instagram", href: "https://www.instagram.com/barbadospharmainc" },
 ];
 
+function mediaImageSrc(m: ResolvedMedia | null): string | undefined {
+  if (!m) return undefined;
+  return m.kind === "image" ? m.src : m.poster;
+}
+
+function mediaVideoSrc(m: ResolvedMedia | null): string | undefined {
+  return m?.kind === "video" ? m.src : undefined;
+}
+
 async function getImpactPage(lang: string): Promise<ImpactPage | null> {
   return loadQuery<ImpactPage | null>(IMPACT_PAGE_QUERY, {
     params: { lang },
@@ -93,9 +117,13 @@ export default async function ImpactPage({
   params: Promise<{ lang: string }>;
 }) {
   const { lang } = await params;
-  const [data, home] = await Promise.all([
+  const [data, home, latestPosts] = await Promise.all([
     getImpactPage(lang),
     getHomePage(lang),
+    loadQuery<BlogPost[] | null>(LATEST_POSTS_QUERY, {
+      params: { lang, limit: 3 },
+      tags: [TAG.post],
+    }),
   ]);
 
   // Photography: the impactPage upload first, then a Home photo so nothing
@@ -107,6 +135,12 @@ export default async function ImpactPage({
   const portrait = resolveMedia(data?.whyPortrait ?? home?.leaderQuoteImage, {
     width: 240,
   });
+  // Falls back to a Home photo so the slot renders for testing before an
+  // editor uploads the real shot in Studio → Impact page → Why This Matters.
+  const whyMedia = resolveMedia(
+    data?.whyImage ?? home?.buildingImage ?? home?.architectureFeature,
+    { width: 1000 },
+  );
   const wideMedia = resolveMedia(
     data?.facilityImage ?? home?.buildingImage ?? home?.architectureFeature,
     { width: 2000 },
@@ -132,6 +166,76 @@ export default async function ImpactPage({
     data?.trajectoryBlocks && data.trajectoryBlocks.length > 0
       ? data.trajectoryBlocks
       : TRAJECTORY_BLOCKS;
+
+  // Resolve each beat's media once, server-side. Beats with no upload fall
+  // back to a Home photo so the showcase renders while content is added.
+  const trajectoryFallback =
+    resolveMedia(home?.buildingImage, { width: 1200 }) ??
+    resolveMedia(home?.architectureFeature, { width: 1200 });
+  const trajectoryShowcase = trajectoryBlocks.map((block) => ({
+    heading: block.heading,
+    body: block.body,
+    highlight: block.highlight,
+    media:
+      resolveMedia((block as { media?: SanityImage | null }).media, {
+        width: 1200,
+      }) ?? trajectoryFallback,
+  }));
+
+  // Voices from the Ground. CMS quotes when present, otherwise placeholder
+  // cards so the section renders while content is gathered. Portraits resolve
+  // here so <ImpactVoices> stays presentational.
+  const voicesEyebrow =
+    data?.voicesEyebrow ?? "Barbados Pharmaceuticals Inc.";
+  const voicesHeading = data?.voicesHeading ?? "Voices from";
+  const voicesHeadingTail = data?.voicesHeadingTail ?? "the Ground";
+  const voicesCta = data?.voicesCta ?? {
+    label: "Partner With BPI",
+    href: "/contact",
+  };
+  const voicePortraitFallback = resolveMedia(
+    data?.whyPortrait ?? home?.leaderQuoteImage,
+    { width: 200 },
+  );
+  const voicesSource =
+    data?.voicesQuotes && data.voicesQuotes.length > 0
+      ? data.voicesQuotes
+      : Array.from({ length: 4 }, () => ({
+          quote:
+            "Your body keeps score even when your calendar is full. Invest in your health before you're forced to pay with your time.",
+          title: "Title of person",
+          name: "Name of person here",
+          image: null,
+          bg: null,
+        }));
+  const voices: ImpactVoice[] = voicesSource.map((q) => ({
+    quote: q.quote,
+    name: q.name,
+    title: q.title,
+    bg: q.bg,
+    portrait: resolveMedia(q.image, { width: 200 }) ?? voicePortraitFallback,
+  }));
+
+  // Latest from BPI + the Careers/closing-CTA tail — reuse the Home document's
+  // copy so the sections match the rest of the site.
+  const blogPosts: BlogSectionPost[] = (latestPosts ?? []).map((p) => {
+    const m = resolveMedia(p.coverImage, { width: 1200 });
+    return {
+      title: p.title,
+      excerpt: p.excerpt,
+      href: localizedHref(lang, p.externalLink ?? `/blog/${p.slug}`),
+      publishedAt: p.publishedAt,
+      imageSrc: mediaImageSrc(m),
+      videoSrc: mediaVideoSrc(m),
+      imageAlt: m?.alt,
+      tags: (p.tags ?? []).map((t) => t.title).slice(0, 2),
+      category: p.contentType
+        ? p.contentType[0].toUpperCase() + p.contentType.slice(1)
+        : undefined,
+    };
+  });
+  const careersMedia = resolveMedia(home?.careersImage, { width: 1200 });
+  const buildingMedia = resolveMedia(home?.buildingImage, { width: 1600 });
 
   return (
     <main className="relative bg-error-950 overflow-hidden">
@@ -190,7 +294,10 @@ export default async function ImpactPage({
                   <PortableTextBody
                     value={heroBody}
                     className="max-w-lg"
-                    paragraphClassName="text-base md:text-lg text-white/70 leading-relaxed"
+                    // Header body type per design spec: Albert Sans (via
+                    // --font-display) Light 300, 18px / 152% line-height, no
+                    // tracking, pure white.
+                    paragraphClassName="font-display text-[18px] font-light leading-[1.52] tracking-normal text-white"
                   />
                 </StaggerItem>
                 <StaggerItem>
@@ -302,6 +409,16 @@ export default async function ImpactPage({
             </div>
           </StaggerItem>
         </Stagger>
+
+        {/* Full-width section image beneath the narrative. */}
+        {whyMedia ? (
+          <Reveal
+            preset="scale"
+            className="relative mt-14 aspect-3/1 w-full overflow-hidden rounded-3xl bg-primary-500/5 md:mt-20 lg:mt-24"
+          >
+            <MediaImage media={whyMedia} sizes="100vw" />
+          </Reveal>
+        ) : null}
       </section>
 
       {/* Full-bleed facility image. */}
@@ -325,47 +442,66 @@ export default async function ImpactPage({
         data-nav-theme="light"
         className="bg-error-25 px-6 md:px-10 lg:px-14 pb-20 md:pb-28 lg:pb-32"
       >
-        <div className="grid grid-cols-1 items-stretch gap-10 lg:grid-cols-[1.6fr_1fr] lg:gap-16">
-          {/* Left — stacked narrative blocks. */}
-          <Stagger className="flex flex-col gap-8 lg:gap-10">
-            {trajectoryBlocks.map((block, i) => (
-              <StaggerItem
-                key={`${i}-${block.heading ?? ""}`}
-                className={
-                  block.highlight
-                    ? "rounded-2xl bg-error-50 px-6 py-6 md:px-8 md:py-8"
-                    : ""
-                }
-              >
-                {block.heading ? (
-                  <h3 className="font-display text-lg md:text-xl font-bold text-primary-500 leading-tight">
-                    {block.heading}
-                  </h3>
-                ) : null}
-                {block.body ? (
-                  <PortableTextBody
-                    value={block.body}
-                    className="mt-4"
-                    paragraphClassName="text-base md:text-lg text-primary-500/75 leading-relaxed"
-                  />
-                ) : null}
-              </StaggerItem>
-            ))}
-          </Stagger>
-
-          {/* Right — supply-lines converging on a single node. */}
-          <Reveal
-            preset="scale"
-            className="relative aspect-4/5 w-full overflow-hidden rounded-xl lg:aspect-auto lg:min-h-130"
-            style={{
-              background:
-                "linear-gradient(160deg, #1c257f 0%, #141b6a 55%, #0d1256 100%)",
-            }}
-          >
-            <ConvergenceGraphic />
-          </Reveal>
-        </div>
+        <TrajectoryShowcase blocks={trajectoryShowcase} />
       </section>
+
+      {/* Voices from the Ground — testimonial cards on a dark canvas. */}
+      <ImpactVoices
+        eyebrow={voicesEyebrow}
+        heading={voicesHeading}
+        headingTail={voicesHeadingTail}
+        quotes={voices}
+        cta={
+          voicesCta
+            ? {
+                label: voicesCta.label,
+                href: localizedHref(lang, voicesCta.href),
+              }
+            : null
+        }
+      />
+
+      {/* Latest from BPI — newest posts (hides itself when none). */}
+      <BlogSection
+        heading={home?.blogHeading ?? undefined}
+        viewAllHref={localizedHref(lang, "/blog")}
+        posts={blogPosts}
+      />
+
+      {/* Careers. */}
+      <CareersSection
+        tone="mint"
+        eyebrow={home?.careersEyebrow ?? undefined}
+        heading={home?.careersHeading ?? undefined}
+        lead={home?.careersLead ?? undefined}
+        body={home?.careersBody ?? undefined}
+        imageSrc={mediaImageSrc(careersMedia) ?? mediaImageSrc(buildingMedia)}
+        imageAlt={careersMedia?.alt ?? buildingMedia?.alt}
+        primaryLabel={home?.careersPrimaryCta?.label ?? undefined}
+        primaryHref={
+          home?.careersPrimaryCta?.href
+            ? localizedHref(lang, home.careersPrimaryCta.href)
+            : undefined
+        }
+        secondaryLabel={home?.careersSecondaryCta?.label ?? undefined}
+        secondaryHref={
+          home?.careersSecondaryCta?.href
+            ? localizedHref(lang, home.careersSecondaryCta.href)
+            : undefined
+        }
+      />
+
+      {/* Closing call to action. */}
+      <BuildingSection
+        imageSrc={mediaImageSrc(buildingMedia)}
+        imageAlt={buildingMedia?.alt}
+        headlineLine1={home?.buildingHeadlineLine1}
+        headlineLine2={home?.buildingHeadlineLine2}
+        primaryLabel={home?.buildingPrimaryCta?.label ?? undefined}
+        primaryHref={home?.buildingPrimaryCta?.href ?? undefined}
+        secondaryLabel={home?.buildingSecondaryCta?.label ?? undefined}
+        secondaryHref={home?.buildingSecondaryCta?.href ?? undefined}
+      />
     </main>
   );
 }

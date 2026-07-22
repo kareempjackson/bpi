@@ -9,8 +9,12 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { useRouter, useParams } from "next/navigation";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import Logo from "./Logo";
+import LanguageToggle from "./LanguageToggle";
+import HamburgerMenu from "./HamburgerMenu";
+import { EASE, DUR } from "./motion/tokens";
 import { localizedHref, toLocale } from "@/app/lib/locale";
 import type { SearchResult } from "@/app/api/search/route";
 
@@ -27,6 +31,10 @@ type Filter = "all" | GroupKey;
 type Props = {
   isOpen: boolean;
   onClose: () => void;
+  // Opens the site menu (hosted by the launcher) from the modal's menu button.
+  // When omitted, the menu button isn't rendered.
+  onOpenMenu?: () => void;
+  onMenuHover?: () => void;
 };
 
 // Order + labels for the grouped results. Keys match the API response, and the
@@ -118,7 +126,12 @@ function CategoryIcon({ name }: { name: Filter }) {
   }
 }
 
-export default function SearchModal({ isOpen, onClose }: Props) {
+export default function SearchModal({
+  isOpen,
+  onClose,
+  onOpenMenu,
+  onMenuHover,
+}: Props) {
   const router = useRouter();
   const params = useParams();
   const lang = toLocale(params?.lang as string | undefined);
@@ -128,14 +141,59 @@ export default function SearchModal({ isOpen, onClose }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [filter, setFilter] = useState<Filter>("all");
-  // Drives the enter/exit transition. Mount closed, then flip on the next frame
-  // so the open animation runs from the start (mirrors Menu).
-  const [entered, setEntered] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   // Tracks the latest request so a slow earlier response can't overwrite a
   // newer one (out-of-order responses while typing fast).
   const requestId = useRef(0);
+
+  // Honours the OS "reduce motion" setting — collapses the staged open into a
+  // plain fade (no clip unfurl, no rise).
+  const reduce = useReducedMotion();
+
+  // Sleek 3-beat open, memoised so typing (which re-renders) never recreates
+  // the variant objects — new identities can re-fire the entrance and flicker.
+  //   1. backdrop + mint surface fade in together
+  //   2. the search pill unfurls left→right from the magnifier icon
+  //   3. everything after the bar rises in as one cohesive group
+  // The whole overlay fades out as a single unit on close (seam-free exit).
+  const M = useMemo(() => {
+    const ease = EASE.premium;
+    const rmDur = 0.18;
+    return {
+      root: {
+        hidden: {},
+        visible: {},
+        exit: { opacity: 0, transition: { duration: 0.24, ease } },
+      },
+      fade: {
+        hidden: { opacity: 0 },
+        visible: { opacity: 1, transition: { duration: DUR.base, ease } },
+      },
+      bar: {
+        hidden: reduce
+          ? { opacity: 0 }
+          : { opacity: 0, clipPath: "inset(0 100% 0 0 round 9999px)" },
+        visible: {
+          opacity: 1,
+          clipPath: "inset(0 0% 0 0 round 9999px)",
+          transition: reduce
+            ? { duration: rmDur }
+            : { delay: 0.1, duration: 0.45, ease },
+        },
+      },
+      rise: {
+        hidden: reduce ? { opacity: 0 } : { opacity: 0, y: 8 },
+        visible: {
+          opacity: 1,
+          y: 0,
+          transition: reduce
+            ? { duration: rmDur }
+            : { delay: 0.3, duration: 0.4, ease },
+        },
+      },
+    };
+  }, [reduce]);
 
   const trimmed = query.trim();
 
@@ -166,29 +224,21 @@ export default function SearchModal({ isOpen, onClose }: Props) {
 
   const hasResults = visibleResults.length > 0;
 
-  // Run the enter/exit animation off `isOpen`. On open, flip `entered` after a
-  // double rAF so the transition starts from the closed state.
-  useEffect(() => {
-    if (isOpen) {
-      const raf = requestAnimationFrame(() =>
-        requestAnimationFrame(() => setEntered(true)),
-      );
-      return () => cancelAnimationFrame(raf);
-    }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setEntered(false);
-  }, [isOpen]);
-
-  // Lock body scroll + focus the input while open.
+  // Lock body scroll + focus the input while open. Focus lands ~when the bar
+  // finishes unfurling (immediate under reduced motion) so the caret arrives on
+  // the cinematic beat rather than before the pill has drawn.
   useEffect(() => {
     if (!isOpen) return;
     document.body.style.overflow = "hidden";
-    const id = window.setTimeout(() => inputRef.current?.focus(), 60);
+    const id = window.setTimeout(
+      () => inputRef.current?.focus(),
+      reduce ? 60 : 520,
+    );
     return () => {
       document.body.style.overflow = "";
       window.clearTimeout(id);
     };
-  }, [isOpen]);
+  }, [isOpen, reduce]);
 
   // Debounced live search. (Transient state resets on reopen because the
   // launcher remounts this component with a fresh key — no reset effect.)
@@ -275,108 +325,145 @@ export default function SearchModal({ isOpen, onClose }: Props) {
     f === "all" ? "Everything" : GROUPS.find((g) => g.key === f)!.label;
 
   return createPortal(
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Search the site"
-      onKeyDown={onKeyDown}
-      className={`fixed inset-0 z-60 flex transition-opacity duration-300 ease-[var(--ease-premium)] motion-reduce:transition-none ${
-        entered ? "opacity-100" : "pointer-events-none opacity-0"
-      }`}
-    >
-      {/* Dark backdrop — the page shows faintly behind the floating panel. */}
-      <button
-        type="button"
-        aria-label="Close search"
-        onClick={onClose}
-        tabIndex={-1}
-        className="absolute inset-0 cursor-default bg-error-950/70 backdrop-blur-md"
-      />
+    <AnimatePresence>
+      {isOpen ? (
+        <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Search the site"
+          onKeyDown={onKeyDown}
+          className="fixed inset-0 z-60 flex"
+          variants={M.root}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+        >
+          {/* Dark backdrop — the page shows faintly behind the floating panel. */}
+          <motion.button
+            type="button"
+            aria-label="Close search"
+            onClick={onClose}
+            tabIndex={-1}
+            className="absolute inset-0 cursor-default bg-error-950/70"
+            variants={M.fade}
+          />
 
-      {/* Floating mint panel. */}
-      <div
-        className={`absolute inset-2 flex flex-col overflow-hidden rounded-[28px] bg-error-25 shadow-[0_40px_120px_-30px_rgba(1,25,13,0.6)] transition-all duration-300 ease-[var(--ease-premium)] motion-reduce:transition-none sm:inset-4 md:inset-6 lg:rounded-[36px] ${
-          entered ? "translate-y-0 scale-100" : "translate-y-4 scale-[0.985]"
-        }`}
-      >
-        {/* Top bar — brand mark, search pill, close. */}
-        <div className="flex shrink-0 items-center gap-3 px-4 py-4 sm:gap-5 sm:px-7 sm:py-5">
-          <span className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-full bg-error-950 text-error-500 sm:flex">
-            <Logo iconOnly size={15} aria-label="BPI" />
-          </span>
-
-          <div className="flex min-w-0 flex-1 items-center gap-3 rounded-full bg-white px-5 py-3 shadow-[0_2px_20px_-8px_rgba(1,25,13,0.25)] ring-1 ring-error-950/[0.04] focus-within:ring-2 focus-within:ring-error-500/40">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.75"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-5 w-5 shrink-0 text-error-950/35"
+          {/* Panel clip region — kept transparent during the bar roll-out so the
+              white search pill reads as floating on the dark backdrop; the mint
+              surface fades in behind it a beat later. */}
+          <div className="absolute inset-2 flex flex-col overflow-hidden rounded-[28px] sm:inset-4 md:inset-6 lg:rounded-[36px]">
+            {/* Mint surface — fades in/out with the backdrop. */}
+            <motion.div
               aria-hidden
-            >
-              <circle cx="11" cy="11" r="7" />
-              <path d="m20 20-3.5-3.5" />
-            </svg>
-            <input
-              ref={inputRef}
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search"
-              aria-label="Search query"
-              autoComplete="off"
-              spellCheck={false}
-              className="w-full bg-transparent text-base font-light text-primary-500 placeholder:text-error-950/35 focus:outline-none sm:text-[17px]"
+              variants={M.fade}
+              className="absolute inset-0 bg-[#C1FFE0]"
             />
-            {query ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setQuery("");
-                  inputRef.current?.focus();
-                }}
-                aria-label="Clear search"
-                className="shrink-0 text-error-950/30 transition-colors hover:text-error-950/60"
+
+            {/* Top bar — brand mark, full-width search, language + menu. */}
+            <div className="relative z-10 flex shrink-0 items-center gap-3 px-4 py-3 sm:gap-5 sm:px-6 sm:py-3.5">
+              <motion.span
+                variants={M.rise}
+                className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full bg-error-950 text-error-500 sm:flex"
+              >
+                <Logo iconOnly size={15} aria-label="BPI" />
+              </motion.span>
+
+              {/* Search pill — rolls out via a left→right clip unfurl. */}
+              <motion.div
+                variants={M.bar}
+                className="flex min-w-0 flex-1 items-center gap-2.5 rounded-full border border-error-950/10 bg-white px-5 py-2.5 focus-within:border-error-500/50"
               >
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="1.6"
+                  strokeWidth="1.75"
                   strokeLinecap="round"
-                  className="h-4 w-4"
+                  strokeLinejoin="round"
+                  className="h-4 w-4 shrink-0 text-error-950/35"
                   aria-hidden
                 >
-                  <path d="M6 6l12 12M18 6L6 18" />
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="m20 20-3.5-3.5" />
                 </svg>
-              </button>
-            ) : null}
-          </div>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search"
+                  aria-label="Search query"
+                  autoComplete="off"
+                  spellCheck={false}
+                  className="w-full bg-transparent text-sm font-light text-primary-500 placeholder:text-error-950/35 focus:outline-none sm:text-[15px]"
+                />
+                {query ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuery("");
+                      inputRef.current?.focus();
+                    }}
+                    aria-label="Clear search"
+                    className="shrink-0 text-error-950/30 transition-colors hover:text-error-950/60"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      className="h-4 w-4"
+                      aria-hidden
+                    >
+                      <path d="M6 6l12 12M18 6L6 18" />
+                    </svg>
+                  </button>
+                ) : null}
+              </motion.div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close search"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-error-950/55 transition-colors hover:bg-error-950/[0.06] hover:text-error-950"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              className="h-5 w-5"
-              aria-hidden
-            >
-              <path d="M6 6l12 12M18 6L6 18" />
-            </svg>
-          </button>
-        </div>
+              {/* Language + menu — the same chrome as the site header. */}
+              <motion.div
+                variants={M.rise}
+                className="ml-auto flex shrink-0 items-center gap-2 text-error-950 sm:gap-3"
+              >
+                <LanguageToggle className="inline-block" />
+                {onOpenMenu ? (
+                  <HamburgerMenu
+                    size={120}
+                    aria-label="Open menu"
+                    onClick={onOpenMenu}
+                    onMouseEnter={onMenuHover}
+                    onFocus={onMenuHover}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    aria-label="Close search"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-error-950/55 transition-colors hover:bg-error-950/[0.06] hover:text-error-950"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      className="h-5 w-5"
+                      aria-hidden
+                    >
+                      <path d="M6 6l12 12M18 6L6 18" />
+                    </svg>
+                  </button>
+                )}
+              </motion.div>
+            </div>
 
-        {/* Body — sidebar + results. */}
-        <div className="flex min-h-0 flex-1 flex-col gap-2 px-3 pb-3 sm:gap-4 sm:px-6 sm:pb-6 md:flex-row">
+        {/* Body — sidebar + results. Rises in as one cohesive group. */}
+        <motion.div
+          variants={M.rise}
+          className="relative z-10 flex min-h-0 flex-1 flex-col gap-2 px-3 pb-3 sm:gap-4 sm:px-6 sm:pb-6 md:flex-row"
+        >
           {/* Category sidebar / mobile filter chips. */}
           <nav
             aria-label="Filter results"
@@ -392,7 +479,7 @@ export default function SearchModal({ isOpen, onClose }: Props) {
                   onClick={() => selectFilter(f)}
                   className={`group flex shrink-0 items-center gap-2.5 rounded-full px-4 py-2.5 text-left text-sm font-medium transition-colors md:rounded-2xl ${
                     active
-                      ? "bg-white text-primary-500 shadow-[0_2px_16px_-6px_rgba(1,25,13,0.25)]"
+                      ? "bg-white text-primary-500"
                       : "text-error-950/60 hover:bg-white/50 hover:text-error-950"
                   }`}
                 >
@@ -469,33 +556,41 @@ export default function SearchModal({ isOpen, onClose }: Props) {
                 )}
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 2xl:grid-cols-3">
                   {visibleResults.map((item, idx) => {
-                    const active = idx === activeIndex;
                     const img = thumb(item.image);
                     const date = fmtDate(item.date);
+                    // Show the poster/still if there is one; otherwise fall
+                    // back to a muted, looping preview of the video.
+                    const showVideo = !img && !!item.video;
                     return (
                       <button
                         key={item._id}
                         type="button"
                         onClick={() => go(item.href)}
                         onMouseEnter={() => setActiveIndex(idx)}
-                        className={`group flex flex-col overflow-hidden rounded-2xl bg-white text-left transition-all duration-200 ease-[var(--ease-premium)] motion-reduce:transition-none ${
-                          active
-                            ? "-translate-y-0.5 shadow-[0_20px_40px_-18px_rgba(1,25,13,0.4)] ring-2 ring-error-500"
-                            : "shadow-[0_2px_16px_-10px_rgba(1,25,13,0.3)] ring-1 ring-error-950/[0.04] hover:-translate-y-0.5 hover:shadow-[0_18px_38px_-20px_rgba(1,25,13,0.35)]"
-                        }`}
+                        className="group flex flex-col overflow-hidden rounded-2xl bg-white text-left"
                       >
                         {/* Thumbnail. */}
-                        <div className="relative aspect-[16/10] w-full overflow-hidden bg-error-100">
+                        <div className="relative aspect-16/10 w-full overflow-hidden bg-error-100">
                           {img ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={img}
                               alt=""
                               loading="lazy"
-                              className="h-full w-full object-cover transition-transform duration-500 ease-[var(--ease-premium)] group-hover:scale-[1.04] motion-reduce:transform-none"
+                              className="h-full w-full object-cover"
+                            />
+                          ) : showVideo ? (
+                            <video
+                              src={item.video ?? undefined}
+                              muted
+                              loop
+                              playsInline
+                              autoPlay
+                              preload="metadata"
+                              className="h-full w-full object-cover"
                             />
                           ) : (
-                            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-error-200 to-error-500/40 text-error-900/60">
+                            <div className="flex h-full w-full items-center justify-center bg-error-100 text-error-900/50">
                               <CategoryIcon
                                 name={
                                   (GROUPS.find(
@@ -506,7 +601,7 @@ export default function SearchModal({ isOpen, onClose }: Props) {
                               />
                             </div>
                           )}
-                          <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-error-950/60 backdrop-blur-sm">
+                          <span className="absolute left-3 top-3 rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-error-950/60">
                             {TYPE_LABEL[item.type]}
                           </span>
                         </div>
@@ -534,9 +629,11 @@ export default function SearchModal({ isOpen, onClose }: Props) {
               </>
             )}
           </div>
-        </div>
-      </div>
-    </div>,
+        </motion.div>
+          </div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>,
     document.body,
   );
 }

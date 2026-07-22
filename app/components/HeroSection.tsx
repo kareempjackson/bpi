@@ -631,7 +631,10 @@ export default function HeroSection({
                   className="hero-anim-fade"
                   style={{ "--anim-delay": "0.48s" } as CSSProperties}
                 >
-                  <SearchLauncher className="inline-flex [&_svg]:w-3.75 [&_svg]:h-3.75" />
+                  <SearchLauncher
+                    className="inline-flex [&_svg]:w-3.75 [&_svg]:h-3.75"
+                    menuConfig={menuConfig}
+                  />
                 </div>
                 <div
                   className="hero-anim-fade"

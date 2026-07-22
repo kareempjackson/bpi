@@ -1083,6 +1083,7 @@ export type ImpactPage = {
   whyAttributionName?: string | null;
   whyAttributionDate?: string | null;
   whyPortrait?: SanityImage | null;
+  whyImage?: SanityImage | null;
 
   facilityImage?: SanityImage | null;
 
@@ -1091,8 +1092,15 @@ export type ImpactPage = {
         heading?: string | null;
         body?: PortableTextBlock[] | string | null;
         highlight?: boolean | null;
+        media?: SanityImage | null;
       }[]
     | null;
+
+  voicesEyebrow?: string | null;
+  voicesHeading?: string | null;
+  voicesHeadingTail?: string | null;
+  voicesQuotes?: InvestorQuote[] | null;
+  voicesCta?: Cta;
 };
 
 export type AboutPage = {
