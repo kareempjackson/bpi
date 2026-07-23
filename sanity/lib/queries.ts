@@ -967,6 +967,7 @@ export const PRIORITY_BY_SLUG_QUERY = defineQuery(`
 
     showPractice,
     "practiceEyebrow": ${loc("practiceEyebrow")},
+    "practiceStatement": ${loc("practiceStatement")},
     "practiceStatementLead": ${loc("practiceStatementLead")},
     "practiceStatementHighlight": ${loc("practiceStatementHighlight")},
     "practiceStatementTrail": ${loc("practiceStatementTrail")},
@@ -998,6 +999,14 @@ export const PRIORITY_BY_SLUG_QUERY = defineQuery(`
     motionImage${IMAGE_PROJECTION},
     motionItems[]{
       "title": ${loc("title")},
+      "body": ${loc("body")}
+    },
+
+    showIncentives,
+    incentivesImage${IMAGE_PROJECTION},
+    "incentivesHeading": ${loc("incentivesHeading")},
+    "incentivesLead": ${loc("incentivesLead")},
+    incentivesItems[]{
       "body": ${loc("body")}
     },
 

@@ -865,6 +865,7 @@ export type PriorityDetail = PrioritySummary & {
 
   showPractice?: boolean | null;
   practiceEyebrow?: string | null;
+  practiceStatement?: PortableTextBlock[] | string | null;
   practiceStatementLead?: string | null;
   practiceStatementHighlight?: string | null;
   practiceStatementTrail?: string | null;
@@ -897,6 +898,12 @@ export type PriorityDetail = PrioritySummary & {
   motionCta?: Cta;
   motionImage?: SanityImage | null;
   motionItems?: { title?: string | null; body?: string | null }[] | null;
+
+  showIncentives?: boolean | null;
+  incentivesImage?: SanityImage | null;
+  incentivesHeading?: string | null;
+  incentivesLead?: PortableTextBlock[] | string | null;
+  incentivesItems?: InvestorNote[] | null;
 
   pageSections?: PageSection[] | null;
 };

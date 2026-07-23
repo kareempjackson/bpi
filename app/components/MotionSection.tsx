@@ -30,6 +30,13 @@ type Props = {
   ctaHref?: string;
   /** Optional image for the right column; when set it replaces the graphic. */
   media?: ResolvedMedia | null;
+  /** Override the heading's typographic classes (font/size/weight/etc.). */
+  headingClassName?: string;
+  /** Override each initiative title's typographic classes. When set, the
+   *  active/inactive colour switch is dropped in favour of a fixed colour. */
+  itemTitleClassName?: string;
+  /** Override each initiative body paragraph's typographic classes. */
+  itemBodyClassName?: string;
 };
 
 /** How long each initiative stays active before advancing, in ms. */
@@ -50,6 +57,9 @@ export default function MotionSection({
   ctaLabel,
   ctaHref,
   media,
+  headingClassName = "font-display text-3xl md:text-4xl lg:text-5xl font-bold text-(--fg) leading-tight tracking-[-0.02em]",
+  itemTitleClassName,
+  itemBodyClassName,
 }: Props) {
   // Foreground for text outside the (always-white) active card: navy on the
   // light canvas, white on the dark canvas.
@@ -87,7 +97,7 @@ export default function MotionSection({
     <section
       data-nav-theme={tone === "dark" ? "dark" : "light"}
       style={{ backgroundColor: bg, "--ink": ink, "--fg": fg } as CSSProperties}
-      className={`px-6 md:px-12 lg:px-20 xl:px-28 ${
+      className={`px-6 md:px-10 lg:px-14 ${
         tone === "dark"
           ? "py-16 md:py-24 lg:py-28"
           : "pb-16 md:pb-24 lg:pb-28"
@@ -97,10 +107,7 @@ export default function MotionSection({
         {heading || ctaLabel ? (
           <Stagger className="flex items-start justify-between gap-4">
             {heading ? (
-              <StaggerItem
-                as="h2"
-                className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-(--fg) leading-tight tracking-[-0.02em]"
-              >
+              <StaggerItem as="h2" className={headingClassName}>
                 {heading}
               </StaggerItem>
             ) : (
@@ -145,9 +152,12 @@ export default function MotionSection({
                   >
                     <div className="flex items-start justify-between gap-4">
                       <h3
-                        className={`font-display text-base md:text-lg font-bold leading-snug tracking-[-0.01em] ${
-                          isActive ? "text-(--ink)" : "text-(--fg)"
-                        }`}
+                        className={
+                          itemTitleClassName ??
+                          `font-display text-base md:text-lg font-bold leading-snug tracking-[-0.01em] ${
+                            isActive ? "text-(--ink)" : "text-(--fg)"
+                          }`
+                        }
                       >
                         {item.title}
                       </h3>
@@ -170,9 +180,12 @@ export default function MotionSection({
                       value={item.body}
                       compact
                       className="mt-2"
-                      paragraphClassName={`text-sm leading-relaxed ${
-                        isActive ? "text-(--ink)/65" : "text-(--fg)/55"
-                      }`}
+                      paragraphClassName={
+                        itemBodyClassName ??
+                        `text-sm leading-relaxed ${
+                          isActive ? "text-(--ink)/65" : "text-(--fg)/55"
+                        }`
+                      }
                     />
                   </button>
                 </StaggerItem>

@@ -36,6 +36,10 @@ const INTRO_PARAGRAPH_CLASS =
 
 export const revalidate = 3600;
 
+// Barbados observes AST (UTC−4) all year (no DST). Used to compute the local
+// date without a named IANA zone — see the note where `todayISO` is derived.
+const BARBADOS_UTC_OFFSET_MS = 4 * 60 * 60 * 1000;
+
 // Fallback copy — used until the eventsPage singleton is populated. Kept in one
 // place so the page reads cleanly and Studio edits override each field.
 const COPY = {
@@ -130,12 +134,15 @@ export default async function EventsPage({
   const careersMedia = resolveMedia(home?.careersImage, { width: 1200 });
   const buildingMedia = resolveMedia(home?.buildingImage, { width: 1600 });
 
-  // Split boundary for the engagement sections. Computed in the venue-neutral
-  // "en-CA" locale so it comes out as an ISO "YYYY-MM-DD" that sorts against
-  // each engagement's `date` string.
-  const todayISO = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Barbados",
-  }).format(new Date());
+  // Split boundary for the engagement sections — an ISO "YYYY-MM-DD" that sorts
+  // against each engagement's `date` string. Barbados is AST (UTC−4) year-round
+  // with no DST, so we derive "today there" by shifting UTC by a fixed offset
+  // rather than passing a named zone to Intl.DateTimeFormat: some deploy
+  // runtimes ship only minimal ICU data and throw `RangeError: Invalid time
+  // zone specified: America/Barbados`, which previously white-screened this page.
+  const todayISO = new Date(Date.now() - BARBADOS_UTC_OFFSET_MS)
+    .toISOString()
+    .slice(0, 10);
 
   // Featured = the event flagged `featured`, else the soonest. The rest fill
   // the grid. Falls back to the placeholder demo when there are no events yet.

@@ -1,3 +1,4 @@
+import { HighlightIcon } from "@sanity/icons";
 import { defineField } from "sanity";
 
 /**
@@ -37,6 +38,10 @@ export const portableText = defineField({
           { title: "Bold", value: "strong" },
           { title: "Italic", value: "em" },
           { title: "Underline", value: "underline" },
+          // Blue emphasis — renders as the brand accent colour in
+          // <PortableTextBody>. Used e.g. for the highlighted phrase in a
+          // priority's "In practice" statement.
+          { title: "Accent (blue)", value: "accent", icon: HighlightIcon },
         ],
         annotations: [
           {

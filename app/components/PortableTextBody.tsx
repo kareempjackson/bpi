@@ -53,6 +53,9 @@ const marks: PortableTextComponents["marks"] = {
   ),
   em: ({ children }) => <em className="italic">{children}</em>,
   underline: ({ children }) => <span className="underline">{children}</span>,
+  accent: ({ children }) => (
+    <span className="text-[#2563eb]">{children}</span>
+  ),
   link: ({ children, value }) => {
     const href = (value as { href?: string } | undefined)?.href ?? "#";
     const external = /^https?:/i.test(href);

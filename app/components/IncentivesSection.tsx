@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 import MediaImage from "@/app/components/MediaImage";
 import PortableTextBody from "@/app/components/PortableTextBody";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
@@ -8,30 +10,43 @@ import type {
 } from "@/sanity/lib/types";
 
 /**
- * "Investment Incentives" — a wide image, then the heading over a grey lead,
- * closing on a three-across grid of incentive paragraphs.
+ * "Investment Incentives" — a wide image (or video), then the heading over a
+ * grey lead, closing on a three-across grid of incentive paragraphs.
+ *
+ * Shared by the Investors page and any Priority that opts the section in. Pass
+ * `bg`/`ink` to sit the block on a coloured canvas (priorities do this so the
+ * navy text stays legible over the page's own background).
  */
-export default function InvestorsIncentives({
+export default function IncentivesSection({
   media,
   heading,
   lead,
   items,
+  bg,
+  ink = "#0B2F64",
 }: {
   media: ResolvedMedia | null;
   heading?: string | null;
   lead?: PortableTextBlock[] | string | null;
   items?: InvestorNote[] | null;
+  /** Optional section canvas colour. When unset the section is transparent. */
+  bg?: string;
+  /** Ink colour for the heading/lead/items. Defaults to the brand navy. */
+  ink?: string;
 }) {
   return (
     <section
       data-nav-theme="light"
-      className="px-6 md:px-10 lg:px-14 pb-16 md:pb-24 lg:pb-28"
+      style={{ backgroundColor: bg, "--ink": ink } as CSSProperties}
+      className={`px-6 md:px-10 lg:px-14 ${
+        bg ? "py-16 md:py-24 lg:py-28" : "pb-16 md:pb-24 lg:pb-28"
+      }`}
     >
       <div className="mx-auto w-full max-w-page">
         {media ? (
           <Reveal
             preset="scale"
-            className="relative w-full aspect-4/3 sm:aspect-video lg:aspect-21/9 overflow-hidden rounded-2xl bg-primary-500/5"
+            className="relative w-full aspect-4/3 sm:aspect-video lg:aspect-21/9 overflow-hidden rounded-2xl bg-(--ink)/5"
           >
             <MediaImage media={media} sizes="100vw" />
           </Reveal>
@@ -41,7 +56,7 @@ export default function InvestorsIncentives({
           {heading ? (
             <StaggerItem
               as="h2"
-              className="font-display text-2xl md:text-3xl font-bold text-primary-500 leading-tight tracking-[-0.02em]"
+              className="font-display text-2xl md:text-3xl font-bold text-(--ink) leading-tight tracking-[-0.02em]"
             >
               {heading}
             </StaggerItem>
@@ -50,7 +65,7 @@ export default function InvestorsIncentives({
             <StaggerItem className="max-w-xl">
               <PortableTextBody
                 value={lead}
-                paragraphClassName="font-display text-xl md:text-2xl lg:text-3xl text-primary-500/40 leading-[1.35] tracking-[-0.01em]"
+                paragraphClassName="font-display text-xl md:text-2xl lg:text-3xl text-(--ink)/40 leading-[1.35] tracking-[-0.01em]"
               />
             </StaggerItem>
           ) : null}
@@ -63,7 +78,7 @@ export default function InvestorsIncentives({
                 <PortableTextBody
                   value={item.body}
                   compact
-                  paragraphClassName="font-display text-[18px] font-light leading-[1.5] tracking-normal text-primary-500/70"
+                  paragraphClassName="font-display text-[18px] font-light leading-[1.5] tracking-normal text-(--ink)/70"
                 />
               </StaggerItem>
             ))}

@@ -25,7 +25,7 @@ import InvestorsClimate from "./InvestorsClimate";
 import InvestorsGoDeeper from "./InvestorsGoDeeper";
 import InvestorsHeader from "./InvestorsHeader";
 import InvestorsHowItWorks from "./InvestorsHowItWorks";
-import InvestorsIncentives from "./InvestorsIncentives";
+import IncentivesSection from "@/app/components/IncentivesSection";
 import InvestorsMarketAccess from "./InvestorsMarketAccess";
 import InvestorsOpportunity from "./InvestorsOpportunity";
 import InvestorsSites from "./InvestorsSites";
@@ -182,7 +182,7 @@ export default async function InvestorsPage({
       />
 
       {/* ── Investment incentives ──────────────────────────────────── */}
-      <InvestorsIncentives
+      <IncentivesSection
         media={resolveMedia(data?.incentivesImage, { width: 2000 })}
         heading={data?.incentivesHeading}
         lead={data?.incentivesLead}

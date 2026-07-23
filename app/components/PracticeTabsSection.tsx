@@ -79,7 +79,7 @@ export default function PracticeTabsSection({
     <section
       data-nav-theme="light"
       style={{ backgroundColor: bg, "--ink": ink } as CSSProperties}
-      className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-28"
+      className="px-6 md:px-10 lg:px-14 py-16 md:py-24 lg:py-28"
     >
       <div className="mx-auto grid max-w-page grid-cols-1 items-start gap-10 lg:grid-cols-[0.62fr_1.38fr] lg:gap-16">
         {/* Left — heading. */}

@@ -34,7 +34,22 @@ export function formatEventDate(
 ): string {
   const date = new Date(startAt);
   if (Number.isNaN(date.getTime())) return "";
-  const tz = timezone || undefined;
+  // Default to Barbados (AST, UTC−4, no DST) — the initial value on every event.
+  const tz = timezone || "America/Barbados";
+  try {
+    return formatInZone(date, tz);
+  } catch {
+    // Some deploy runtimes ship only minimal ICU data and throw
+    // `RangeError: Invalid time zone` on named IANA zones. Fall back to a fixed
+    // −4h shift formatted in UTC (always supported) so the card still renders a
+    // sensible Barbados time instead of crashing the whole page.
+    const shifted = new Date(date.getTime() - 4 * 60 * 60 * 1000);
+    return formatInZone(shifted, "UTC");
+  }
+}
+
+/** Format an instant as "THU, JUN 18 • 9:00 AM" in the given IANA zone. */
+function formatInZone(date: Date, tz: string): string {
   const day = new Intl.DateTimeFormat("en-US", {
     weekday: "short",
     month: "short",

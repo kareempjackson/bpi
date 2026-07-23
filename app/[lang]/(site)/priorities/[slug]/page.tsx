@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 
+import BuildingSection from "@/app/components/BuildingSection";
+import CareersSection from "@/app/components/CareersSection";
 import CtaLink from "@/app/components/CtaLink";
 import GridHoverBackdrop from "@/app/components/GridHoverBackdrop";
+import IncentivesSection from "@/app/components/IncentivesSection";
 import MediaImage from "@/app/components/MediaImage";
 import MotionSection from "@/app/components/MotionSection";
 import PortableTextBody from "@/app/components/PortableTextBody";
@@ -21,7 +24,23 @@ import {
   HOME_PAGE_QUERY,
   PRIORITY_BY_SLUG_QUERY,
 } from "@/sanity/lib/queries";
-import type { HomePage, PriorityDetail, SocialLink } from "@/sanity/lib/types";
+import type {
+  HomePage,
+  PriorityDetail,
+  ResolvedMedia,
+  SocialLink,
+} from "@/sanity/lib/types";
+
+/** Poster/still for a resolved media object (image src, or a video's poster). */
+function mediaImageSrc(m: ResolvedMedia | null): string | undefined {
+  if (!m) return undefined;
+  return m.kind === "image" ? m.src : m.poster;
+}
+
+/** Video src for a resolved media object (undefined for images). */
+function mediaVideoSrc(m: ResolvedMedia | null): string | undefined {
+  return m?.kind === "video" ? m.src : undefined;
+}
 
 // Attribution socials fall back to these when the Home leader has none set.
 const DEFAULT_SOCIALS: SocialLink[] = [
@@ -159,9 +178,16 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
   // so it never depends on a stale one-off upload.
   const practicePrimaryCta = priority.practicePrimaryCta;
   const practiceSecondaryCta = priority.practiceSecondaryCta;
+  // The single rich-text statement supersedes the legacy lead/highlight/trail/
+  // body fields. When it's set we render only it; otherwise we fall back to the
+  // legacy composition so un-migrated priorities still show.
+  const hasPracticeStatement = Array.isArray(priority.practiceStatement)
+    ? priority.practiceStatement.length > 0
+    : !!priority.practiceStatement;
   const showPractice =
     !!priority.showPractice &&
     !!(
+      hasPracticeStatement ||
       priority.practiceStatementLead ||
       priority.practiceStatementHighlight ||
       priority.practiceBody
@@ -171,6 +197,18 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
       homeData?.architectureFeature ??
       homeData?.whyImage,
     { width: 2000 },
+  );
+
+  // Closers reuse the Home document's Careers + call-to-action copy/photos so
+  // the page ends the same way the home page does.
+  const careersMedia = resolveMedia(homeData?.careersImage, { width: 1600 });
+  const buildingMedia = resolveMedia(homeData?.buildingImage, { width: 1600 });
+
+  // The Careers + CTA closers below are now the single source of those
+  // sections, so drop any legacy careers/cta blocks from the modular zone to
+  // avoid rendering them twice. Any other modular blocks still render.
+  const modularBlocks = (priority.pageSections ?? []).filter(
+    (b) => b._type !== "careersSection" && b._type !== "ctaSection",
   );
 
   // "Practice detail" — heading + square image on the left, body paragraphs
@@ -213,6 +251,24 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
     { width: 1200 },
   );
 
+  // "Investment incentives" — a wide image/video, a heading over a grey lead,
+  // then a three-across grid of incentive paragraphs. Reuses the Investors
+  // page's block; can be switched on per priority.
+  const incentivesItems = (priority.incentivesItems ?? []).filter(
+    (n) => n.body,
+  );
+  const showIncentives =
+    !!priority.showIncentives &&
+    !!(
+      priority.incentivesHeading ||
+      priority.incentivesLead ||
+      priority.incentivesImage ||
+      incentivesItems.length > 0
+    );
+  const incentivesMedia = resolveMedia(priority.incentivesImage, {
+    width: 2000,
+  });
+
   return (
     <main className="relative overflow-hidden" style={{ backgroundColor: pageColor }}>
       {/* Recolour the shared footer to this page: navy background, and a blue
@@ -229,12 +285,12 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
         className={
           isFullBleedHero
             ? "relative overflow-hidden"
-            : `relative overflow-hidden pb-10 md:pb-12 lg:pb-14 ${
+            : // Nav-aligned gutters (match StickyTopNav's px) shared by both
+              // header variants; only the min-height differs.
+              `relative overflow-hidden pb-10 md:pb-12 lg:pb-14 px-6 md:px-10 lg:px-14 ${
                 isImageCardHero
-                  ? // Nav-aligned gutters (match StickyTopNav's px) + full-height
-                    // so the header covers the viewport.
-                    "px-6 md:px-10 lg:px-14 lg:min-h-svh"
-                  : "px-6 md:px-12 lg:px-20 xl:px-28 lg:min-h-[calc(100svh-5rem)]"
+                  ? "lg:min-h-svh"
+                  : "lg:min-h-[calc(100svh-5rem)]"
               }${isFeatureSplitHero ? " lg:flex lg:flex-col" : ""}`
         }
       >
@@ -247,7 +303,7 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
                 or the feature statement (eyebrow + italic-accented statement),
                 then a full-bleed image flush to the bottom of the navy band. */}
             {isCoverHero ? (
-              <div className="relative mx-auto max-w-page px-6 md:px-12 lg:px-20 xl:px-28 pt-24 md:pt-28 lg:pt-28 pb-10 md:pb-14 lg:pb-16">
+              <div className="relative mx-auto max-w-page px-6 md:px-10 lg:px-14 pt-24 md:pt-28 lg:pt-28 pb-10 md:pb-14 lg:pb-16">
                 <Stagger className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-12">
                   <StaggerItem
                     as="h1"
@@ -266,7 +322,7 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
                 </Stagger>
               </div>
             ) : (
-              <div className="relative mx-auto max-w-page px-6 md:px-12 lg:px-20 xl:px-28 pt-24 md:pt-28 lg:pt-28 pb-10 md:pb-14 lg:pb-16">
+              <div className="relative mx-auto max-w-page px-6 md:px-10 lg:px-14 pt-24 md:pt-28 lg:pt-28 pb-10 md:pb-14 lg:pb-16">
                 <Stagger className="mx-auto max-w-4xl">
                   <StaggerItem
                     as="p"
@@ -474,7 +530,7 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
       {showOverview ? (
         <section
           data-nav-theme="light"
-          className="bg-error-25 px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-28"
+          className="bg-error-25 px-6 md:px-10 lg:px-14 py-16 md:py-24 lg:py-28"
         >
           <Stagger className="mx-auto grid max-w-page grid-cols-1 gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
             {priority.overviewHeading ? (
@@ -506,7 +562,7 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
       {showPoints ? (
         <section
           data-nav-theme="light"
-          className="bg-error-25 px-6 md:px-12 lg:px-20 xl:px-28 pb-16 md:pb-24 lg:pb-28"
+          className="bg-error-25 px-6 md:px-10 lg:px-14 pb-16 md:pb-24 lg:pb-28"
         >
           <div className="mx-auto max-w-page">
             {priority.pointsHeading ? (
@@ -545,7 +601,7 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
       {showStats ? (
         <section
           data-nav-theme="light"
-          className="bg-error-500 px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-28"
+          className="bg-error-500 px-6 md:px-10 lg:px-14 py-16 md:py-24 lg:py-28"
         >
           <div className="mx-auto w-full max-w-page">
             {priority.statsHeading ? (
@@ -585,7 +641,7 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
         <section
           data-nav-theme="light"
           style={{ backgroundColor: sectionBg, "--ink": pageColor } as CSSProperties}
-          className="px-6 md:px-12 lg:px-20 xl:px-28 py-16 md:py-24 lg:py-28"
+          className="px-6 md:px-10 lg:px-14 py-16 md:py-24 lg:py-28"
         >
           <div className="mx-auto max-w-page">
             <Stagger className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-12">
@@ -593,7 +649,7 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
               {priority.practiceEyebrow ? (
                 <StaggerItem
                   as="p"
-                  className="text-sm font-semibold uppercase tracking-[0.12em] text-(--ink)/60 lg:col-span-3 lg:pt-3"
+                  className="font-display text-lg font-semibold tracking-normal leading-[19.2px] text-(--ink)/60 lg:col-span-3 lg:pt-3"
                 >
                   {priority.practiceEyebrow}
                 </StaggerItem>
@@ -601,52 +657,58 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
                 <StaggerItem as="span" className="hidden lg:col-span-3 lg:block" />
               )}
 
-              {/* Statement + body + CTAs — right column. The statement's first
-                  line is indented on desktop so it steps in past the eyebrow. */}
+              {/* Statement + body + CTAs — right column. Both the statement and
+                  the body are rich-text (WYSIWYG) fields; the statement falls
+                  back to the legacy lead/highlight/trail fields when empty. */}
               <StaggerItem className="flex flex-col gap-10 md:gap-14 lg:col-span-9 lg:gap-20">
-                <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold leading-[1.4] tracking-[-0.02em] text-(--ink)/45 lg:indent-[22%]">
-                  {priority.practiceStatementLead}
-                  {priority.practiceStatementHighlight ? (
-                    <>
-                      {" "}
-                      <span className="text-[#2563eb]">
-                        {priority.practiceStatementHighlight}
-                      </span>
-                    </>
-                  ) : null}
-                  {priority.practiceStatementTrail ? (
-                    <> {priority.practiceStatementTrail}</>
-                  ) : null}
-                </h2>
-
-                {priority.practiceBody || practicePrimaryCta || practiceSecondaryCta ? (
-                  <div className="flex max-w-5xl flex-col gap-10">
-                    {priority.practiceBody ? (
-                      <PortableTextBody
-                        value={priority.practiceBody}
-                        paragraphClassName="whitespace-pre-line text-lg font-medium text-(--ink)/80 leading-[1.85]"
-                      />
+                {/* Statement */}
+                {hasPracticeStatement ? (
+                  <PortableTextBody
+                    value={priority.practiceStatement}
+                    paragraphClassName="whitespace-pre-line font-display text-xl md:text-2xl lg:text-[24px] font-light leading-[1.4] lg:leading-[38px] tracking-[-1.23px] text-(--ink)/45"
+                  />
+                ) : (
+                  <h2 className="font-display text-xl md:text-2xl lg:text-[24px] font-light leading-[1.4] lg:leading-[38px] tracking-[-1.23px] text-(--ink)/45">
+                    {priority.practiceStatementLead}
+                    {priority.practiceStatementHighlight ? (
+                      <>
+                        {" "}
+                        <span className="text-[#2563eb]">
+                          {priority.practiceStatementHighlight}
+                        </span>
+                      </>
                     ) : null}
+                    {priority.practiceStatementTrail ? (
+                      <> {priority.practiceStatementTrail}</>
+                    ) : null}
+                  </h2>
+                )}
 
-                    {practicePrimaryCta || practiceSecondaryCta ? (
-                      <div className="flex flex-wrap gap-3">
-                        {practicePrimaryCta ? (
-                          <CtaLink
-                            href={practicePrimaryCta.href}
-                            className="rounded-round bg-(--ink) px-6 py-3 text-sm font-semibold text-white text-center transition hover:opacity-90"
-                          >
-                            {practicePrimaryCta.label}
-                          </CtaLink>
-                        ) : null}
-                        {practiceSecondaryCta ? (
-                          <CtaLink
-                            href={practiceSecondaryCta.href}
-                            className="rounded-round border border-(--ink) px-6 py-3 text-sm font-semibold text-(--ink) text-center transition hover:bg-(--ink)/5"
-                          >
-                            {practiceSecondaryCta.label}
-                          </CtaLink>
-                        ) : null}
-                      </div>
+                {/* Body */}
+                {priority.practiceBody ? (
+                  <PortableTextBody
+                    value={priority.practiceBody}
+                    paragraphClassName="whitespace-pre-line font-display text-[24px] font-normal tracking-normal leading-[1.41] text-black"
+                  />
+                ) : null}
+
+                {practicePrimaryCta || practiceSecondaryCta ? (
+                  <div className="flex flex-wrap gap-3">
+                    {practicePrimaryCta ? (
+                      <CtaLink
+                        href={practicePrimaryCta.href}
+                        className="rounded-round bg-(--ink) px-6 py-3 text-sm font-semibold text-white text-center transition hover:opacity-90"
+                      >
+                        {practicePrimaryCta.label}
+                      </CtaLink>
+                    ) : null}
+                    {practiceSecondaryCta ? (
+                      <CtaLink
+                        href={practiceSecondaryCta.href}
+                        className="rounded-round border border-(--ink) px-6 py-3 text-sm font-semibold text-(--ink) text-center transition hover:bg-(--ink)/5"
+                      >
+                        {practiceSecondaryCta.label}
+                      </CtaLink>
                     ) : null}
                   </div>
                 ) : null}
@@ -703,6 +765,9 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
       {showMotion ? (
         <MotionSection
           heading={priority.motionHeading ?? undefined}
+          headingClassName="font-display text-[36px] font-semibold leading-[46px] tracking-[-1.12px] text-black"
+          itemTitleClassName="font-display text-[18px] font-bold leading-[1.5] tracking-normal text-black"
+          itemBodyClassName="font-display text-[16px] font-normal leading-[1.5] tracking-normal text-black"
           items={motionItems}
           bg={motionDark ? pageColor : sectionBg}
           ink={pageColor}
@@ -710,6 +775,18 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
           ctaLabel={priority.motionCta?.label}
           ctaHref={priority.motionCta?.href}
           media={motionMedia}
+        />
+      ) : null}
+
+      {/* ── Investment incentives ──────────────────────────────────── */}
+      {showIncentives ? (
+        <IncentivesSection
+          media={incentivesMedia}
+          heading={priority.incentivesHeading}
+          lead={priority.incentivesLead}
+          items={incentivesItems}
+          bg={sectionBg}
+          ink={pageColor}
         />
       ) : null}
 
@@ -729,11 +806,43 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
         />
       ) : null}
 
+      {/* ── Careers closer — reuses the Home document's copy/photos. ── */}
+      <CareersSection
+        tone="blue"
+        eyebrow={homeData?.careersEyebrow ?? undefined}
+        heading={homeData?.careersHeading ?? undefined}
+        lead={homeData?.careersLead ?? undefined}
+        body={homeData?.careersBody ?? undefined}
+        imageSrc={mediaImageSrc(careersMedia)}
+        videoSrc={mediaVideoSrc(careersMedia)}
+        imageAlt={careersMedia?.alt}
+        primaryLabel={homeData?.careersPrimaryCta?.label}
+        primaryHref={homeData?.careersPrimaryCta?.href}
+        secondaryLabel={homeData?.careersSecondaryCta?.label}
+        secondaryHref={homeData?.careersSecondaryCta?.href}
+      />
+
       {/* ── Modular page sections (editor-managed) ─────────────────── */}
-      <Zone
-        blocks={priority.pageSections as unknown as RenderedBlock[]}
-        lang={lang}
-        contained
+      {modularBlocks.length > 0 ? (
+        <Zone
+          blocks={modularBlocks as unknown as RenderedBlock[]}
+          lang={lang}
+          contained
+        />
+      ) : null}
+
+      {/* ── Call-to-action closer — reuses the Home document's copy. ── */}
+      <BuildingSection
+        tone="blue"
+        headlineLine1={homeData?.buildingHeadlineLine1}
+        headlineLine2={homeData?.buildingHeadlineLine2}
+        imageSrc={mediaImageSrc(buildingMedia)}
+        videoSrc={mediaVideoSrc(buildingMedia)}
+        imageAlt={buildingMedia?.alt}
+        primaryLabel={homeData?.buildingPrimaryCta?.label}
+        primaryHref={homeData?.buildingPrimaryCta?.href}
+        secondaryLabel={homeData?.buildingSecondaryCta?.label}
+        secondaryHref={homeData?.buildingSecondaryCta?.href}
       />
     </main>
   );

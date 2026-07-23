@@ -17,6 +17,7 @@ export const priority = defineType({
     { name: "practiceDetail", title: "Practice detail" },
     { name: "practiceTabs", title: "Practice tabs" },
     { name: "motion", title: "In motion" },
+    { name: "incentives", title: "Investment incentives" },
     { name: "sections", title: "Page sections" },
   ],
   fields: [
@@ -301,9 +302,9 @@ export const priority = defineType({
     }),
 
     // ────────────────────────────────────────────────────── In practice ──
-    // A statement section: a large two-tone sentence with one emphasised
-    // (blue) phrase, a supporting paragraph, two buttons, and a wide image
-    // (sourced from the Home page's editor-managed photography).
+    // A statement section: a rich-text statement (with an optional blue
+    // "Accent" phrase), a rich-text body below it, two buttons, and a wide
+    // image (sourced from the Home page's editor-managed photography).
     defineField({
       name: "showPractice",
       title: "Show “in practice” section",
@@ -321,27 +322,41 @@ export const priority = defineType({
       hidden: ({ parent }) => !parent?.showPractice,
     }),
     defineField({
+      name: "practiceStatement",
+      title: "Statement",
+      description:
+        "The full statement, as rich text. Use the “Accent (blue)” mark in the toolbar to emphasise a phrase in blue.",
+      type: "internationalizedArrayPortableText",
+      group: "practice",
+      hidden: ({ parent }) => !parent?.showPractice,
+    }),
+
+    // Legacy statement fields — superseded by the single rich-text "Statement"
+    // above. Kept only so pre-migration content still renders; edit the
+    // Statement field instead.
+    defineField({
       name: "practiceStatementLead",
-      title: "Statement — lead",
-      description: "Opening of the large statement, shown in muted grey.",
+      title: "Statement — lead (legacy)",
+      description:
+        "Deprecated — use the rich-text “Statement” field above instead.",
       type: "internationalizedArrayText",
       group: "practice",
       hidden: ({ parent }) => !parent?.showPractice,
     }),
     defineField({
       name: "practiceStatementHighlight",
-      title: "Statement — highlight",
+      title: "Statement — highlight (legacy)",
       description:
-        "The emphasised phrase, shown in blue in the middle of the statement.",
+        "Deprecated — use the rich-text “Statement” field above with the Accent mark.",
       type: "internationalizedArrayString",
       group: "practice",
       hidden: ({ parent }) => !parent?.showPractice,
     }),
     defineField({
       name: "practiceStatementTrail",
-      title: "Statement — trailing",
+      title: "Statement — trailing (legacy)",
       description:
-        "Optional text after the highlighted phrase, shown in muted grey.",
+        "Deprecated — use the rich-text “Statement” field above instead.",
       type: "internationalizedArrayText",
       group: "practice",
       hidden: ({ parent }) => !parent?.showPractice,
@@ -349,6 +364,8 @@ export const priority = defineType({
     defineField({
       name: "practiceBody",
       title: "Body",
+      description:
+        "Rich-text paragraph(s) shown below the statement (in black). Optional.",
       type: "internationalizedArrayPortableText",
       group: "practice",
       hidden: ({ parent }) => !parent?.showPractice,
@@ -496,7 +513,8 @@ export const priority = defineType({
 
     // ───────────────────────────────────────────────────────── In motion ──
     // A stack of live initiatives that auto-cycle (the active one lifts into a
-    // white card with a progress ring), beside a convergence graphic.
+    // white card with a progress ring), beside an editor-supplied image/video
+    // (or the convergence graphic when no media is set).
     defineField({
       name: "showMotion",
       title: "Show “in motion” section",
@@ -539,9 +557,9 @@ export const priority = defineType({
     }),
     defineField({
       name: "motionImage",
-      title: "Image",
+      title: "Right-column media (image or video)",
       description:
-        "Optional image for the right column. When empty, the convergence graphic is shown (dark tone falls back to a Home photo).",
+        "Media shown in the right column. Flip the “Type” radio to Image or Video — videos should be uploaded via the Cloudflare R2 URL field so they stay off Sanity's bandwidth. When empty, the convergence graphic is shown (dark tone falls back to a Home photo).",
       type: "imageWithAlt",
       group: "motion",
       hidden: ({ parent }) => !parent?.showMotion,
@@ -578,6 +596,50 @@ export const priority = defineType({
           },
         }),
       ],
+    }),
+
+    // ──────────────────────────────────────────── Investment incentives ──
+    // A wide image/video, a heading over a grey lead, then a three-across grid
+    // of incentive paragraphs. Reuses the same block as the Investors page and
+    // can be switched on per priority.
+    defineField({
+      name: "showIncentives",
+      title: "Show “investment incentives” section",
+      type: "boolean",
+      group: "incentives",
+      initialValue: false,
+    }),
+    defineField({
+      name: "incentivesImage",
+      title: "Media (image or video, above the heading)",
+      description:
+        "Wide media shown above the heading. Flip the “Type” radio to Image or Video (upload videos via the Cloudflare R2 URL field).",
+      type: "imageWithAlt",
+      group: "incentives",
+      hidden: ({ parent }) => !parent?.showIncentives,
+    }),
+    defineField({
+      name: "incentivesHeading",
+      title: "Heading",
+      type: "internationalizedArrayString",
+      group: "incentives",
+      hidden: ({ parent }) => !parent?.showIncentives,
+    }),
+    defineField({
+      name: "incentivesLead",
+      title: "Lead",
+      type: "internationalizedArrayPortableText",
+      group: "incentives",
+      hidden: ({ parent }) => !parent?.showIncentives,
+    }),
+    defineField({
+      name: "incentivesItems",
+      title: "Incentives",
+      description: "Laid out three across; six reads best.",
+      type: "array",
+      of: [defineArrayMember({ type: "investorNote" })],
+      group: "incentives",
+      hidden: ({ parent }) => !parent?.showIncentives,
     }),
 
     // ────────────────────────────────────────────────────── Page sections ──

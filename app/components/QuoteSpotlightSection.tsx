@@ -58,7 +58,7 @@ export default function QuoteSpotlightSection({
     <section
       data-nav-theme="light"
       style={{ backgroundColor: bg }}
-      className="px-6 md:px-12 lg:px-20 xl:px-28 pb-16 md:pb-24 lg:pb-28"
+      className="px-6 md:px-10 lg:px-14 pb-16 md:pb-24 lg:pb-28"
     >
       <div
         data-nav-theme="dark"
