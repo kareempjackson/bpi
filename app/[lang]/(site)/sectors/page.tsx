@@ -156,8 +156,13 @@ export default async function SectorsPage({
   // to the six molecule nodes on the Home document so the page is never empty.
   const sectorDocSlides: SectorSlide[] = (sectors ?? []).map((s) => {
     // Resolve as media (not image-only) so a video uploaded to the card slot
-    // plays in the drawer; still image is the poster / fallback.
-    const media = resolveMedia(s.cardImage, { width: 800 });
+    // plays in the drawer; still image is the poster / fallback. Prefer the
+    // card image slot, then the sector's hero/header media (the same media the
+    // About "Our Mission" cards and the home nodes use) so the drawer always
+    // shows the sector's media even when the card slot is empty.
+    const media =
+      resolveMedia(s.cardImage, { width: 800 }) ??
+      resolveMedia(s.heroImage, { width: 800 });
     const still = nodeStillById.get(s.slug) ?? null;
     return {
       nodeId: s.slug,

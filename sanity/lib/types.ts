@@ -947,6 +947,10 @@ export type SectorSummary = {
   subtitle?: string | null;
   order?: number | null;
   cardImage?: SanityImage | null;
+  /** The sector's hero/header media — same media shown on the About "Our
+   *  Mission" cards and the home nodes; used as a fallback when the card
+   *  image slot is empty. */
+  heroImage?: SanityImage | null;
 };
 
 /** Full sector for the /sectors/[slug] detail page. */
@@ -960,7 +964,6 @@ export type SectorDetail = SectorSummary & {
     | "spotlight"
     | "masthead"
     | null;
-  heroImage?: SanityImage | null;
   pageColor?: string | null;
   heroHeadingColor?: string | null;
   sectionBgColor?: string | null;

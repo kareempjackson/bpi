@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import CtaLink from "@/app/components/CtaLink";
 import PortableTextBody from "@/app/components/PortableTextBody";
+import MissionShape from "@/app/components/shapes/MissionShape";
 import type { PortableTextBlock } from "@/sanity/lib/types";
 
 export type SectorSlide = {
@@ -118,10 +118,10 @@ export default function SectorsStack({ slides }: { slides: SectorSlide[] }) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={reduce ? undefined : { opacity: 0, y: 6 }}
                     transition={contentTransition}
-                    className="flex flex-col gap-8 pt-4 pb-10 lg:flex-row lg:items-start lg:gap-14"
+                    className="flex flex-col items-center gap-8 pt-4 pb-10 lg:flex-row lg:items-center lg:gap-14"
                   >
                     {/* Body copy + link on the left. */}
-                    <div className="flex flex-1 flex-col gap-6 lg:pt-2">
+                    <div className="flex flex-1 flex-col justify-center gap-6">
                       {s.description ? (
                         <PortableTextBody
                           value={s.description}
@@ -140,29 +140,17 @@ export default function SectorsStack({ slides }: { slides: SectorSlide[] }) {
                       ) : null}
                     </div>
                     {/* Large media on the right — the sector's video (muted,
-                        looping) when one is set, otherwise its still image. */}
-                    {s.videoSrc ? (
-                      <div className="relative aspect-2/1 w-full shrink-0 overflow-hidden rounded-2xl bg-primary-500/5 lg:w-[46%]">
-                        <video
-                          src={s.videoSrc}
-                          poster={s.imageSrc}
-                          autoPlay
-                          muted
-                          loop
-                          playsInline
-                          preload="metadata"
-                          aria-label={s.imageAlt || s.title}
-                          className="absolute inset-0 h-full w-full object-cover"
-                        />
-                      </div>
-                    ) : s.imageSrc ? (
-                      <div className="relative aspect-2/1 w-full shrink-0 overflow-hidden rounded-2xl bg-primary-500/5 lg:w-[46%]">
-                        <Image
-                          src={s.imageSrc}
-                          alt={s.imageAlt ?? ""}
-                          fill
-                          sizes="(min-width: 1024px) 46vw, 100vw"
-                          className="object-cover"
+                        looping) when one is set, otherwise its still — clipped
+                        to the Mission shape used on the About page's "Our
+                        Mission" cards. */}
+                    {s.imageSrc || s.videoSrc ? (
+                      <div className="flex shrink-0 items-center justify-center self-stretch lg:w-[46%]">
+                        <MissionShape
+                          size={520}
+                          imageSrc={s.imageSrc}
+                          videoSrc={s.videoSrc}
+                          imageAlt={s.imageAlt ?? s.title}
+                          className="h-auto w-auto max-h-80 md:max-h-112 lg:max-h-128"
                         />
                       </div>
                     ) : null}

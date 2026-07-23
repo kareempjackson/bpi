@@ -1055,7 +1055,8 @@ const SECTOR_CARD_PROJECTION = `{
   "slug": slug.current,
   "subtitle": ${loc("subtitle")},
   order,
-  cardImage${IMAGE_PROJECTION}
+  cardImage${IMAGE_PROJECTION},
+  heroImage${IMAGE_PROJECTION}
 }`;
 
 export const ALL_SECTORS_QUERY = defineQuery(`
