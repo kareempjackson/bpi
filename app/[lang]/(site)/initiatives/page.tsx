@@ -14,6 +14,7 @@ import Zone from "@/app/components/sections/Zone";
 import type { RenderedBlock } from "@/app/components/sections/registry";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import { localizedHref } from "@/app/lib/locale";
+import { stegaClean } from "next-sanity";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
 import { resolveImage, resolveMedia } from "@/sanity/lib/image";
 import {
@@ -72,7 +73,10 @@ function splitHeadlineEnds(headline: string): {
   middle: string;
   end: string;
 } {
-  const words = headline.trim().split(/\s+/).filter(Boolean);
+  // Strip stega (Content Source Map) chars before splitting — chopping a
+  // stega-encoded string across spans fragments the invisible payload and
+  // crashes the Visual Editing decoder (`codePointAt` of undefined).
+  const words = stegaClean(headline).trim().split(/\s+/).filter(Boolean);
   const n = words.length;
   const startCount = Math.min(2, n);
   const endCount = Math.min(2, Math.max(0, n - startCount));
@@ -381,7 +385,9 @@ function WorkInMotion({
 
   // Break the heading into ~two-word lines so each can be indented a step
   // further than the last — the staggered, stepped treatment from the design.
-  const headingLines = heading
+  // `stegaClean` first: splitting the raw string fragments its stega payload
+  // and crashes the Visual Editing decoder.
+  const headingLines = stegaClean(heading)
     .trim()
     .split(/\s+/)
     .filter(Boolean)
@@ -598,12 +604,15 @@ function FeaturedSpotlight({
 // remainder greys back. Falls back to all-dark when there's no colon.
 function ColonTwoTone({ text }: { text: string | null | undefined }) {
   if (!text) return null;
-  const i = text.indexOf(":");
-  if (i === -1) return <span className="text-primary-500">{text}</span>;
+  // Clean stega before slicing — a sliced stega string leaves a fragmented
+  // payload that crashes the Visual Editing decoder.
+  const clean = stegaClean(text);
+  const i = clean.indexOf(":");
+  if (i === -1) return <span className="text-primary-500">{clean}</span>;
   return (
     <>
-      <span className="text-primary-500">{text.slice(0, i + 1)}</span>
-      <span className="text-primary-500/45">{text.slice(i + 1)}</span>
+      <span className="text-primary-500">{clean.slice(0, i + 1)}</span>
+      <span className="text-primary-500/45">{clean.slice(i + 1)}</span>
     </>
   );
 }
@@ -612,9 +621,11 @@ function ColonTwoTone({ text }: { text: string | null | undefined }) {
 // everything else greys back — lets editors pick the highlighted phrase.
 function Emphasis({ text }: { text: string | null | undefined }) {
   if (!text) return null;
+  // Clean stega before splitting on the `**…**` markers — a split stega string
+  // fragments the payload and crashes the Visual Editing decoder.
   return (
     <>
-      {text.split(/\*\*(.+?)\*\*/g).map((part, i) =>
+      {stegaClean(text).split(/\*\*(.+?)\*\*/g).map((part, i) =>
         i % 2 === 1 ? (
           <span key={i} className="font-bold text-primary-500">
             {part}
@@ -964,8 +975,10 @@ function OtherWorksSection({
   if (cards.length === 0 && !featuredImg) return null;
 
   // Staggered, stepped heading lines; the middle line greens (e.g.
-  // "Other Initiatives" / "You Should" / "Know at BPI").
-  const lines = heading
+  // "Other Initiatives" / "You Should" / "Know at BPI"). `stegaClean` first —
+  // splitting the raw string fragments its stega payload and crashes the
+  // Visual Editing decoder.
+  const lines = stegaClean(heading)
     .trim()
     .split(/\s+/)
     .filter(Boolean)
