@@ -10,7 +10,7 @@ import MediaImage from "@/app/components/MediaImage";
 import PortableTextBody from "@/app/components/PortableTextBody";
 import Zone from "@/app/components/sections/Zone";
 import type { RenderedBlock } from "@/app/components/sections/registry";
-import PrioritiesIndex from "@/app/components/PrioritiesIndex";
+import ArchitectureOfCareSection from "@/app/components/ArchitectureOfCareSection";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/motion";
 import { localizedHref, toLocale } from "@/app/lib/locale";
 import { loadQuery, TAG } from "@/sanity/lib/fetch";
@@ -214,6 +214,46 @@ export default async function PrioritiesPage({
     ? localizedHref(lang, pageData.prioritiesCta.href)
     : contactHref;
 
+  // Priority rows rendered exactly like the home page's "How We Work" section
+  // (`ArchitectureOfCareSection`): each row expands to reveal its subtitle and
+  // the priority's hero media. Falls back to the plain label list (no media /
+  // link) when no Priority documents exist yet.
+  const priorityItems =
+    priorityDocs && priorityDocs.length > 0
+      ? priorityDocs.map((p) => {
+          const m = resolveMedia(p.heroImage, { width: 700 });
+          return {
+            title: p.title,
+            description: p.subtitle ?? "",
+            href: localizedHref(lang, `/priorities/${p.slug}`),
+            imageSrc: m ? (m.kind === "image" ? m.src : m.poster ?? "") : "",
+            videoSrc: m?.kind === "video" ? m.src : undefined,
+            imageAlt: m?.alt,
+            color: "#CAF1FF",
+          };
+        })
+      : priorities.map((p) => ({
+          title: p.label,
+          description: p.subtitle ?? "",
+          href: p.href ?? prioritiesCtaHref,
+          imageSrc: "",
+          color: "#CAF1FF",
+        }));
+
+  // The wide facility image anchors the bottom of the section (the section's
+  // `feature` slot), mirroring the home page treatment.
+  const prioritiesFeature = prioritiesMedia
+    ? {
+        imageSrc:
+          prioritiesMedia.kind === "image"
+            ? prioritiesMedia.src
+            : prioritiesMedia.poster,
+        videoSrc:
+          prioritiesMedia.kind === "video" ? prioritiesMedia.src : undefined,
+        imageAlt: prioritiesMedia.alt,
+      }
+    : undefined;
+
   // Latest from BPI — newest posts (feature + compact cards). Editors control
   // the list by adding/removing posts and tuning `latestShowCount`.
   const latestHeading = pageData?.latestHeading ?? "Latest from BPI";
@@ -337,62 +377,28 @@ export default async function PrioritiesPage({
       </section>
       ) : null}
 
-      {/* ── Strategic priorities ───────────────────────────────────── */}
+      {/* ── Strategic priorities ───────────────────────────────────────
+          Rendered with the home page's "How We Work" section so each row
+          expands to reveal its subtitle and hero media. */}
+      <ArchitectureOfCareSection
+        heading={prioritiesHeading}
+        description={prioritiesIntro}
+        items={priorityItems}
+        feature={prioritiesFeature}
+      />
+
+      {/* Section CTA (kept from the previous priorities layout). */}
       <section
         data-nav-theme="light"
-        className="bg-error-25 px-6 md:px-10 lg:px-14 py-16 md:py-24 lg:py-28"
+        className="bg-error-25 px-6 md:px-10 lg:px-14 pb-16 md:pb-24 lg:pb-28"
       >
         <div className="mx-auto w-full max-w-page">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-            {/* Left — heading + intro. */}
-            <Stagger className="lg:pt-6">
-              <StaggerItem
-                as="h2"
-                className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-primary-500 leading-tight tracking-[-0.02em]"
-              >
-                {prioritiesHeading}
-              </StaggerItem>
-              <StaggerItem className="mt-6 max-w-md">
-                <PortableTextBody
-                  value={prioritiesIntro}
-                  paragraphClassName="text-base text-primary-500/55 leading-relaxed"
-                />
-              </StaggerItem>
-            </Stagger>
-
-            {/* Right — numbered index of priorities + CTA. Each row springs
-                open on hover to reveal its subtitle (see PrioritiesIndex). */}
-            <Stagger className="flex flex-col">
-              <StaggerItem>
-                <PrioritiesIndex items={priorities} />
-              </StaggerItem>
-              <StaggerItem>
-                <CtaLink
-                  href={prioritiesCtaHref}
-                  className="mt-10 inline-flex w-fit items-center rounded-round bg-error-500 px-6 py-2.5 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-(--ease-premium) hover:bg-error-400"
-                >
-                  {prioritiesCtaLabel}
-                </CtaLink>
-              </StaggerItem>
-            </Stagger>
-          </div>
-
-          {/* Wide facility image (or branded placeholder). */}
-          <Reveal
-            preset="scale"
-            className="mt-12 lg:mt-16 relative w-full max-lg:aspect-video lg:aspect-5/2 overflow-hidden rounded-2xl lg:rounded-3xl bg-primary-500"
+          <CtaLink
+            href={prioritiesCtaHref}
+            className="inline-flex w-fit items-center rounded-round bg-error-500 px-6 py-2.5 text-sm font-semibold text-primary-500 transition-colors duration-300 ease-(--ease-premium) hover:bg-error-400"
           >
-            {prioritiesMedia ? (
-              <MediaImage media={prioritiesMedia} sizes="100vw" />
-            ) : (
-              <div
-                aria-hidden
-                className="absolute inset-0 flex items-center justify-center"
-              >
-                <Logo iconOnly size={200} className="text-white/10" />
-              </div>
-            )}
-          </Reveal>
+            {prioritiesCtaLabel}
+          </CtaLink>
         </div>
       </section>
 
