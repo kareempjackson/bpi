@@ -516,6 +516,13 @@ html.lenis {
   animation-play-state: var(--kb-play, running);
   transform-origin: center;
   will-change: transform;
+  /* Filmic grade on the footage itself — lifts it out of the washed-out look
+     (punchier saturation, gentle contrast + brightness). Kept on the SAME
+     element as the Ken-Burns transform so the filter and the transform share
+     one GPU layer — a filter on a *parent* of an animating child re-rasterizes
+     every frame and shimmers; here it does not. */
+  filter: saturate(1.2) contrast(1.06) brightness(1.06);
+  backface-visibility: hidden;
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-video {
