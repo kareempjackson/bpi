@@ -974,15 +974,19 @@ export const PRIORITY_BY_SLUG_QUERY = defineQuery(`
     "practiceBody": ${loc("practiceBody")},
     practicePrimaryCta${CTA_PROJECTION},
     practiceSecondaryCta${CTA_PROJECTION},
+    practiceImage${IMAGE_PROJECTION},
 
     showPracticeDetail,
     "practiceDetailHeading": ${loc("practiceDetailHeading")},
+    practiceDetailHeadingStyle,
+    practiceDetailWideBody,
     "practiceDetailBody": ${loc("practiceDetailBody")},
     practiceDetailImage${IMAGE_PROJECTION},
     practiceDetailCta${CTA_PROJECTION},
 
     showPracticeTabs,
     "practiceTabsHeading": ${loc("practiceTabsHeading")},
+    practiceTabsHeadingStyle,
     "practiceTabsLead": ${loc("practiceTabsLead")},
     "practiceTabsStatement": ${loc("practiceTabsStatement")},
     "practiceTabsTrail": ${loc("practiceTabsTrail")},
@@ -999,7 +1003,15 @@ export const PRIORITY_BY_SLUG_QUERY = defineQuery(`
     motionImage${IMAGE_PROJECTION},
     motionItems[]{
       "title": ${loc("title")},
-      "body": ${loc("body")}
+      "body": ${loc("body")},
+      "media": coalesce(initiative->coverImage, initiative->headerImage)${IMAGE_PROJECTION},
+      "href": coalesce(
+        initiative->externalLink,
+        select(
+          initiative->hasDetailPage != false && defined(initiative->slug.current) =>
+            "/initiatives/" + initiative->slug.current
+        )
+      )
     },
 
     showIncentives,
@@ -1173,7 +1185,15 @@ export const SECTOR_BY_SLUG_QUERY = defineQuery(`
     motionImage${IMAGE_PROJECTION},
     motionItems[]{
       "title": ${loc("title")},
-      "body": ${loc("body")}
+      "body": ${loc("body")},
+      "media": coalesce(initiative->coverImage, initiative->headerImage)${IMAGE_PROJECTION},
+      "href": coalesce(
+        initiative->externalLink,
+        select(
+          initiative->hasDetailPage != false && defined(initiative->slug.current) =>
+            "/initiatives/" + initiative->slug.current
+        )
+      )
     },
 
     ${PAGE_SECTIONS_PROJECTION}

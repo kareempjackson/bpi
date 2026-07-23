@@ -872,15 +872,19 @@ export type PriorityDetail = PrioritySummary & {
   practiceBody?: PortableTextBlock[] | string | null;
   practicePrimaryCta?: Cta;
   practiceSecondaryCta?: Cta;
+  practiceImage?: SanityImage | null;
 
   showPracticeDetail?: boolean | null;
   practiceDetailHeading?: string | null;
+  practiceDetailHeadingStyle?: "default" | "compactBold" | null;
+  practiceDetailWideBody?: boolean | null;
   practiceDetailBody?: PortableTextBlock[] | string | null;
   practiceDetailImage?: SanityImage | null;
   practiceDetailCta?: Cta;
 
   showPracticeTabs?: boolean | null;
   practiceTabsHeading?: string | null;
+  practiceTabsHeadingStyle?: "default" | "compactBold" | null;
   practiceTabsLead?: PortableTextBlock[] | string | null;
   practiceTabsStatement?: string | null;
   practiceTabsTrail?: PortableTextBlock[] | string | null;
@@ -897,7 +901,16 @@ export type PriorityDetail = PrioritySummary & {
   motionTone?: "light" | "dark" | null;
   motionCta?: Cta;
   motionImage?: SanityImage | null;
-  motionItems?: { title?: string | null; body?: string | null }[] | null;
+  motionItems?:
+    | {
+        title?: string | null;
+        body?: string | null;
+        /** Resolved from the linked initiative's cover/header image. */
+        media?: SanityImage | null;
+        /** Resolved link to the linked initiative (detail page or external). */
+        href?: string | null;
+      }[]
+    | null;
 
   showIncentives?: boolean | null;
   incentivesImage?: SanityImage | null;
@@ -1023,7 +1036,16 @@ export type SectorDetail = SectorSummary & {
   motionTone?: "light" | "dark" | null;
   motionCta?: Cta;
   motionImage?: SanityImage | null;
-  motionItems?: { title?: string | null; body?: string | null }[] | null;
+  motionItems?:
+    | {
+        title?: string | null;
+        body?: string | null;
+        /** Resolved from the linked initiative's cover/header image. */
+        media?: SanityImage | null;
+        /** Resolved link to the linked initiative (detail page or external). */
+        href?: string | null;
+      }[]
+    | null;
 
   pageSections?: PageSection[] | null;
 };

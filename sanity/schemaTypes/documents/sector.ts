@@ -762,12 +762,25 @@ export const sector = defineType({
               title: "Body",
               type: "internationalizedArrayText",
             }),
+            defineField({
+              name: "initiative",
+              title: "Initiative",
+              description:
+                "Link this row to its initiative. The initiative's cover image (or header image) is shown in the right column while the row is active. When unset, the section media / convergence graphic is shown.",
+              type: "reference",
+              to: [{ type: "initiative" }],
+            }),
           ],
           preview: {
-            select: { title: "title", subtitle: "body" },
-            prepare: ({ title, subtitle }) => ({
+            select: {
+              title: "title",
+              subtitle: "body",
+              media: "initiative.coverImage",
+            },
+            prepare: ({ title, subtitle, media }) => ({
               title: i18nValue(title),
               subtitle: i18nValue(subtitle),
+              media,
             }),
           },
         }),

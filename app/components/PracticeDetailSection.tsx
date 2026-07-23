@@ -1,15 +1,28 @@
 import type { CSSProperties } from "react";
 
 import type { PortableTextBlock, ResolvedMedia } from "@/sanity/lib/types";
+import { hangLastWord } from "@/app/lib/hangLastWord";
 import CtaLink from "./CtaLink";
 import MediaImage from "./MediaImage";
 import PortableTextBody from "./PortableTextBody";
 import { Stagger, StaggerItem } from "./motion";
 
+/** Class set for each selectable heading style. */
+const HEADING_STYLES = {
+  default:
+    "font-display font-semibold text-[48px] leading-[110%] tracking-normal text-[#0B2F64]",
+  compactBold:
+    "font-sans font-bold text-[26px] leading-12 tracking-[0.48px] align-middle text-black",
+} as const;
+
 type Props = {
   heading?: string;
+  /** Which heading style variant to render. Defaults to the large navy display. */
+  headingStyle?: keyof typeof HEADING_STYLES | null;
   /** Body prose shown on the right (Portable Text, or legacy string). */
   body?: PortableTextBlock[] | string | null;
+  /** Widen the body/CTA column from ~576px to ~768px. */
+  wideBody?: boolean | null;
   media?: ResolvedMedia | null;
   ctaLabel?: string;
   ctaHref?: string;
@@ -26,7 +39,9 @@ type Props = {
  */
 export default function PracticeDetailSection({
   heading,
+  headingStyle,
   body,
+  wideBody,
   media,
   ctaLabel,
   ctaHref,
@@ -45,9 +60,9 @@ export default function PracticeDetailSection({
           {heading ? (
             <StaggerItem
               as="h2"
-              className="max-w-md font-display text-4xl md:text-5xl lg:text-6xl font-bold text-(--ink) leading-[1.05] tracking-[-0.02em]"
+              className={`whitespace-pre-line ${HEADING_STYLES[headingStyle ?? "default"]}`}
             >
-              {heading}
+              {headingStyle === "compactBold" ? hangLastWord(heading) : heading}
             </StaggerItem>
           ) : null}
           {media ? (
@@ -63,13 +78,15 @@ export default function PracticeDetailSection({
           ) : null}
         </Stagger>
 
-        {/* Right — body prose + CTA. */}
-        <Stagger className="flex max-w-xl flex-col gap-10 lg:pt-2">
+        {/* Right — body prose + CTA. Fixed ~576px column, right-aligned within
+            its grid cell so its right edge lines up with the right gutter (the
+            nav menu). */}
+        <Stagger className={`flex w-full flex-col gap-10 lg:ml-auto lg:pt-2 ${wideBody ? "max-w-3xl" : "max-w-[575.92px]"}`}>
           {body ? (
             <StaggerItem as="div">
               <PortableTextBody
                 value={body}
-                paragraphClassName="text-base md:text-lg text-(--ink)/85 leading-relaxed"
+                paragraphClassName="whitespace-pre-line font-display text-[18px] font-normal leading-[160%] tracking-[-0.24px] text-black"
               />
             </StaggerItem>
           ) : null}

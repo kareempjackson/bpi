@@ -235,7 +235,12 @@ export default async function SectorDetailPage({ params }: RouteProps) {
   // graphic. Renders only when the toggle is on and at least one item has copy.
   const motionItems = (sector.motionItems ?? [])
     .filter((m) => m.title || m.body)
-    .map((m) => ({ title: m.title ?? "", body: m.body ?? "" }));
+    .map((m) => ({
+      title: m.title ?? "",
+      body: m.body ?? "",
+      media: resolveMedia(m.media, { width: 1200 }),
+      href: m.href ?? undefined,
+    }));
   const showMotion = !!sector.showMotion && motionItems.length > 0;
   const motionDark = sector.motionTone === "dark";
   const motionMedia = resolveMedia(

@@ -13,6 +13,11 @@ import { Reveal, Stagger, StaggerItem } from "./motion";
 export type MotionItem = {
   title: string;
   body: PortableTextBlock[] | string | null;
+  /** Per-initiative right-column media. Falls back to the section media. */
+  media?: ResolvedMedia | null;
+  /** Link to the initiative's detail page (or external URL). When set the row
+   *  becomes clickable; when absent it stays a plain cycle selector. */
+  href?: string | null;
 };
 
 type Props = {
@@ -93,6 +98,13 @@ export default function MotionSection({
 
   if (count === 0) return null;
 
+  // Right-column media follows the active initiative: use its own media when set,
+  // otherwise the shared section media. `activeMediaKey` remounts the panel so it
+  // re-animates only when the shown media actually changes (not on every cycle to
+  // an item that reuses the section fallback).
+  const activeMedia = items[active]?.media ?? media;
+  const activeMediaKey = items[active]?.media ? `item-${active}` : "section";
+
   return (
     <section
       data-nav-theme={tone === "dark" ? "dark" : "light"}
@@ -140,67 +152,101 @@ export default function MotionSection({
           >
             {items.map((item, i) => {
               const isActive = i === active;
+              // Colour is tone- and state-aware: on the (white) active card the
+              // text is ink; everywhere else it takes --fg (white on a dark/blue
+              // canvas, ink on a light one). Kept separate from the caller's
+              // typographic overrides so those only dictate font/size/weight.
+              const titleColor = isActive ? "text-(--ink)" : "text-(--fg)";
+              const bodyColor = itemBodyClassName
+                ? isActive
+                  ? "text-(--ink)"
+                  : "text-(--fg)"
+                : isActive
+                  ? "text-(--ink)/65"
+                  : "text-(--fg)/55";
+              // Shared shell + inner content, so a row can render either as a
+              // navigating link (when the initiative resolves an href) or a
+              // plain cycle-selector button. Hovering promotes the row to the
+              // active white card either way.
+              const rowClass = `group -mx-5 block w-[calc(100%+2.5rem)] rounded-xl px-5 py-5 text-left transition-colors duration-500 ease-(--ease-premium) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--ink)/25 ${
+                isActive ? "bg-white" : "bg-transparent"
+              }`;
+              const rowInner = (
+                <>
+                  <div className="flex items-start justify-between gap-4">
+                    <h3
+                      className={`${
+                        itemTitleClassName ??
+                        "font-display text-base md:text-lg font-bold leading-snug tracking-[-0.01em]"
+                      } ${titleColor}`}
+                    >
+                      {item.title}
+                    </h3>
+                    {/* Progress ring — only on the active row; fills over the
+                        dwell, or sits full for reduced-motion. */}
+                    <span
+                      aria-hidden
+                      className={`mt-0.5 shrink-0 transition-opacity duration-300 ${
+                        isActive ? "opacity-100" : "opacity-0"
+                      }`}
+                    >
+                      <ProgressRing
+                        active={isActive}
+                        paused={paused}
+                        reduced={reduced}
+                      />
+                    </span>
+                  </div>
+                  <PortableTextBody
+                    value={item.body}
+                    compact
+                    className="mt-2"
+                    paragraphClassName={`${
+                      itemBodyClassName ?? "text-sm leading-relaxed"
+                    } ${bodyColor}`}
+                  />
+                </>
+              );
               return (
                 <StaggerItem as="li" key={`${i}-${item.title}`}>
-                  <button
-                    type="button"
-                    onClick={() => setActive(i)}
-                    aria-pressed={isActive}
-                    className={`group -mx-5 block w-[calc(100%+2.5rem)] rounded-xl px-5 py-5 text-left transition-colors duration-500 ease-(--ease-premium) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--ink)/25 ${
-                      isActive ? "bg-white" : "bg-transparent"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <h3
-                        className={
-                          itemTitleClassName ??
-                          `font-display text-base md:text-lg font-bold leading-snug tracking-[-0.01em] ${
-                            isActive ? "text-(--ink)" : "text-(--fg)"
-                          }`
-                        }
-                      >
-                        {item.title}
-                      </h3>
-                      {/* Progress ring — only on the active row; fills over the
-                          dwell, or sits full for reduced-motion. */}
-                      <span
-                        aria-hidden
-                        className={`mt-0.5 shrink-0 transition-opacity duration-300 ${
-                          isActive ? "opacity-100" : "opacity-0"
-                        }`}
-                      >
-                        <ProgressRing
-                          active={isActive}
-                          paused={paused}
-                          reduced={reduced}
-                        />
-                      </span>
-                    </div>
-                    <PortableTextBody
-                      value={item.body}
-                      compact
-                      className="mt-2"
-                      paragraphClassName={
-                        itemBodyClassName ??
-                        `text-sm leading-relaxed ${
-                          isActive ? "text-(--ink)/65" : "text-(--fg)/55"
-                        }`
-                      }
-                    />
-                  </button>
+                  {item.href ? (
+                    <CtaLink
+                      href={item.href}
+                      onMouseEnter={() => setActive(i)}
+                      className={rowClass}
+                    >
+                      {rowInner}
+                    </CtaLink>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setActive(i)}
+                      // Hovering a row promotes it to the active white card, so
+                      // the hovered row reads with dark ink while the rest stay
+                      // --fg.
+                      onMouseEnter={() => setActive(i)}
+                      aria-pressed={isActive}
+                      className={rowClass}
+                    >
+                      {rowInner}
+                    </button>
+                  )}
                 </StaggerItem>
               );
             })}
           </Stagger>
 
-          {/* Right — an image when supplied, else the convergence graphic. */}
-          {media ? (
+          {/* Right — the active initiative's own media when it has one, else
+              the section-level media, else the convergence graphic. Re-keyed on
+              the active index so it cross-fades as the list cycles. */}
+          {activeMedia ? (
             <Reveal
+              key={activeMediaKey}
               preset="scale"
               className="relative aspect-4/5 w-full overflow-hidden rounded-xl bg-white/5 lg:ml-auto lg:max-w-md"
             >
               <MediaImage
-                media={media}
+                media={activeMedia}
                 sizes="(min-width: 1024px) 34vw, 100vw"
               />
             </Reveal>

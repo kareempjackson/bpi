@@ -5,6 +5,7 @@ import type { CSSProperties } from "react";
 
 import type { PortableTextBlock } from "@/sanity/lib/types";
 import { plainText } from "@/app/lib/plainText";
+import { hangLastWord } from "@/app/lib/hangLastWord";
 import PortableTextBody from "./PortableTextBody";
 import { Stagger, StaggerItem } from "./motion";
 
@@ -14,8 +15,18 @@ export type PracticeTabInput = {
   bullets?: string | null;
 };
 
+/** Class set for each selectable heading style (layout classes added separately). */
+const HEADING_STYLES = {
+  default:
+    "max-w-xs font-display text-4xl md:text-5xl font-bold text-(--ink) leading-[1.05] tracking-[-0.02em]",
+  compactBold:
+    "font-sans font-bold text-[26px] leading-12 tracking-[0.48px] align-middle text-black",
+} as const;
+
 type Props = {
   heading?: string;
+  /** Which heading style variant to render. Defaults to the large display. */
+  headingStyle?: keyof typeof HEADING_STYLES | null;
   lead?: PortableTextBlock[] | string | null;
   statement?: string;
   /** Optional small paragraph shown below the statement. */
@@ -37,6 +48,7 @@ const DWELL = 8000;
  */
 export default function PracticeTabsSection({
   heading,
+  headingStyle,
   lead,
   statement,
   trail,
@@ -86,9 +98,9 @@ export default function PracticeTabsSection({
         {heading ? (
           <Stagger
             as="h2"
-            className="max-w-xs font-display text-4xl md:text-5xl font-bold text-(--ink) leading-[1.05] tracking-[-0.02em] lg:sticky lg:top-28"
+            className={`${HEADING_STYLES[headingStyle ?? "default"]} lg:sticky lg:top-28`}
           >
-            {heading}
+            {headingStyle === "compactBold" ? hangLastWord(heading) : heading}
           </Stagger>
         ) : (
           <span className="hidden lg:block" />
@@ -99,11 +111,11 @@ export default function PracticeTabsSection({
           {lead ? (
             <StaggerItem
               as="div"
-              className="max-w-2xl text-base md:text-lg text-(--ink)/65 leading-relaxed"
+              className="w-full"
             >
               <PortableTextBody
                 value={lead}
-                paragraphClassName="whitespace-pre-line text-base md:text-lg text-(--ink)/65 leading-relaxed"
+                paragraphClassName="whitespace-pre-line font-sans font-normal text-[18px] leading-[176%] tracking-[0.48px] align-middle text-black"
               />
             </StaggerItem>
           ) : null}
@@ -120,11 +132,11 @@ export default function PracticeTabsSection({
           {trail ? (
             <StaggerItem
               as="div"
-              className="max-w-2xl text-base md:text-lg text-(--ink)/65 leading-relaxed"
+              className="w-full"
             >
               <PortableTextBody
                 value={trail}
-                paragraphClassName="whitespace-pre-line text-base md:text-lg text-(--ink)/65 leading-relaxed"
+                paragraphClassName="whitespace-pre-line font-sans font-normal text-[18px] leading-[176%] tracking-[0.48px] align-middle text-black"
               />
             </StaggerItem>
           ) : null}

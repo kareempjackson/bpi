@@ -193,7 +193,8 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
       priority.practiceBody
     );
   const practiceMedia = resolveMedia(
-    homeData?.buildingImage ??
+    priority.practiceImage ??
+      homeData?.buildingImage ??
       homeData?.architectureFeature ??
       homeData?.whyImage,
     { width: 2000 },
@@ -238,7 +239,12 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
   // graphic. Renders only when the toggle is on and at least one item has copy.
   const motionItems = (priority.motionItems ?? [])
     .filter((m) => m.title || m.body)
-    .map((m) => ({ title: m.title ?? "", body: m.body ?? "" }));
+    .map((m) => ({
+      title: m.title ?? "",
+      body: m.body ?? "",
+      media: resolveMedia(m.media, { width: 1200 }),
+      href: m.href ?? undefined,
+    }));
   const showMotion = !!priority.showMotion && motionItems.length > 0;
   const motionDark = priority.motionTone === "dark";
   // Right-column image: an explicit upload, or (dark tone) a Home photo. When
@@ -739,7 +745,9 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
       {showPracticeDetail ? (
         <PracticeDetailSection
           heading={priority.practiceDetailHeading ?? undefined}
+          headingStyle={priority.practiceDetailHeadingStyle ?? undefined}
           body={priority.practiceDetailBody}
+          wideBody={priority.practiceDetailWideBody ?? undefined}
           media={practiceDetailMedia}
           ctaLabel={priority.practiceDetailCta?.label}
           ctaHref={priority.practiceDetailCta?.href}
@@ -752,6 +760,7 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
       {showPracticeTabs ? (
         <PracticeTabsSection
           heading={priority.practiceTabsHeading ?? undefined}
+          headingStyle={priority.practiceTabsHeadingStyle ?? undefined}
           lead={priority.practiceTabsLead ?? undefined}
           statement={priority.practiceTabsStatement ?? undefined}
           trail={priority.practiceTabsTrail ?? undefined}
@@ -763,11 +772,15 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
 
       {/* ── In motion ──────────────────────────────────────────────── */}
       {showMotion ? (
+        <div
+          style={{ backgroundColor: motionDark ? pageColor : sectionBg }}
+          className="pt-16 md:pt-24 lg:pt-28"
+        >
         <MotionSection
           heading={priority.motionHeading ?? undefined}
-          headingClassName="font-display text-[36px] font-semibold leading-[46px] tracking-[-1.12px] text-black"
-          itemTitleClassName="font-display text-[18px] font-bold leading-[1.5] tracking-normal text-black"
-          itemBodyClassName="font-display text-[16px] font-normal leading-[1.5] tracking-normal text-black"
+          headingClassName="font-display text-[36px] font-semibold leading-[46px] tracking-[-1.12px] text-(--fg)"
+          itemTitleClassName="font-display text-[18px] font-bold leading-[1.5] tracking-normal"
+          itemBodyClassName="font-display text-[16px] font-normal leading-[1.5] tracking-normal"
           items={motionItems}
           bg={motionDark ? pageColor : sectionBg}
           ink={pageColor}
@@ -776,6 +789,7 @@ export default async function PriorityDetailPage({ params }: RouteProps) {
           ctaHref={priority.motionCta?.href}
           media={motionMedia}
         />
+        </div>
       ) : null}
 
       {/* ── Investment incentives ──────────────────────────────────── */}

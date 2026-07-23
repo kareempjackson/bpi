@@ -384,6 +384,15 @@ export const priority = defineType({
       group: "practice",
       hidden: ({ parent }) => !parent?.showPractice,
     }),
+    defineField({
+      name: "practiceImage",
+      title: "Feature image",
+      description:
+        "Wide image shown below the statement/body. Falls back to a Home page photo when empty.",
+      type: "imageWithAlt",
+      group: "practice",
+      hidden: ({ parent }) => !parent?.showPractice,
+    }),
 
     // ─────────────────────────────────────────────────── Practice detail ──
     // "What this looks like in practice" — a heading + square image on the
@@ -404,11 +413,38 @@ export const priority = defineType({
       hidden: ({ parent }) => !parent?.showPracticeDetail,
     }),
     defineField({
+      name: "practiceDetailHeadingStyle",
+      title: "Heading style",
+      description:
+        "Default = large navy display heading (48px). Compact bold = smaller black Avenir Next heading (30px/700).",
+      type: "string",
+      options: {
+        list: [
+          { title: "Default — large navy display", value: "default" },
+          { title: "Compact bold — 30px Avenir Next", value: "compactBold" },
+        ],
+        layout: "radio",
+      },
+      initialValue: "default",
+      group: "practiceDetail",
+      hidden: ({ parent }) => !parent?.showPracticeDetail,
+    }),
+    defineField({
       name: "practiceDetailBody",
       title: "Body",
       description:
         "Body paragraphs. Separate paragraphs with a blank line — each becomes its own spaced block.",
       type: "internationalizedArrayPortableText",
+      group: "practiceDetail",
+      hidden: ({ parent }) => !parent?.showPracticeDetail,
+    }),
+    defineField({
+      name: "practiceDetailWideBody",
+      title: "Wide body column",
+      description:
+        "Widen the body/CTA column from the default ~576px to ~768px for longer copy.",
+      type: "boolean",
+      initialValue: false,
       group: "practiceDetail",
       hidden: ({ parent }) => !parent?.showPracticeDetail,
     }),
@@ -443,6 +479,23 @@ export const priority = defineType({
       name: "practiceTabsHeading",
       title: "Heading",
       type: "internationalizedArrayString",
+      group: "practiceTabs",
+      hidden: ({ parent }) => !parent?.showPracticeTabs,
+    }),
+    defineField({
+      name: "practiceTabsHeadingStyle",
+      title: "Heading style",
+      description:
+        "Default = large display heading. Compact bold = smaller black Avenir Next heading (26px/700) with the last word hung on its own line.",
+      type: "string",
+      options: {
+        list: [
+          { title: "Default — large display", value: "default" },
+          { title: "Compact bold — 26px Avenir Next", value: "compactBold" },
+        ],
+        layout: "radio",
+      },
+      initialValue: "default",
       group: "practiceTabs",
       hidden: ({ parent }) => !parent?.showPracticeTabs,
     }),
@@ -586,12 +639,25 @@ export const priority = defineType({
               title: "Body",
               type: "internationalizedArrayText",
             }),
+            defineField({
+              name: "initiative",
+              title: "Initiative",
+              description:
+                "Link this row to its initiative. The initiative's cover image (or header image) is shown in the right column while the row is active. When unset, the section media / convergence graphic is shown.",
+              type: "reference",
+              to: [{ type: "initiative" }],
+            }),
           ],
           preview: {
-            select: { title: "title", subtitle: "body" },
-            prepare: ({ title, subtitle }) => ({
+            select: {
+              title: "title",
+              subtitle: "body",
+              media: "initiative.coverImage",
+            },
+            prepare: ({ title, subtitle, media }) => ({
               title: i18nValue(title),
               subtitle: i18nValue(subtitle),
+              media,
             }),
           },
         }),
