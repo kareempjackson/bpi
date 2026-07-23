@@ -1430,6 +1430,11 @@ export const ABOUT_PAGE_QUERY = defineQuery(`
     "heroSubheading": ${loc("heroSubheading")},
     heroCta${CTA_PROJECTION},
 
+    "needHeading": ${loc("needHeading")},
+    "needIntro": ${loc("needIntro")},
+    "needStatement": ${loc("needStatement")},
+    "needClosing": ${loc("needClosing")},
+
     "visionHeading": ${loc("visionHeading")},
     "visionDescription": ${loc("visionDescription")},
     visionPrimaryCta${CTA_PROJECTION},

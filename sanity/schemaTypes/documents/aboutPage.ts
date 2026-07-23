@@ -7,6 +7,7 @@ export const aboutPage = defineType({
   groups: [
     { name: "seo", title: "SEO" },
     { name: "hero", title: "Hero", default: true },
+    { name: "need", title: "The Need for Change" },
     { name: "vision", title: "Vision" },
     { name: "difference", title: "Difference We Make" },
     { name: "mission", title: "Mission" },
@@ -57,6 +58,35 @@ export const aboutPage = defineType({
       type: "cta",
       group: "hero",
       initialValue: { label: "Partner with BPI", href: "/contact" },
+    }),
+
+    // ─────────────────────────────────────────── The Need for Change ──
+    // The editorial two-column block that opens the About narrative (sits
+    // directly under the hero). A short label on the left; on the right an
+    // intro paragraph, a large pull-quote statement, then a closing paragraph.
+    defineField({
+      name: "needHeading",
+      title: "Heading",
+      type: "internationalizedArrayString",
+      group: "need",
+    }),
+    defineField({
+      name: "needIntro",
+      title: "Intro paragraph",
+      type: "internationalizedArrayPortableText",
+      group: "need",
+    }),
+    defineField({
+      name: "needStatement",
+      title: "Statement (large pull-quote)",
+      type: "internationalizedArrayPortableText",
+      group: "need",
+    }),
+    defineField({
+      name: "needClosing",
+      title: "Closing paragraph",
+      type: "internationalizedArrayPortableText",
+      group: "need",
     }),
 
     // ───────────────────────────────────────────────────────────── Vision ──

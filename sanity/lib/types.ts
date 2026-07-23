@@ -1145,6 +1145,11 @@ export type AboutPage = {
   heroSubheading: string;
   heroCta: Cta;
 
+  needHeading?: string | null;
+  needIntro?: PortableTextBlock[] | string | null;
+  needStatement?: PortableTextBlock[] | string | null;
+  needClosing?: PortableTextBlock[] | string | null;
+
   visionHeading: string;
   visionDescription: PortableTextBlock[] | string | null;
   visionPrimaryCta: Cta;

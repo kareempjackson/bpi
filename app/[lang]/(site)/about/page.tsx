@@ -257,7 +257,7 @@ export default async function AboutPage({
         </div>
       </section>
 
-      <NeedForChangeSection />
+      <NeedForChangeSection data={data} />
 
       <section
         data-nav-theme="light"
@@ -482,15 +482,19 @@ function staircaseFromFlat(heading: string): string[] {
 // "The need for change" — an image-free editorial two-column section that
 // opens the About narrative, sitting directly above the Vision block. A short
 // label sits on the left; on the right, an intro paragraph leads into a large
-// pull-quote statement, followed by a closing paragraph. Copy is static for
-// now (matches the approved design); it can be lifted into Studio later.
-function NeedForChangeSection() {
-  const heading = "The need for change";
+// pull-quote statement, followed by a closing paragraph. All copy is editable
+// from Studio (WYSIWYG); the approved copy below is the fallback shown until
+// the CMS fields are populated.
+function NeedForChangeSection({ data }: { data: AboutPage }) {
+  const heading = data.needHeading ?? "The need for change";
   const intro =
+    data.needIntro ??
     "In 2020, the COVID-19 pandemic exposed what small island states already knew: when global supply chains fracture, the Caribbean waits longest and receives least. Barbados imported almost every medicine its population needed.";
   const statement =
+    data.needStatement ??
     "That dependency cost the country during the pandemic, and it continues to cost it today.";
   const closing =
+    data.needClosing ??
     "Barbados Pharmaceutical Inc. was established in 2023 by the Government of Barbados, operating under the Ministry of Health and Wellness, to address that structural vulnerability directly. BPI's mandate is to develop the pharmaceutical ecosystem needed to attract investment, build local manufacturing capacity, and position Barbados as a production and distribution hub for CARICOM and beyond.";
 
   return (
@@ -509,23 +513,23 @@ function NeedForChangeSection() {
         </Stagger>
 
         <Stagger className="flex flex-col gap-8 md:gap-10 lg:gap-12">
-          <StaggerItem
-            as="p"
-            className="font-sans font-normal text-[18px] leading-[176%] tracking-[0.48px] align-middle text-black"
-          >
-            {intro}
+          <StaggerItem>
+            <PortableTextBody
+              value={intro}
+              paragraphClassName="font-sans font-normal text-[18px] leading-[176%] tracking-[0.48px] align-middle text-black"
+            />
           </StaggerItem>
-          <StaggerItem
-            as="p"
-            className="font-sans font-bold text-[36px] leading-[176%] tracking-[0.48px] align-middle text-black"
-          >
-            {statement}
+          <StaggerItem>
+            <PortableTextBody
+              value={statement}
+              paragraphClassName="font-sans font-bold text-[36px] leading-[176%] tracking-[0.48px] align-middle text-black"
+            />
           </StaggerItem>
-          <StaggerItem
-            as="p"
-            className="font-sans font-normal text-[18px] leading-[176%] tracking-[0.48px] align-middle text-black"
-          >
-            {closing}
+          <StaggerItem>
+            <PortableTextBody
+              value={closing}
+              paragraphClassName="font-sans font-normal text-[18px] leading-[176%] tracking-[0.48px] align-middle text-black"
+            />
           </StaggerItem>
         </Stagger>
       </div>
