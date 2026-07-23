@@ -267,7 +267,7 @@ export default function Footer({
                     <li key={link.href} className="border-b border-white/15">
                       <CtaLink
                         href={link.href}
-                        className="block py-3 md:py-3.5 text-sm md:text-base text-white/60 transition-colors hover:text-white"
+                        className="block py-3 md:py-3.5 font-display font-light text-[14.65px] leading-[22.69px] tracking-normal align-middle text-white transition-opacity hover:opacity-70"
                       >
                         {link.label}
                       </CtaLink>
@@ -322,7 +322,7 @@ export default function Footer({
           horizontal gutter), separating the legal/social strip
           visually from the centred content above. */}
       <div className="relative z-10 px-6 md:px-10 lg:px-14 pb-12 md:pb-16 lg:pb-20">
-        <div className="mt-16 md:mt-24 lg:mt-32 pt-6 md:pt-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between text-xs md:text-sm text-white/65">
+        <div className="mt-16 md:mt-24 lg:mt-32 pt-6 md:pt-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between font-display font-normal text-[11.1px] leading-[15.6px] tracking-normal align-middle text-white">
           <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-7">
             <span>
               © {year} Barbados Pharmaceutical Inc. {rightsLabel}
@@ -332,7 +332,7 @@ export default function Footer({
                 <li key={link.href}>
                   <CtaLink
                     href={link.href}
-                    className="text-white/60 transition-colors hover:text-white"
+                    className="transition-opacity hover:opacity-70"
                   >
                     {link.label}
                   </CtaLink>
@@ -373,7 +373,7 @@ export default function Footer({
                 );
               })}
             </ul>
-            <span className="text-white/65">
+            <span>
               © {year} Barbados Pharmaceutical Inc. {rightsLabel}
             </span>
           </div>
