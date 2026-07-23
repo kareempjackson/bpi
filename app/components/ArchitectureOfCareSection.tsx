@@ -50,6 +50,14 @@ export default function ArchitectureOfCareSection({
   const candidateRef = useRef<number | null>(null);
   const dwellTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // The default-open first row must survive mount. The reveal animation
+  // translates the list under the cursor, which can fire spurious
+  // mouseenter/mouseleave events; until the user *deliberately* moves the
+  // pointer over the list, we ignore hover opens/closes so row 0 stays open.
+  const interactedRef = useRef(false);
+  const markInteracted = useCallback(() => {
+    interactedRef.current = true;
+  }, []);
 
   const clearDwell = useCallback(() => {
     if (dwellTimer.current) {
@@ -64,7 +72,11 @@ export default function ArchitectureOfCareSection({
     (idx: number) => {
       clearDwell();
       dwellTimer.current = setTimeout(() => {
-        if (!scrollingRef.current && candidateRef.current === idx) {
+        if (
+          interactedRef.current &&
+          !scrollingRef.current &&
+          candidateRef.current === idx
+        ) {
           setActive(idx);
         }
       }, 90);
@@ -92,11 +104,13 @@ export default function ArchitectureOfCareSection({
   const handleListLeave = useCallback(() => {
     candidateRef.current = null;
     clearDwell();
-    setActive(null);
+    // Don't let a spurious mount-time mouseleave close the default-open row.
+    if (interactedRef.current) setActive(null);
   }, [clearDwell]);
 
   // Keyboard focus opens immediately — unaffected by pointer / scroll.
   const handleFocus = useCallback((idx: number) => {
+    interactedRef.current = true;
     candidateRef.current = idx;
     setActive(idx);
   }, []);
@@ -148,6 +162,7 @@ export default function ArchitectureOfCareSection({
           <StaggerItem
             as="ul"
             className="flex flex-col border-b border-primary-500/15"
+            onMouseMove={markInteracted}
             onMouseLeave={handleListLeave}
           >
             {items.map((item, idx) => (
