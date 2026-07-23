@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import BuildingSection from "@/app/components/BuildingSection";
+import CareersSection from "@/app/components/CareersSection";
 import { Stagger, StaggerItem } from "@/app/components/motion";
 import MotionSection from "@/app/components/MotionSection";
 import PortableTextBody from "@/app/components/PortableTextBody";
@@ -15,11 +17,28 @@ import {
   HOME_PAGE_QUERY,
   SECTOR_BY_SLUG_QUERY,
 } from "@/sanity/lib/queries";
-import type { Cta, HomePage, SectorDetail, SocialLink } from "@/sanity/lib/types";
+import type {
+  Cta,
+  HomePage,
+  ResolvedMedia,
+  SectorDetail,
+  SocialLink,
+} from "@/sanity/lib/types";
 import SectorHeader from "./SectorHeader";
 import SectorHighlightSection from "./SectorHighlightSection";
 import SectorBeingBuiltSection from "./SectorBeingBuiltSection";
 import SectorPracticeSection from "./SectorPracticeSection";
+
+/** Poster/still for a resolved media object (image src, or a video's poster). */
+function mediaImageSrc(m: ResolvedMedia | null): string | undefined {
+  if (!m) return undefined;
+  return m.kind === "image" ? m.src : m.poster;
+}
+
+/** Video src for a resolved media object (undefined for images). */
+function mediaVideoSrc(m: ResolvedMedia | null): string | undefined {
+  return m?.kind === "video" ? m.src : undefined;
+}
 
 // Attribution socials fall back to these when the Home leader has none set.
 const DEFAULT_SOCIALS: SocialLink[] = [
@@ -249,6 +268,18 @@ export default async function SectorDetailPage({ params }: RouteProps) {
     { width: 1200 },
   );
 
+  // Closers reuse the Home document's Careers + call-to-action copy/photos so
+  // every sector page ends the same way the home page does.
+  const careersMedia = resolveMedia(homeData?.careersImage, { width: 1600 });
+  const buildingMedia = resolveMedia(homeData?.buildingImage, { width: 1600 });
+
+  // The Careers + CTA closers below are now the single source of those
+  // sections, so drop any legacy careers/cta blocks from the modular zone to
+  // avoid rendering them twice. Any other modular blocks still render.
+  const modularBlocks = (sector.pageSections ?? []).filter(
+    (b) => b._type !== "careersSection" && b._type !== "ctaSection",
+  );
+
   return (
     <main
       className="relative overflow-hidden"
@@ -472,11 +503,43 @@ export default async function SectorDetailPage({ params }: RouteProps) {
         />
       ) : null}
 
+      {/* ── Careers closer — reuses the Home document's copy/photos. ── */}
+      <CareersSection
+        tone="blue"
+        eyebrow={homeData?.careersEyebrow ?? undefined}
+        heading={homeData?.careersHeading ?? undefined}
+        lead={homeData?.careersLead ?? undefined}
+        body={homeData?.careersBody ?? undefined}
+        imageSrc={mediaImageSrc(careersMedia)}
+        videoSrc={mediaVideoSrc(careersMedia)}
+        imageAlt={careersMedia?.alt}
+        primaryLabel={homeData?.careersPrimaryCta?.label}
+        primaryHref={homeData?.careersPrimaryCta?.href}
+        secondaryLabel={homeData?.careersSecondaryCta?.label}
+        secondaryHref={homeData?.careersSecondaryCta?.href}
+      />
+
       {/* ── Modular page sections (editor-managed) ─────────────────── */}
-      <Zone
-        blocks={sector.pageSections as unknown as RenderedBlock[]}
-        lang={lang}
-        contained
+      {modularBlocks.length > 0 ? (
+        <Zone
+          blocks={modularBlocks as unknown as RenderedBlock[]}
+          lang={lang}
+          contained
+        />
+      ) : null}
+
+      {/* ── Call-to-action closer — reuses the Home document's copy. ── */}
+      <BuildingSection
+        tone="blue"
+        headlineLine1={homeData?.buildingHeadlineLine1}
+        headlineLine2={homeData?.buildingHeadlineLine2}
+        imageSrc={mediaImageSrc(buildingMedia)}
+        videoSrc={mediaVideoSrc(buildingMedia)}
+        imageAlt={buildingMedia?.alt}
+        primaryLabel={homeData?.buildingPrimaryCta?.label}
+        primaryHref={homeData?.buildingPrimaryCta?.href}
+        secondaryLabel={homeData?.buildingSecondaryCta?.label}
+        secondaryHref={homeData?.buildingSecondaryCta?.href}
       />
     </main>
   );
